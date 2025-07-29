@@ -11,7 +11,7 @@ It wraps a `fiber.Router` to help you generate an OpenAPI 3.1 specification alon
 - ⚡ **Wraps Fiber’s router** — works just like `fiber.Router` but adds `.With(...)` for OpenAPI metadata.
 - 🏷️ **Supports groups** — define nested routes and tags.
 - 🔐 **Supports security schemes** — API keys, bearer tokens.
-- 📝 **Exports OpenAPI 3.1 spec** — as YAML or JSON.
+- 📝 **Exports OpenAPI 3.1 or OpenAPI 3.0 spec** — as YAML or JSON.
 
 ---
 

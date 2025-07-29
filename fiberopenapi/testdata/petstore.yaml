@@ -58,6 +58,7 @@ paths:
         name: petId
         required: true
         schema:
+          format: int64
           type: integer
       - in: header
         name: api_key
@@ -80,6 +81,7 @@ paths:
         name: petId
         required: true
         schema:
+          format: int64
           type: integer
       responses:
         "200":
@@ -102,6 +104,7 @@ paths:
         name: petId
         required: true
         schema:
+          format: int64
           type: integer
       requestBody:
         content:
@@ -134,6 +137,7 @@ paths:
         name: petId
         required: true
         schema:
+          format: int64
           type: integer
       requestBody:
         content:
@@ -221,6 +225,7 @@ components:
     DtoApiResponse:
       properties:
         code:
+          format: int32
           type: integer
         message:
           type: string
@@ -230,6 +235,7 @@ components:
     DtoCategory:
       properties:
         id:
+          format: int64
           type: integer
         name:
           type: string
@@ -239,6 +245,7 @@ components:
         category:
           $ref: '#/components/schemas/DtoCategory'
         id:
+          format: int64
           type: integer
         name:
           type: string
@@ -265,6 +272,7 @@ components:
     DtoTag:
       properties:
         id:
+          format: int64
           type: integer
         name:
           type: string
