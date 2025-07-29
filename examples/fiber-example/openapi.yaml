@@ -1,0 +1,402 @@
+openapi: 3.1.0
+info:
+  description: This is a sample API
+  title: My API
+  version: 1.0.0
+servers:
+- description: Local server
+  url: http://localhost:3000
+paths:
+  /api/v1/auth/login:
+    post:
+      description: Endpoint for user login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseMainToken'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Request
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResponse'
+          description: Unprocessable Entity
+      summary: User Login
+      tags:
+      - Authentication
+  /api/v1/auth/me:
+    get:
+      description: Endpoint to get the authenticated user's profile
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseMainUser'
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Unauthorized
+      security:
+      - bearerAuth: []
+      summary: Get User Profile
+      tags:
+      - Authentication
+  /api/v1/auth/refresh-token:
+    post:
+      responses:
+        "204":
+          description: No Content
+      tags:
+      - Authentication
+  /api/v1/auth/register:
+    post:
+      description: Endpoint for user registration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseMainToken'
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Request
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResponse'
+          description: Unprocessable Entity
+      summary: User Registration
+      tags:
+      - Authentication
+  /api/v1/profile/delete-account:
+    post:
+      description: Endpoint to delete the user's account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteAccountRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Request
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResponse'
+          description: Unprocessable Entity
+      security:
+      - bearerAuth: []
+      summary: Delete User Account
+      tags:
+      - Profile
+  /api/v1/profile/password:
+    put:
+      description: Endpoint to update the user's password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePasswordRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Request
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResponse'
+          description: Unprocessable Entity
+      security:
+      - bearerAuth: []
+      summary: Update Password
+      tags:
+      - Profile
+  /api/v1/profile/update:
+    put:
+      description: Endpoint to update the user's profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseMainUser'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Request
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResponse'
+          description: Unprocessable Entity
+      security:
+      - bearerAuth: []
+      summary: Update User Profile
+      tags:
+      - Profile
+components:
+  schemas:
+    DeleteAccountRequest:
+      properties:
+        password:
+          examples:
+          - password123
+          type: string
+      required:
+      - password
+      type: object
+    ErrorResponse:
+      properties:
+        detail:
+          examples:
+          - Invalid input data
+          type: string
+        status:
+          examples:
+          - 400
+          type: integer
+        title:
+          examples:
+          - Bad Request
+          type: string
+      type: object
+    FieldError:
+      properties:
+        field:
+          examples:
+          - email
+          type: string
+        message:
+          examples:
+          - Email is required
+          type: string
+      type: object
+    LoginRequest:
+      properties:
+        password:
+          examples:
+          - password123
+          type: string
+        remember_me:
+          examples:
+          - true
+          type: boolean
+        username:
+          examples:
+          - john_doe
+          type: string
+      required:
+      - username
+      - password
+      type: object
+    MessageResponse:
+      properties:
+        message:
+          examples:
+          - Operation successful
+          type: string
+        status:
+          examples:
+          - 200
+          type: integer
+      type: object
+    RegisterRequest:
+      properties:
+        email:
+          examples:
+          - john_doe@example.com
+          type: string
+        name:
+          examples:
+          - John Doe
+          type: string
+        password:
+          examples:
+          - password123
+          type: string
+        password_confirmation:
+          examples:
+          - password123
+          type: string
+        username:
+          examples:
+          - john_doe
+          type: string
+      required:
+      - name
+      - username
+      - email
+      - password
+      - password_confirmation
+      type: object
+    ResponseMainToken:
+      properties:
+        data:
+          $ref: '#/components/schemas/Token'
+        status:
+          examples:
+          - 200
+          type: integer
+      type: object
+    ResponseMainUser:
+      properties:
+        data:
+          $ref: '#/components/schemas/User'
+        status:
+          examples:
+          - 200
+          type: integer
+      type: object
+    Token:
+      properties:
+        access_token:
+          examples:
+          - eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+          type: string
+        refresh_token:
+          examples:
+          - eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+          type: string
+      type: object
+    UpdatePasswordRequest:
+      properties:
+        current_password:
+          examples:
+          - current_password123
+          type: string
+        new_password:
+          examples:
+          - new_password123
+          type: string
+        new_password_confirmation:
+          examples:
+          - new_password123
+          type: string
+      required:
+      - current_password
+      - new_password
+      - new_password_confirmation
+      type: object
+    UpdateProfileRequest:
+      properties:
+        email:
+          examples:
+          - john_doe@example.com
+          type: string
+        name:
+          examples:
+          - John Doe
+          type: string
+        username:
+          examples:
+          - john_doe
+          type: string
+      required:
+      - name
+      - email
+      - username
+      type: object
+    User:
+      properties:
+        email:
+          examples:
+          - john_doe@example.com
+          type: string
+        id:
+          examples:
+          - "12345"
+          type: string
+        name:
+          examples:
+          - John Doe
+          type: string
+        username:
+          examples:
+          - john_doe
+          type: string
+      type: object
+    ValidationResponse:
+      properties:
+        detail:
+          examples:
+          - Input data does not meet validation criteria
+          type: string
+        errors:
+          examples:
+          - - field: email
+              message: Email is required
+          items:
+            $ref: '#/components/schemas/FieldError'
+          type:
+          - array
+          - "null"
+        status:
+          examples:
+          - 422
+          type: integer
+        title:
+          examples:
+          - Validation Error
+          type: string
+      type: object
+  securitySchemes:
+    bearerAuth:
+      scheme: Bearer
+      type: http

@@ -1,0 +1,286 @@
+openapi: 3.0.3
+info:
+  description: This is a sample Pet Store API using OpenAPI 3.1
+  title: Pet Store API - OpenAPI 3.1
+  version: 1.0.0
+servers:
+- description: Pet Store Server
+  url: https://petstore3.swagger.io
+paths:
+  /api/v3/pet:
+    post:
+      description: Add a new pet to the store.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Pet'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pet'
+          description: OK
+      security:
+      - petstore_auth:
+        - write:pets
+        - read:pets
+      summary: Add a new pet to the store.
+      tags:
+      - pet
+    put:
+      description: Update an existing pet by Id.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Pet'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pet'
+          description: OK
+      security:
+      - petstore_auth:
+        - write:pets
+        - read:pets
+      summary: Update an existing pet.
+      tags:
+      - pet
+  /api/v3/pet/{petId}:
+    delete:
+      description: Deletes a pet.
+      parameters:
+      - in: path
+        name: petId
+        required: true
+        schema:
+          type: integer
+      - in: header
+        name: api_key
+        schema:
+          type: string
+      responses:
+        "204":
+          description: No Content
+      security:
+      - petstore_auth:
+        - write:pets
+        - read:pets
+      summary: Deletes a pet.
+      tags:
+      - pet
+    get:
+      description: Returns a single pet.
+      parameters:
+      - in: path
+        name: petId
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pet'
+          description: OK
+      security:
+      - petstore_auth:
+        - write:pets
+        - read:pets
+      summary: Find a pet by ID.
+      tags:
+      - pet
+    post:
+      description: Update a pet resource based on form data.
+      parameters:
+      - in: path
+        name: petId
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FormDataUpdatePetFormDataRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pet'
+          description: OK
+      security:
+      - petstore_auth:
+        - write:pets
+        - read:pets
+      summary: Updates a pet in the store with form data.
+      tags:
+      - pet
+  /api/v3/pet/{petId}/uploadImage:
+    post:
+      description: Uploads image of the pet.
+      parameters:
+      - in: query
+        name: additionalMetadata
+        schema:
+          type: string
+      - in: path
+        name: petId
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+          description: OK
+      security:
+      - petstore_auth:
+        - write:pets
+        - read:pets
+      summary: Uploads an image.
+      tags:
+      - pet
+  /api/v3/pet/findByStatus:
+    get:
+      description: Multiple status values can be provided with comma separated strings
+      parameters:
+      - in: query
+        name: status
+        schema:
+          enum:
+          - available
+          - pending
+          - sold
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Pet'
+                type: array
+          description: OK
+      security:
+      - petstore_auth:
+        - write:pets
+        - read:pets
+      summary: Finds Pets by status.
+      tags:
+      - pet
+  /api/v3/pet/findByTags:
+    get:
+      description: Multiple tags can be provided with comma separated strings. Use
+        tag1, tag2, tag3 for testing.
+      parameters:
+      - in: query
+        name: tags
+        required: false
+        schema:
+          items:
+            type: string
+          type: array
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Pet'
+                type: array
+          description: OK
+      security:
+      - petstore_auth:
+        - write:pets
+        - read:pets
+      summary: Finds Pets by tags.
+      tags:
+      - pet
+components:
+  schemas:
+    ApiResponse:
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        type:
+          type: string
+      type: object
+    Category:
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      type: object
+    FormDataUpdatePetFormDataRequest:
+      properties:
+        name:
+          type: string
+        status:
+          enum:
+          - available
+          - pending
+          - sold
+          type: string
+      required:
+      - name
+      type: object
+    Pet:
+      properties:
+        category:
+          $ref: '#/components/schemas/Category'
+        id:
+          type: integer
+        name:
+          type: string
+        photoUrls:
+          items:
+            type: string
+          nullable: true
+          type: array
+        status:
+          enum:
+          - available
+          - pending
+          - sold
+          type: string
+        tags:
+          items:
+            $ref: '#/components/schemas/Tag'
+          type: array
+      required:
+      - name
+      - photoUrls
+      type: object
+    Tag:
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      type: object
+  securitySchemes:
+    petstore_auth:
+      flows:
+        implicit:
+          authorizationUrl: https://petstore3.swagger.io/oauth/authorize
+          scopes:
+            read:pets: read your pets
+            write:pets: modify pets in your account
+      type: oauth2

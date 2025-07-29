@@ -1,0 +1,65 @@
+openapi: 3.1.0
+info:
+  description: This is a test API for basic_data_types
+  title: Test API basic_data_types
+  version: 1.0.0
+paths:
+  /data-types:
+    post:
+      description: Endpoint to test all basic data types
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DtoAllBasicDataTypes'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DtoAllBasicDataTypes'
+          description: OK
+      summary: All Basic Data Types
+components:
+  schemas:
+    DtoAllBasicDataTypes:
+      properties:
+        bool:
+          type: boolean
+        byte:
+          minimum: 0
+          type: integer
+        float32:
+          type: number
+        float64:
+          type: number
+        int:
+          type: integer
+        int8:
+          type: integer
+        int16:
+          type: integer
+        int32:
+          type: integer
+        int64:
+          type: integer
+        rune:
+          type: integer
+        string:
+          type: string
+        uint:
+          minimum: 0
+          type: integer
+        uint8:
+          minimum: 0
+          type: integer
+        uint16:
+          minimum: 0
+          type: integer
+        uint32:
+          minimum: 0
+          type: integer
+        uint64:
+          minimum: 0
+          type: integer
+      type: object

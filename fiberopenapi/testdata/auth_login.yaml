@@ -1,0 +1,107 @@
+openapi: 3.1.0
+info:
+  description: This is a test API for auth_login
+  title: Test API auth_login
+  version: 1.0.0
+paths:
+  /auth/login:
+    post:
+      description: Endpoint for user login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DtoLoginRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DtoResponseGithubComFaizlabsOpenapiWrapperInternalDtoToken'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DtoErrorResponse'
+          description: Bad Request
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DtoValidationResponse'
+          description: Unprocessable Entity
+      summary: User Login
+components:
+  schemas:
+    DtoErrorResponse:
+      properties:
+        detail:
+          examples:
+          - Invalid input provided
+          type: string
+        status:
+          examples:
+          - 400
+          type: integer
+        title:
+          examples:
+          - Bad Request
+          type: string
+      type: object
+    DtoFieldError:
+      properties:
+        field:
+          examples:
+          - username
+          type: string
+        message:
+          examples:
+          - Username is required
+          type: string
+      type: object
+    DtoLoginRequest:
+      properties:
+        password:
+          type: string
+        username:
+          type: string
+      required:
+      - username
+      - password
+      type: object
+    DtoResponseGithubComFaizlabsOpenapiWrapperInternalDtoToken:
+      properties:
+        data:
+          $ref: '#/components/schemas/DtoToken'
+        status:
+          examples:
+          - 200
+          type: integer
+      type: object
+    DtoToken:
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+      type: object
+    DtoValidationResponse:
+      properties:
+        detail:
+          examples:
+          - Input validation failed
+          type: string
+        errors:
+          items:
+            $ref: '#/components/schemas/DtoFieldError'
+          type: array
+        status:
+          examples:
+          - 422
+          type: integer
+        title:
+          examples:
+          - Validation Error
+          type: string
+      type: object
