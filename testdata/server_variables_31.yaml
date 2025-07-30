@@ -1,0 +1,24 @@
+openapi: 3.1.0
+info:
+  description: This is the API documentation for Server Variables
+  title: 'API Doc: Server Variables'
+  version: 1.0.0
+servers:
+- description: Production Server
+  url: https://api.example.com/{version}
+  variables:
+    version:
+      default: v1
+      description: API version
+      enum:
+      - v1
+      - v2
+- description: Development Server
+  url: https://api.example.dev/{version}
+  variables:
+    version:
+      default: v1
+      description: API version
+      enum:
+      - v1
+      - v2

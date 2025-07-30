@@ -8,14 +8,14 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/oaswrap/spec"
+	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 	"github.com/oaswrap/spec/pkg/testutil"
-	"github.com/oaswrap/spec/pkg/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/swaggest/openapi-go"
 )
 
 var update = flag.Bool("update", false, "update golden files")
@@ -72,52 +72,153 @@ type Token struct {
 	Token string `json:"token" example:"abc123"`
 }
 
+type NullString struct {
+	String string
+	Valid  bool
+}
+type NullTime struct {
+	Time  time.Time
+	Valid bool
+}
+
+type UserProfile struct {
+	ID        int        `json:"id"`
+	Username  string     `json:"username"`
+	Email     NullString `json:"email"`
+	Age       *int       `json:"age,omitempty"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt NullTime   `json:"updated_at"`
+}
+
 func TestGenerator(t *testing.T) {
 	tests := []struct {
 		name   string
 		golden string
-		setup  func(t *testing.T, g *spec.Generator)
+		opts   []option.OpenAPIOption
+		setup  func(g *spec.Generator)
 	}{
 		{
 			name:   "Basic Data Types",
 			golden: "basic_data_types",
-			setup: func(t *testing.T, g *spec.Generator) {
-				op, err := g.NewOperationContext("GET", "/basic-data-types")
-				assert.NoError(t, err)
-				op.SetID("getBasicDataTypes")
-				op.SetSummary("Get Basic Data Types")
-				op.SetDescription("This operation returns all basic data types.")
-				op.AddReqStructure(new(AllBasicDataTypes))
-				op.AddRespStructure(new(AllBasicDataTypes), openapi.WithHTTPStatus(200))
-				assert.NoError(t, g.AddOperation(op))
+			setup: func(g *spec.Generator) {
+				g.Post("/basic-data-types",
+					option.OperationID("getBasicDataTypes"),
+					option.Summary("Get Basic Data Types"),
+					option.Description("This operation returns all basic data types."),
+					option.Request(new(AllBasicDataTypes)),
+					option.Response(200, new(AllBasicDataTypes)),
+				)
 			},
 		},
 		{
 			name:   "Basic Data Types Pointers",
 			golden: "basic_data_types_pointers",
-			setup: func(t *testing.T, g *spec.Generator) {
-				op, err := g.NewOperationContext("GET", "/basic-data-types-pointers")
-				assert.NoError(t, err)
-				op.SetID("getBasicDataTypesPointers")
-				op.SetSummary("Get Basic Data Types Pointers")
-				op.SetDescription("This operation returns all basic data types as pointers.")
-				op.AddReqStructure(new(AllBasicDataTypes))
-				op.AddRespStructure(new(AllBasicDataTypes), openapi.WithHTTPStatus(200))
-				assert.NoError(t, g.AddOperation(op))
+			setup: func(g *spec.Generator) {
+				g.Put("/basic-data-types-pointers",
+					option.OperationID("getBasicDataTypesPointers"),
+					option.Summary("Get Basic Data Types Pointers"),
+					option.Description("This operation returns all basic data types as pointers."),
+					option.Request(new(AllBasicDataTypesPointers)),
+					option.Response(200, new(AllBasicDataTypesPointers)),
+				)
 			},
 		},
 		{
-			name:   "Login Request",
-			golden: "login_request",
-			setup: func(t *testing.T, g *spec.Generator) {
-				op, err := g.NewOperationContext("POST", "/login")
-				assert.NoError(t, err)
-				op.SetID("login")
-				op.SetSummary("User Login")
-				op.SetDescription("This operation allows users to log in.")
-				op.AddReqStructure(new(LoginRequest))
-				op.AddRespStructure(new(Response[Token]), openapi.WithHTTPStatus(200))
-				assert.NoError(t, g.AddOperation(op))
+			name:   "All methods",
+			golden: "all_methods",
+			setup: func(g *spec.Generator) {
+				type UserDetailRequest struct {
+					ID int `path:"id" validate:"required"`
+				}
+				g.Get("/user", option.OperationID("getUser"), option.Summary("Get User"))
+				g.Post("/user", option.OperationID("createUser"), option.Summary("Create User"), option.Response(201, new(string), option.WithContentType("plain/text")))
+				g.Put("/user/{id}", option.OperationID("updateUser"), option.Summary("Update User"), option.Request(new(UserDetailRequest)))
+				g.Patch("/user/{id}", option.OperationID("patchUser"), option.Summary("Patch User"), option.Request(new(UserDetailRequest)))
+				g.Delete("/user/{id}", option.OperationID("deleteUser"), option.Summary("Delete User"), option.Request(new(UserDetailRequest)))
+				g.Head("/user/{id}", option.OperationID("headUser"), option.Summary("Head User"), option.Request(new(UserDetailRequest)))
+				g.Options("/user", option.OperationID("optionsUser"), option.Summary("Options User"))
+				g.Trace("/user/{id}", option.OperationID("traceUser"), option.Summary("Trace User"), option.Request(new(UserDetailRequest)))
+			},
+		},
+		{
+			name:   "Generic Response",
+			golden: "generic_response",
+			opts: []option.OpenAPIOption{
+				option.WithTags(openapi.Tag{
+					Name:        "Authentication",
+					Description: "Operations related to user authentication",
+				}),
+			},
+			setup: func(g *spec.Generator) {
+				g.Post("/login",
+					option.OperationID("login"),
+					option.Summary("User Login"),
+					option.Description("This operation allows users to log in."),
+					option.Tags("Authentication"),
+					option.Request(new(LoginRequest)),
+					option.Response(200, new(Response[Token])),
+				)
+			},
+		},
+		{
+			name:   "Custom Type Mapping",
+			golden: "custom_type_mapping",
+			opts: []option.OpenAPIOption{
+				option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
+				option.WithTypeMapping(NullString{}, new(string)),
+				option.WithTypeMapping(NullTime{}, new(time.Time)),
+			},
+			setup: func(g *spec.Generator) {
+				g.Get("/auth/me",
+					option.OperationID("getUserProfile"),
+					option.Summary("Get User Profile"),
+					option.Description("This operation retrieves the authenticated user's profile."),
+					option.Security("bearerAuth"),
+					option.Request(new(UserProfile)),
+					option.Response(200, new(UserProfile)),
+				)
+			},
+		},
+		{
+			name:   "Server Variables",
+			golden: "server_variables",
+			opts: []option.OpenAPIOption{
+				option.WithServer("https://api.example.com/{version}",
+					option.ServerDescription("Production Server"),
+					option.ServerVariables(map[string]openapi.ServerVariable{
+						"version": {
+							Default:     "v1",
+							Enum:        []string{"v1", "v2"},
+							Description: "API version",
+						},
+					}),
+				),
+				option.WithServer("https://api.example.dev/{version}",
+					option.ServerDescription("Development Server"),
+					option.ServerVariables(map[string]openapi.ServerVariable{
+						"version": {
+							Default:     "v1",
+							Enum:        []string{"v1", "v2"},
+							Description: "API version",
+						},
+					}),
+				),
+			},
+		},
+		{
+			name:   "Spec Information",
+			golden: "spec_information",
+			opts: []option.OpenAPIOption{
+				option.WithContact(openapi.Contact{
+					Name:  "Support Team",
+					URL:   "https://support.example.com",
+					Email: "support@example.com",
+				}),
+				option.WithLicense(openapi.License{
+					Name: "MIT License",
+					URL:  "https://opensource.org/licenses/MIT",
+				}),
+				option.WithExternalDocs("https://docs.example.com", "API Documentation"),
 			},
 		},
 	}
@@ -130,16 +231,22 @@ func TestGenerator(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			for version, alias := range versions {
-				cfg := &spec.Config{
-					Title:       "API Documentation",
-					Version:     "1.0.0",
-					Description: nil,
+				opts := []option.OpenAPIOption{
+					option.WithTitle("API Doc: " + tt.name),
+					option.WithDescription("This is the API documentation for " + tt.name),
+					option.WithOpenAPIVersion(version),
+					option.WithVersion("1.0.0"),
 				}
-				cfg.OpenAPIVersion = version
-				gen, err := spec.NewGenerator(cfg)
-				require.NoError(t, err)
+				if len(tt.opts) > 0 {
+					opts = append(opts, tt.opts...)
+				}
+				gen := spec.NewGenerator(opts...)
 
-				tt.setup(t, gen)
+				if tt.setup != nil {
+					tt.setup(gen)
+				}
+
+				assert.NoError(t, gen.Validate(), "Generator validation failed")
 
 				schema, err := gen.GenerateSchema("yaml")
 				require.NoError(t, err)
@@ -159,187 +266,6 @@ func TestGenerator(t *testing.T) {
 
 				testutil.EqualYAML(t, want, schema)
 			}
-		})
-	}
-}
-
-func TestGenerator_New(t *testing.T) {
-	tests := []struct {
-		name        string
-		opts        []option.OpenAPIOption
-		shouldError bool
-	}{
-		{
-			name: "With Default Config",
-			opts: []option.OpenAPIOption{},
-		},
-		{
-			name: "With Custom Config",
-			opts: []option.OpenAPIOption{
-				option.WithOpenAPIVersion("3.1.0"),
-				option.WithTitle("Custom API"),
-				option.WithVersion("2.0.0"),
-				option.WithDescription("This is a custom API documentation."),
-				option.WithBaseURL("https://api.example.com"),
-			},
-		},
-		{
-			name: "With Servers 3.0.0",
-			opts: []option.OpenAPIOption{
-				option.WithOpenAPIVersion("3.0.0"),
-				option.WithServer("https://api.example.com/v1",
-					option.ServerDescription("Production Server"),
-					option.ServerVariables(map[string]spec.ServerVariable{
-						"version": {
-							Default:     "v1",
-							Enum:        []string{"v1", "v2"},
-							Description: util.PtrOf("API version"),
-						},
-					}),
-				),
-			},
-		},
-		{
-			name: "With Servers 3.1.0",
-			opts: []option.OpenAPIOption{
-				option.WithOpenAPIVersion("3.1.0"),
-				option.WithServer("https://api.example.com/v1",
-					option.ServerDescription("Production Server"),
-					option.ServerVariables(map[string]spec.ServerVariable{
-						"version": {
-							Default:     "v1",
-							Enum:        []string{"v1", "v2"},
-							Description: util.PtrOf("API version"),
-						},
-					}),
-				),
-			},
-		},
-		{
-			name: "With Security Schemes ApiKey 3.0.0",
-			opts: []option.OpenAPIOption{
-				option.WithOpenAPIVersion("3.0.0"),
-				option.WithSecurity("apiKey", option.SecurityAPIKey("x-api-key", "header")),
-			},
-		},
-		{
-			name: "With Security Schemes ApiKey 3.1.0",
-			opts: []option.OpenAPIOption{
-				option.WithOpenAPIVersion("3.1.0"),
-				option.WithSecurity("apiKey", option.SecurityAPIKey("x-api-key", "header")),
-			},
-		},
-		{
-			name: "With Security Schemes Bearer 3.0.0",
-			opts: []option.OpenAPIOption{
-				option.WithOpenAPIVersion("3.0.0"),
-				option.WithSecurity("bearer", option.SecurityHTTPBearer("Bearer")),
-			},
-		},
-		{
-			name: "With Security Schemes Bearer 3.1.0",
-			opts: []option.OpenAPIOption{
-				option.WithOpenAPIVersion("3.1.0"),
-				option.WithSecurity("bearer", option.SecurityHTTPBearer("Bearer")),
-			},
-		},
-		{
-			name: "With Security Schemes OAuth2 3.0.0",
-			opts: []option.OpenAPIOption{
-				option.WithOpenAPIVersion("3.0.0"),
-				option.WithSecurity("oauth2", option.SecurityOAuth2(spec.OAuthFlows{
-					Implicit: &spec.OAuthFlowsDefsImplicit{
-						AuthorizationURL: "https://auth.example.com/oauth/authorize",
-						Scopes: map[string]string{
-							"read":  "Read access",
-							"write": "Write access",
-						},
-					},
-					Password: &spec.OAuthFlowsDefsPassword{
-						TokenURL: "https://auth.example.com/oauth/token",
-						Scopes: map[string]string{
-							"read":  "Read access",
-							"write": "Write access",
-						},
-					},
-					ClientCredentials: &spec.OAuthFlowsDefsClientCredentials{
-						TokenURL: "https://auth.example.com/oauth/token",
-						Scopes: map[string]string{
-							"read":  "Read access",
-							"write": "Write access",
-						},
-					},
-					AuthorizationCode: &spec.OAuthFlowsDefsAuthorizationCode{
-						AuthorizationURL: "https://auth.example.com/oauth/authorize",
-						TokenURL:         "https://auth.example.com/oauth/token",
-						Scopes: map[string]string{
-							"read":  "Read access",
-							"write": "Write access",
-						},
-					},
-				})),
-			},
-		},
-		{
-			name: "With Security Schemes OAuth2 3.1.0",
-			opts: []option.OpenAPIOption{
-				option.WithOpenAPIVersion("3.1.0"),
-				option.WithSecurity("oauth2", option.SecurityOAuth2(spec.OAuthFlows{
-					Implicit: &spec.OAuthFlowsDefsImplicit{
-						AuthorizationURL: "https://auth.example.com/oauth/authorize",
-						Scopes: map[string]string{
-							"read":  "Read access",
-							"write": "Write access",
-						},
-					},
-					Password: &spec.OAuthFlowsDefsPassword{
-						TokenURL: "https://auth.example.com/oauth/token",
-						Scopes: map[string]string{
-							"read":  "Read access",
-							"write": "Write access",
-						},
-					},
-					ClientCredentials: &spec.OAuthFlowsDefsClientCredentials{
-						TokenURL: "https://auth.example.com/oauth/token",
-						Scopes: map[string]string{
-							"read":  "Read access",
-							"write": "Write access",
-						},
-					},
-					AuthorizationCode: &spec.OAuthFlowsDefsAuthorizationCode{
-						AuthorizationURL: "https://auth.example.com/oauth/authorize",
-						TokenURL:         "https://auth.example.com/oauth/token",
-						Scopes: map[string]string{
-							"read":  "Read access",
-							"write": "Write access",
-						},
-					},
-				})),
-			},
-		},
-		{
-			name: "With Invalid OpenAPI Version",
-			opts: []option.OpenAPIOption{
-				option.WithOpenAPIVersion("4.0.0"), // Invalid version
-			},
-			shouldError: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			cfg := &spec.Config{
-				OpenAPIVersion: "3.1.0",
-			}
-			for _, opt := range tt.opts {
-				opt(cfg)
-			}
-			_, err := spec.NewGenerator(cfg)
-			if tt.shouldError {
-				assert.Error(t, err, "expected error but got none")
-				return
-			}
-			assert.NoError(t, err, "unexpected error creating generator")
 		})
 	}
 }
@@ -385,20 +311,18 @@ func TestGenerator_GenerateSchema(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cfg := &spec.Config{
-				OpenAPIVersion: "3.1.0",
-				Title:          "Test API",
-				Version:        "1.0.0",
-			}
-			gen, err := spec.NewGenerator(cfg)
-			require.NoError(t, err)
+			gen := spec.NewGenerator(
+				option.WithOpenAPIVersion("3.1.0"),
+				option.WithTitle("Test API"),
+				option.WithVersion("1.0.0"),
+			)
 
 			// Add a simple operation to ensure we have some content
-			op, err := gen.NewOperationContext("GET", "/test")
-			require.NoError(t, err)
-			op.SetID("test")
-			op.SetSummary("Test operation")
-			require.NoError(t, gen.AddOperation(op))
+			gen.Add("GET", "/test",
+				option.OperationID("test"),
+				option.Summary("Test operation"),
+				option.Description("This is a test operation."),
+			)
 
 			schema, err := gen.GenerateSchema(tt.formats...)
 
@@ -465,20 +389,18 @@ func TestGenerator_WriteSchemaTo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create generator with test configuration
-			cfg := &spec.Config{
-				OpenAPIVersion: "3.1.0",
-				Title:          "Test API",
-				Version:        "1.0.0",
-			}
-			gen, err := spec.NewGenerator(cfg)
-			require.NoError(t, err)
+			gen := spec.NewGenerator(
+				option.WithOpenAPIVersion("3.1.0"),
+				option.WithTitle("Test API"),
+				option.WithVersion("1.0.0"),
+			)
 
 			// Add a simple operation to ensure we have content
-			op, err := gen.NewOperationContext("GET", "/test")
-			require.NoError(t, err)
-			op.SetID("test")
-			op.SetSummary("Test operation")
-			require.NoError(t, gen.AddOperation(op))
+			gen.Add("GET", "/test",
+				option.OperationID("test"),
+				option.Summary("Test operation"),
+				option.Description("This is a test operation."),
+			)
 
 			// Construct full path
 			var fullPath string
@@ -489,7 +411,7 @@ func TestGenerator_WriteSchemaTo(t *testing.T) {
 			}
 
 			// Write schema to file
-			err = gen.WriteSchemaTo(fullPath)
+			err := gen.WriteSchemaTo(fullPath)
 
 			if tt.expectError {
 				assert.Error(t, err)

@@ -27,9 +27,9 @@ func TestHide(t *testing.T) {
 	})
 }
 
-func TestID(t *testing.T) {
+func TestOperationID(t *testing.T) {
 	cfg := &option.OperationConfig{}
-	option.ID("test-operation")(cfg)
+	option.OperationID("test-operation")(cfg)
 	assert.Equal(t, "test-operation", cfg.OperationID)
 }
 

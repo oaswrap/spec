@@ -1,0 +1,100 @@
+openapi: 3.1.0
+info:
+  description: This is the API documentation for All methods
+  title: 'API Doc: All methods'
+  version: 1.0.0
+paths:
+  /user:
+    get:
+      description: Get User
+      operationId: getUser
+      responses:
+        "204":
+          description: No Content
+      summary: Get User
+    options:
+      description: Options User
+      operationId: optionsUser
+      responses:
+        "204":
+          description: No Content
+      summary: Options User
+    post:
+      description: Create User
+      operationId: createUser
+      responses:
+        "201":
+          content:
+            plain/text:
+              schema:
+                type:
+                - "null"
+                - string
+          description: Created
+      summary: Create User
+  /user/{id}:
+    delete:
+      description: Delete User
+      operationId: deleteUser
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "204":
+          description: No Content
+      summary: Delete User
+    head:
+      description: Head User
+      operationId: headUser
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "204":
+          description: No Content
+      summary: Head User
+    patch:
+      description: Patch User
+      operationId: patchUser
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "204":
+          description: No Content
+      summary: Patch User
+    put:
+      description: Update User
+      operationId: updateUser
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "204":
+          description: No Content
+      summary: Update User
+    trace:
+      description: Trace User
+      operationId: traceUser
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "204":
+          description: No Content
+      summary: Trace User

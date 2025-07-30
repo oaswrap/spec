@@ -6,62 +6,77 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/oaswrap/spec/option"
 )
 
 // Generator is responsible for generating OpenAPI documentation.
 type Generator struct {
-	reflector Reflector
-	spec      Spec
-}
-
-var defaultConfig = &Config{
-	OpenAPIVersion:  "3.1.0",
-	Title:           "API Documentation",
-	Version:         "1.0.0",
-	Description:     nil,
-	SecuritySchemes: make(map[string]*SecurityScheme),
+	reflector reflector
+	spec      spec
 }
 
 // NewGenerator creates a new Generator instance with the provided configuration.
-func NewGenerator(configs ...*Config) (*Generator, error) {
-	var cfg *Config
-	if len(configs) > 0 {
-		cfg = configs[0]
-	} else {
-		cfg = defaultConfig
-	}
+func NewGenerator(opts ...option.OpenAPIOption) *Generator {
+	cfg := option.WithOpenAPIConfig(opts...)
 
-	reflector, err := newReflector(cfg)
-	if err != nil {
-		return nil, err
-	}
+	reflector := newReflector(cfg)
 
 	return &Generator{
 		reflector: reflector,
 		spec:      reflector.Spec(),
-	}, nil
+	}
 }
 
-// NewOperationContext creates a new operation context for the specified method and path.
-func (g *Generator) NewOperationContext(method, path string) (OperationContext, error) {
-	operation, err := g.reflector.NewOperationContext(method, path)
-	if err != nil {
-		return nil, err
-	}
-
-	return operation, nil
+// Get registers a new GET operation with the specified path and options.
+func (g *Generator) Get(path string, opts ...option.OperationOption) {
+	g.Add("GET", path, opts...)
 }
 
-// AddOperation adds an operation to the OpenAPI documentation.
-func (g *Generator) AddOperation(ctx OperationContext) error {
-	if err := g.reflector.AddOperation(ctx); err != nil {
-		return err
-	}
+// Post registers a new POST operation with the specified path and options.
+func (g *Generator) Post(path string, opts ...option.OperationOption) {
+	g.Add("POST", path, opts...)
+}
 
-	return nil
+// Put registers a new PUT operation with the specified path and options.
+func (g *Generator) Put(path string, opts ...option.OperationOption) {
+	g.Add("PUT", path, opts...)
+}
+
+// Delete registers a new DELETE operation with the specified path and options.
+func (g *Generator) Delete(path string, opts ...option.OperationOption) {
+	g.Add("DELETE", path, opts...)
+}
+
+// Patch registers a new PATCH operation with the specified path and options.
+func (g *Generator) Patch(path string, opts ...option.OperationOption) {
+	g.Add("PATCH", path, opts...)
+}
+
+// Options registers a new OPTIONS operation with the specified path and options.
+func (g *Generator) Options(path string, opts ...option.OperationOption) {
+	g.Add("OPTIONS", path, opts...)
+}
+
+// Trace registers a new TRACE operation with the specified path and options.
+func (g *Generator) Trace(path string, opts ...option.OperationOption) {
+	g.Add("TRACE", path, opts...)
+}
+
+// Head registers a new HEAD operation with the specified path and options.
+func (g *Generator) Head(path string, opts ...option.OperationOption) {
+	g.Add("HEAD", path, opts...)
+}
+
+// Add registers a new operation with the specified method and path.
+// It applies the provided operation options to the operation context.
+func (g *Generator) Add(method, path string, opts ...option.OperationOption) {
+	g.reflector.Add(method, path, opts...)
 }
 
 // GenerateSchema generates the OpenAPI schema in the specified format (JSON or YAML).
+//
+// By default, it generates YAML. If "json" is specified, it generates JSON.
 func (g *Generator) GenerateSchema(formats ...string) ([]byte, error) {
 	format := "yaml"
 	if len(formats) > 0 {
@@ -94,6 +109,8 @@ func (g *Generator) GenerateSchema(formats ...string) ([]byte, error) {
 }
 
 // WriteSchemaTo writes the OpenAPI schema to the specified file path.
+//
+// The file format is determined by the file extension: ".json" for JSON and ".yaml" for YAML.
 func (g *Generator) WriteSchemaTo(path string) error {
 	format := "yaml"
 	if strings.HasSuffix(path, ".json") {
@@ -104,4 +121,9 @@ func (g *Generator) WriteSchemaTo(path string) error {
 		return err
 	}
 	return os.WriteFile(path, schema, 0644)
+}
+
+// Validate checks if the generated OpenAPI specification is valid.
+func (g *Generator) Validate() error {
+	return g.reflector.Validate()
 }

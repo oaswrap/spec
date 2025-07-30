@@ -1,15 +1,12 @@
 package option
 
-import (
-	"github.com/oaswrap/spec"
-	"github.com/oaswrap/spec/pkg/util"
-)
+import "github.com/oaswrap/spec/openapi"
 
 type securityConfig struct {
 	Description *string
-	APIKey      *spec.SecuritySchemeAPIKey
-	HTTPBearer  *spec.SecuritySchemeHTTPBearer
-	Oauth2      *spec.SecuritySchemeOAuth2
+	APIKey      *openapi.SecuritySchemeAPIKey
+	HTTPBearer  *openapi.SecuritySchemeHTTPBearer
+	Oauth2      *openapi.SecuritySchemeOAuth2
 }
 
 // SecurityOption is a function that applies configuration to a securityConfig.
@@ -27,9 +24,9 @@ func SecurityDescription(description string) SecurityOption {
 }
 
 // SecurityAPIKey creates a security scheme for API key authentication.
-func SecurityAPIKey(name string, in spec.SecuritySchemeAPIKeyIn) SecurityOption {
+func SecurityAPIKey(name string, in openapi.SecuritySchemeAPIKeyIn) SecurityOption {
 	return func(cfg *securityConfig) {
-		cfg.APIKey = &spec.SecuritySchemeAPIKey{
+		cfg.APIKey = &openapi.SecuritySchemeAPIKey{
 			Name: name,
 			In:   in,
 		}
@@ -37,18 +34,22 @@ func SecurityAPIKey(name string, in spec.SecuritySchemeAPIKeyIn) SecurityOption 
 }
 
 // SecurityHTTPBearer creates a security scheme for HTTP Bearer authentication.
-func SecurityHTTPBearer(scheme ...string) SecurityOption {
+func SecurityHTTPBearer(scheme string, bearerFormat ...string) SecurityOption {
 	return func(cfg *securityConfig) {
-		cfg.HTTPBearer = &spec.SecuritySchemeHTTPBearer{
-			Scheme: util.Optional("Bearer", scheme...),
+		httpBearer := &openapi.SecuritySchemeHTTPBearer{
+			Scheme: scheme,
 		}
+		if len(bearerFormat) > 0 {
+			httpBearer.BearerFormat = &bearerFormat[0]
+		}
+		cfg.HTTPBearer = httpBearer
 	}
 }
 
 // SecurityOAuth2 creates a security scheme for OAuth 2.0 authentication.
-func SecurityOAuth2(flows spec.OAuthFlows) SecurityOption {
+func SecurityOAuth2(flows openapi.OAuthFlows) SecurityOption {
 	return func(cfg *securityConfig) {
-		cfg.Oauth2 = &spec.SecuritySchemeOAuth2{
+		cfg.Oauth2 = &openapi.SecuritySchemeOAuth2{
 			Flows: flows,
 		}
 	}

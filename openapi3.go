@@ -1,17 +1,25 @@
 package spec
 
 import (
+	"github.com/oaswrap/spec/internal/mapper"
+	"github.com/oaswrap/spec/openapi"
+	"github.com/oaswrap/spec/option"
 	"github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/openapi-go/openapi3"
 )
 
-func newReflector3(cfg *Config, jsonSchemaOpts []func(*jsonschema.ReflectContext)) Reflector {
+func newReflector3(cfg *openapi.Config, jsonSchemaOpts []func(*jsonschema.ReflectContext)) reflector {
 	reflector := openapi3.NewReflector()
 	spec := reflector.Spec
 	spec.Info.Title = cfg.Title
 	spec.Info.Version = cfg.Version
 	spec.Info.Description = cfg.Description
-	spec.Servers = mapperServers3(cfg.Servers)
+	spec.Info.Contact = mapper.OAS3Contact(cfg.Contact)
+	spec.Info.License = mapper.OAS3License(cfg.License)
+
+	spec.ExternalDocs = mapper.OAS3ExternalDocs(cfg.ExternalDocs)
+	spec.Servers = mapper.OAS3Servers(cfg.Servers)
+	spec.Tags = mapper.OAS3Tags(cfg.Tags)
 
 	if len(cfg.SecuritySchemes) > 0 {
 		spec.Components = &openapi3.Components{}
@@ -19,7 +27,7 @@ func newReflector3(cfg *Config, jsonSchemaOpts []func(*jsonschema.ReflectContext
 			MapOfSecuritySchemeOrRefValues: make(map[string]openapi3.SecuritySchemeOrRef),
 		}
 		for name, scheme := range cfg.SecuritySchemes {
-			openapiScheme := mapperSecurityScheme3(scheme)
+			openapiScheme := mapper.OAS3SecurityScheme(scheme)
 			if openapiScheme == nil {
 				continue // Skip invalid security schemes
 			}
@@ -33,157 +41,66 @@ func newReflector3(cfg *Config, jsonSchemaOpts []func(*jsonschema.ReflectContext
 	// Custom options for JSON schema generation
 	reflector.DefaultOptions = append(reflector.DefaultOptions, jsonSchemaOpts...)
 
-	return &reflector3{reflector: reflector}
+	for _, opt := range cfg.TypeMappings {
+		reflector.AddTypeMapping(opt.Src, opt.Dst)
+	}
+
+	errors := &SpecError{}
+
+	return &reflector3{reflector: reflector, logger: cfg.Logger, errors: errors}
 }
 
 type reflector3 struct {
+	logger    openapi.Logger
+	errors    *SpecError
 	reflector *openapi3.Reflector
 }
 
-func (r *reflector3) AddOperation(oc OperationContext) error {
-	return r.reflector.AddOperation(oc.OpenAPIOperationContext())
+func (r *reflector3) Spec() spec {
+	return r.reflector.Spec
 }
 
-func (r *reflector3) NewOperationContext(method, path string) (OperationContext, error) {
+func (r *reflector3) Add(method, path string, opts ...option.OperationOption) {
+	op, err := r.newOperationContext(method, path)
+	if err != nil {
+		r.errors.add(err)
+		return
+	}
+
+	op.With(opts...)
+
+	if err := r.addOperation(op); err != nil {
+		r.errors.add(err)
+		return
+	}
+}
+
+func (r *reflector3) Validate() error {
+	if r.errors.HasErrors() {
+		return r.errors
+	}
+	return nil
+}
+
+func (r *reflector3) addOperation(oc operationContext) error {
+	if oc == nil {
+		return nil
+	}
+	openapiOC := oc.build()
+	if openapiOC == nil {
+		return nil
+	}
+	return r.reflector.AddOperation(openapiOC)
+}
+
+func (r *reflector3) newOperationContext(method, path string) (operationContext, error) {
 	op, err := r.reflector.NewOperationContext(method, path)
 	if err != nil {
 		return nil, err
 	}
-	return &operationContext{OperationContext: op}, nil
-}
-
-func (r *reflector3) Spec() Spec {
-	return r.reflector.Spec
-}
-
-func mapperServers3(servers []Server) []openapi3.Server {
-	result := make([]openapi3.Server, 0, len(servers))
-	for _, server := range servers {
-		result = append(result, mapperServer3(server))
-	}
-	return result
-}
-
-func mapperServer3(server Server) openapi3.Server {
-	var variables map[string]openapi3.ServerVariable
-
-	if len(server.Variables) > 0 {
-		variables = make(map[string]openapi3.ServerVariable, len(server.Variables))
-		for name, variable := range server.Variables {
-			variables[name] = openapi3.ServerVariable{
-				Default:     variable.Default,
-				Description: variable.Description,
-				Enum:        variable.Enum,
-			}
-		}
-	}
-
-	return openapi3.Server{
-		URL:         server.URL,
-		Description: server.Description,
-		Variables:   variables,
-	}
-}
-
-func mapperSecurityScheme3(scheme *SecurityScheme) *openapi3.SecurityScheme {
-	openapiScheme := &openapi3.SecurityScheme{}
-	if scheme.APIKey != nil {
-		openapiScheme.APIKeySecurityScheme = mapperAPIKey3(scheme, scheme.APIKey)
-	} else if scheme.HTTPBearer != nil {
-		openapiScheme.HTTPSecurityScheme = mapperHTTPBearer3(scheme, scheme.HTTPBearer)
-	} else if scheme.OAuth2 != nil {
-		openapiScheme.OAuth2SecurityScheme = mapperOAuth2SecurityScheme(scheme, scheme.OAuth2)
-	} else {
-		return nil // No valid security scheme found
-	}
-	return openapiScheme
-}
-
-func mapperAPIKey3(scheme *SecurityScheme, apiKey *SecuritySchemeAPIKey) *openapi3.APIKeySecurityScheme {
-	if apiKey == nil {
-		return nil
-	}
-	return &openapi3.APIKeySecurityScheme{
-		Description: scheme.Description,
-		Name:        apiKey.Name,
-		In:          openapi3.APIKeySecuritySchemeIn(apiKey.In),
-	}
-}
-
-func mapperHTTPBearer3(scheme *SecurityScheme, securityScheme *SecuritySchemeHTTPBearer) *openapi3.HTTPSecurityScheme {
-	if securityScheme == nil {
-		return nil
-	}
-	return &openapi3.HTTPSecurityScheme{
-		Description:  scheme.Description,
-		Scheme:       securityScheme.Scheme,
-		BearerFormat: securityScheme.BearerFormat,
-	}
-}
-
-func mapperOAuth2SecurityScheme(scheme *SecurityScheme, oauth2 *SecuritySchemeOAuth2) *openapi3.OAuth2SecurityScheme {
-	if oauth2 == nil {
-		return nil
-	}
-	return &openapi3.OAuth2SecurityScheme{
-		Description: scheme.Description,
-		Flows:       mapperOauth2Flows3(oauth2.Flows),
-	}
-}
-
-func mapperOauth2Flows3(flows OAuthFlows) openapi3.OAuthFlows {
-	return openapi3.OAuthFlows{
-		Implicit:          mapperOauthFlowsDefsImplicit3(flows.Implicit),
-		Password:          mapperOauthFlowsDefsPassword3(flows.Password),
-		ClientCredentials: mapperOauthFlowsDefsClientCredentials3(flows.ClientCredentials),
-		AuthorizationCode: mapperOauthFlowsDefsAuthorizationCode3(flows.AuthorizationCode),
-	}
-}
-
-func mapperOauthFlowsDefsImplicit3(flows *OAuthFlowsDefsImplicit) *openapi3.ImplicitOAuthFlow {
-	if flows == nil {
-		return nil
-	}
-	return &openapi3.ImplicitOAuthFlow{
-		AuthorizationURL: flows.AuthorizationURL,
-		RefreshURL:       flows.RefreshURL,
-		Scopes:           flows.Scopes,
-		MapOfAnything:    flows.MapOfAnything,
-	}
-}
-
-func mapperOauthFlowsDefsPassword3(flows *OAuthFlowsDefsPassword) *openapi3.PasswordOAuthFlow {
-	if flows == nil {
-		return nil
-	}
-	return &openapi3.PasswordOAuthFlow{
-		TokenURL:      flows.TokenURL,
-		RefreshURL:    flows.RefreshURL,
-		Scopes:        flows.Scopes,
-		MapOfAnything: flows.MapOfAnything,
-	}
-}
-
-func mapperOauthFlowsDefsClientCredentials3(flows *OAuthFlowsDefsClientCredentials) *openapi3.ClientCredentialsFlow {
-	if flows == nil {
-		return nil
-	}
-	return &openapi3.ClientCredentialsFlow{
-		TokenURL:      flows.TokenURL,
-		Scopes:        flows.Scopes,
-		MapOfAnything: flows.MapOfAnything,
-	}
-}
-
-func mapperOauthFlowsDefsAuthorizationCode3(flows *OAuthFlowsDefsAuthorizationCode) *openapi3.AuthorizationCodeOAuthFlow {
-	if flows == nil {
-		return nil
-	}
-	return &openapi3.AuthorizationCodeOAuthFlow{
-		AuthorizationURL: flows.AuthorizationURL,
-		TokenURL:         flows.TokenURL,
-		RefreshURL:       flows.RefreshURL,
-		Scopes:           flows.Scopes,
-		MapOfAnything:    flows.MapOfAnything,
-	}
+	return &operationContextImpl{
+		op:     op,
+		logger: r.logger,
+		cfg:    &option.OperationConfig{},
+	}, nil
 }

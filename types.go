@@ -1,19 +1,24 @@
 package spec
 
-import "github.com/swaggest/openapi-go"
+import (
+	"github.com/oaswrap/spec/option"
+	"github.com/swaggest/openapi-go"
+)
 
-type Reflector interface {
-	AddOperation(oc OperationContext) error
-	NewOperationContext(method, path string) (OperationContext, error)
-	Spec() Spec
+type reflector interface {
+	Add(method, path string, opts ...option.OperationOption)
+	Spec() spec
+	Validate() error
 }
 
-type Spec interface {
+type spec interface {
 	MarshalYAML() ([]byte, error)
 	MarshalJSON() ([]byte, error)
 }
 
-type OperationContext interface {
-	openapi.OperationContext
-	OpenAPIOperationContext() openapi.OperationContext
+// operationContext is an interface for managing operation contexts in OpenAPI specifications.
+type operationContext interface {
+	With(opts ...option.OperationOption) operationContext
+	Set(opt option.OperationOption)
+	build() openapi.OperationContext
 }

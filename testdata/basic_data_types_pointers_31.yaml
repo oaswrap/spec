@@ -1,65 +1,98 @@
 openapi: 3.1.0
 info:
-  title: API Documentation
+  description: This is the API documentation for Basic Data Types Pointers
+  title: 'API Doc: Basic Data Types Pointers'
   version: 1.0.0
 paths:
   /basic-data-types-pointers:
-    get:
+    put:
       description: This operation returns all basic data types as pointers.
       operationId: getBasicDataTypesPointers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpecTestAllBasicDataTypesPointers'
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SpecTestAllBasicDataTypes'
+                $ref: '#/components/schemas/SpecTestAllBasicDataTypesPointers'
           description: OK
       summary: Get Basic Data Types Pointers
 components:
   schemas:
-    SpecTestAllBasicDataTypes:
+    SpecTestAllBasicDataTypesPointers:
       properties:
         bool:
-          type: boolean
+          type:
+          - "null"
+          - boolean
         byte:
           minimum: 0
-          type: integer
+          type:
+          - "null"
+          - integer
         float32:
-          format: float
-          type: number
+          type:
+          - "null"
+          - number
         float64:
-          format: double
-          type: number
+          type:
+          - "null"
+          - number
         int:
-          type: integer
+          type:
+          - "null"
+          - integer
         int8:
-          type: integer
+          type:
+          - "null"
+          - integer
         int16:
-          type: integer
+          type:
+          - "null"
+          - integer
         int32:
-          format: int32
-          type: integer
+          type:
+          - "null"
+          - integer
         int64:
-          format: int64
-          type: integer
+          type:
+          - "null"
+          - integer
         rune:
-          format: int32
-          type: integer
+          type:
+          - "null"
+          - integer
         string:
-          type: string
+          type:
+          - "null"
+          - string
         uint:
           minimum: 0
-          type: integer
+          type:
+          - "null"
+          - integer
         uint8:
           minimum: 0
-          type: integer
+          type:
+          - "null"
+          - integer
         uint16:
           minimum: 0
-          type: integer
+          type:
+          - "null"
+          - integer
         uint32:
           minimum: 0
-          type: integer
+          type:
+          - "null"
+          - integer
         uint64:
           minimum: 0
-          type: integer
+          type:
+          - "null"
+          - integer
       type: object

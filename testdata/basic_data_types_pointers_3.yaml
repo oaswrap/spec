@@ -1,60 +1,82 @@
 openapi: 3.0.3
 info:
-  title: API Documentation
+  description: This is the API documentation for Basic Data Types Pointers
+  title: 'API Doc: Basic Data Types Pointers'
   version: 1.0.0
 paths:
   /basic-data-types-pointers:
-    get:
+    put:
       description: This operation returns all basic data types as pointers.
       operationId: getBasicDataTypesPointers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpecTestAllBasicDataTypesPointers'
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SpecTestAllBasicDataTypes'
+                $ref: '#/components/schemas/SpecTestAllBasicDataTypesPointers'
           description: OK
       summary: Get Basic Data Types Pointers
 components:
   schemas:
-    SpecTestAllBasicDataTypes:
+    SpecTestAllBasicDataTypesPointers:
       properties:
         bool:
+          nullable: true
           type: boolean
         byte:
           minimum: 0
+          nullable: true
           type: integer
         float32:
+          nullable: true
           type: number
         float64:
+          nullable: true
           type: number
         int:
+          nullable: true
           type: integer
         int8:
+          nullable: true
           type: integer
         int16:
+          nullable: true
           type: integer
         int32:
+          nullable: true
           type: integer
         int64:
+          nullable: true
           type: integer
         rune:
+          nullable: true
           type: integer
         string:
+          nullable: true
           type: string
         uint:
           minimum: 0
+          nullable: true
           type: integer
         uint8:
           minimum: 0
+          nullable: true
           type: integer
         uint16:
           minimum: 0
+          nullable: true
           type: integer
         uint32:
           minimum: 0
+          nullable: true
           type: integer
         uint64:
           minimum: 0
+          nullable: true
           type: integer
       type: object
