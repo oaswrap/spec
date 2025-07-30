@@ -88,34 +88,46 @@ func mapperServer3(server Server) openapi3.Server {
 func mapperSecurityScheme3(scheme *SecurityScheme) *openapi3.SecurityScheme {
 	openapiScheme := &openapi3.SecurityScheme{}
 	if scheme.APIKey != nil {
-		openapiScheme.APIKeySecurityScheme = mapperAPIKey3(scheme.APIKey)
+		openapiScheme.APIKeySecurityScheme = mapperAPIKey3(scheme, scheme.APIKey)
 	} else if scheme.HTTPBearer != nil {
-		openapiScheme.HTTPSecurityScheme = mapperHTTPBearer3(scheme.HTTPBearer)
+		openapiScheme.HTTPSecurityScheme = mapperHTTPBearer3(scheme, scheme.HTTPBearer)
 	} else if scheme.OAuth2 != nil {
-		openapiScheme.OAuth2SecurityScheme = mapperOAuth2SecurityScheme(scheme.OAuth2)
+		openapiScheme.OAuth2SecurityScheme = mapperOAuth2SecurityScheme(scheme, scheme.OAuth2)
 	} else {
 		return nil // No valid security scheme found
 	}
 	return openapiScheme
 }
 
-func mapperAPIKey3(apiKey *SecuritySchemeAPIKey) *openapi3.APIKeySecurityScheme {
+func mapperAPIKey3(scheme *SecurityScheme, apiKey *SecuritySchemeAPIKey) *openapi3.APIKeySecurityScheme {
+	if apiKey == nil {
+		return nil
+	}
 	return &openapi3.APIKeySecurityScheme{
-		Name: apiKey.Name,
-		In:   openapi3.APIKeySecuritySchemeIn(apiKey.In),
+		Description: scheme.Description,
+		Name:        apiKey.Name,
+		In:          openapi3.APIKeySecuritySchemeIn(apiKey.In),
 	}
 }
 
-func mapperHTTPBearer3(scheme *SecuritySchemeHTTPBearer) *openapi3.HTTPSecurityScheme {
+func mapperHTTPBearer3(scheme *SecurityScheme, securityScheme *SecuritySchemeHTTPBearer) *openapi3.HTTPSecurityScheme {
+	if securityScheme == nil {
+		return nil
+	}
 	return &openapi3.HTTPSecurityScheme{
-		Scheme:       scheme.Scheme,
-		BearerFormat: scheme.BearerFormat,
+		Description:  scheme.Description,
+		Scheme:       securityScheme.Scheme,
+		BearerFormat: securityScheme.BearerFormat,
 	}
 }
 
-func mapperOAuth2SecurityScheme(oauth2 *SecuritySchemeOAuth2) *openapi3.OAuth2SecurityScheme {
+func mapperOAuth2SecurityScheme(scheme *SecurityScheme, oauth2 *SecuritySchemeOAuth2) *openapi3.OAuth2SecurityScheme {
+	if oauth2 == nil {
+		return nil
+	}
 	return &openapi3.OAuth2SecurityScheme{
-		Flows: mapperOauth2Flows3(oauth2.Flows),
+		Description: scheme.Description,
+		Flows:       mapperOauth2Flows3(oauth2.Flows),
 	}
 }
 
@@ -129,6 +141,9 @@ func mapperOauth2Flows3(flows OAuthFlows) openapi3.OAuthFlows {
 }
 
 func mapperOauthFlowsDefsImplicit3(flows *OAuthFlowsDefsImplicit) *openapi3.ImplicitOAuthFlow {
+	if flows == nil {
+		return nil
+	}
 	return &openapi3.ImplicitOAuthFlow{
 		AuthorizationURL: flows.AuthorizationURL,
 		RefreshURL:       flows.RefreshURL,
@@ -138,6 +153,9 @@ func mapperOauthFlowsDefsImplicit3(flows *OAuthFlowsDefsImplicit) *openapi3.Impl
 }
 
 func mapperOauthFlowsDefsPassword3(flows *OAuthFlowsDefsPassword) *openapi3.PasswordOAuthFlow {
+	if flows == nil {
+		return nil
+	}
 	return &openapi3.PasswordOAuthFlow{
 		TokenURL:      flows.TokenURL,
 		RefreshURL:    flows.RefreshURL,
@@ -147,6 +165,9 @@ func mapperOauthFlowsDefsPassword3(flows *OAuthFlowsDefsPassword) *openapi3.Pass
 }
 
 func mapperOauthFlowsDefsClientCredentials3(flows *OAuthFlowsDefsClientCredentials) *openapi3.ClientCredentialsFlow {
+	if flows == nil {
+		return nil
+	}
 	return &openapi3.ClientCredentialsFlow{
 		TokenURL:      flows.TokenURL,
 		Scopes:        flows.Scopes,
@@ -155,6 +176,9 @@ func mapperOauthFlowsDefsClientCredentials3(flows *OAuthFlowsDefsClientCredentia
 }
 
 func mapperOauthFlowsDefsAuthorizationCode3(flows *OAuthFlowsDefsAuthorizationCode) *openapi3.AuthorizationCodeOAuthFlow {
+	if flows == nil {
+		return nil
+	}
 	return &openapi3.AuthorizationCodeOAuthFlow{
 		AuthorizationURL: flows.AuthorizationURL,
 		TokenURL:         flows.TokenURL,

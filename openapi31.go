@@ -101,6 +101,9 @@ func mapperSecurityScheme31(scheme *SecurityScheme) *openapi31.SecurityScheme {
 }
 
 func mapperAPIKey31(apiKey *SecuritySchemeAPIKey) *openapi31.SecuritySchemeAPIKey {
+	if apiKey == nil {
+		return nil
+	}
 	return &openapi31.SecuritySchemeAPIKey{
 		Name: apiKey.Name,
 		In:   openapi31.SecuritySchemeAPIKeyIn(apiKey.In),
@@ -108,6 +111,9 @@ func mapperAPIKey31(apiKey *SecuritySchemeAPIKey) *openapi31.SecuritySchemeAPIKe
 }
 
 func mapperHTTPBearer31(scheme *SecuritySchemeHTTPBearer) *openapi31.SecuritySchemeHTTPBearer {
+	if scheme == nil {
+		return nil
+	}
 	return &openapi31.SecuritySchemeHTTPBearer{
 		Scheme:       scheme.Scheme,
 		BearerFormat: scheme.BearerFormat,
@@ -115,6 +121,9 @@ func mapperHTTPBearer31(scheme *SecuritySchemeHTTPBearer) *openapi31.SecuritySch
 }
 
 func mapperSecuritySchemeOauth2(oauth2 *SecuritySchemeOAuth2) *openapi31.SecuritySchemeOauth2 {
+	if oauth2 == nil {
+		return nil
+	}
 	return &openapi31.SecuritySchemeOauth2{
 		Flows: mapperOauth2Flows31(oauth2.Flows),
 	}
@@ -130,6 +139,9 @@ func mapperOauth2Flows31(flows OAuthFlows) openapi31.OauthFlows {
 }
 
 func mapperOauthFlowsDefsImplicit31(flows *OAuthFlowsDefsImplicit) *openapi31.OauthFlowsDefsImplicit {
+	if flows == nil {
+		return nil
+	}
 	return &openapi31.OauthFlowsDefsImplicit{
 		AuthorizationURL: flows.AuthorizationURL,
 		RefreshURL:       flows.RefreshURL,
@@ -139,6 +151,9 @@ func mapperOauthFlowsDefsImplicit31(flows *OAuthFlowsDefsImplicit) *openapi31.Oa
 }
 
 func mapperOauthFlowsDefsPassword31(flows *OAuthFlowsDefsPassword) *openapi31.OauthFlowsDefsPassword {
+	if flows == nil {
+		return nil
+	}
 	return &openapi31.OauthFlowsDefsPassword{
 		TokenURL:      flows.TokenURL,
 		RefreshURL:    flows.RefreshURL,
@@ -148,6 +163,9 @@ func mapperOauthFlowsDefsPassword31(flows *OAuthFlowsDefsPassword) *openapi31.Oa
 }
 
 func mapperOauthFlowsDefsClientCredentials31(flows *OAuthFlowsDefsClientCredentials) *openapi31.OauthFlowsDefsClientCredentials {
+	if flows == nil {
+		return nil
+	}
 	return &openapi31.OauthFlowsDefsClientCredentials{
 		TokenURL:      flows.TokenURL,
 		Scopes:        flows.Scopes,
@@ -156,6 +174,9 @@ func mapperOauthFlowsDefsClientCredentials31(flows *OAuthFlowsDefsClientCredenti
 }
 
 func mapperOauthFlowsDefsAuthorizationCode31(flows *OAuthFlowsDefsAuthorizationCode) *openapi31.OauthFlowsDefsAuthorizationCode {
+	if flows == nil {
+		return nil
+	}
 	return &openapi31.OauthFlowsDefsAuthorizationCode{
 		AuthorizationURL: flows.AuthorizationURL,
 		TokenURL:         flows.TokenURL,
