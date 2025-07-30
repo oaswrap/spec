@@ -1,4 +1,37 @@
-package option
+package openapi
+
+// Contact structure is generated from "#/$defs/contact".
+type Contact struct {
+	Name          string
+	URL           string         // Format: uri.
+	Email         string         // Format: email.
+	MapOfAnything map[string]any // Key must match pattern: `^x-`.
+}
+
+// License structure is generated from "#/$defs/license".
+type License struct {
+	Name          string // Required.
+	Identifier    string
+	URL           string         // Format: uri.
+	MapOfAnything map[string]any // Key must match pattern: `^x-`.
+}
+
+// Tag structure is generated from "#/definitions/Tag".
+type Tag struct {
+	Name          string // Required.
+	Description   string
+	ExternalDocs  *ExternalDocs
+	MapOfAnything map[string]any // Key must match pattern: `^x-`.
+}
+
+// ExternalDocs structure is generated from "#/$defs/external-documentation".
+type ExternalDocs struct {
+	Description string
+	// Format: uri.
+	// Required.
+	URL           string
+	MapOfAnything map[string]any // Key must match pattern: `^x-`.
+}
 
 // Server structure is generated from "#/$defs/server".
 type Server struct {

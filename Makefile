@@ -19,16 +19,16 @@ test-update:
 	@gotestsum --format standard-quiet -- -update $(PKG)
 
 # Run tests with coverage and generate report
-.PHONY: coverage
-coverage:
+.PHONY: testcov
+testcov:
 	@echo "Running tests with gotestsum and coverage..."
 	@gotestsum --format standard-quiet -- -coverprofile=$(COVERAGE_FILE) $(PKG)
 	@go tool cover -func=$(COVERAGE_FILE)
-	@echo "Open HTML coverage report: make coverage-html"
+	@echo "Open HTML coverage report: make testcov-html"
 
 # Open HTML coverage report
-.PHONY: coverage-html
-coverage-html:
+.PHONY: testcov-html
+testcov-html:
 	@go tool cover -html=$(COVERAGE_FILE)
 
 # Format code

@@ -1,30 +1,31 @@
 package spec
 
 import (
+	specopenapi "github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 	"github.com/swaggest/openapi-go"
 )
 
-var _ OperationContext = (*operationContext)(nil)
+var _ operationContext = (*operationContextImpl)(nil)
 
-type operationContext struct {
+type operationContextImpl struct {
 	op     openapi.OperationContext
 	cfg    *option.OperationConfig
-	logger option.Logger
+	logger specopenapi.Logger
 }
 
-func (oc *operationContext) With(opts ...option.OperationOption) OperationContext {
+func (oc *operationContextImpl) With(opts ...option.OperationOption) operationContext {
 	for _, opt := range opts {
 		opt(oc.cfg)
 	}
 	return oc
 }
 
-func (oc *operationContext) Set(opt option.OperationOption) {
+func (oc *operationContextImpl) Set(opt option.OperationOption) {
 	opt(oc.cfg)
 }
 
-func (oc *operationContext) build() openapi.OperationContext {
+func (oc *operationContextImpl) build() openapi.OperationContext {
 	path := oc.op.Method() + " " + oc.op.PathPattern()
 
 	cfg := oc.cfg

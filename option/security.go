@@ -1,10 +1,12 @@
 package option
 
+import "github.com/oaswrap/spec/openapi"
+
 type securityConfig struct {
 	Description *string
-	APIKey      *SecuritySchemeAPIKey
-	HTTPBearer  *SecuritySchemeHTTPBearer
-	Oauth2      *SecuritySchemeOAuth2
+	APIKey      *openapi.SecuritySchemeAPIKey
+	HTTPBearer  *openapi.SecuritySchemeHTTPBearer
+	Oauth2      *openapi.SecuritySchemeOAuth2
 }
 
 // SecurityOption is a function that applies configuration to a securityConfig.
@@ -22,9 +24,9 @@ func SecurityDescription(description string) SecurityOption {
 }
 
 // SecurityAPIKey creates a security scheme for API key authentication.
-func SecurityAPIKey(name string, in SecuritySchemeAPIKeyIn) SecurityOption {
+func SecurityAPIKey(name string, in openapi.SecuritySchemeAPIKeyIn) SecurityOption {
 	return func(cfg *securityConfig) {
-		cfg.APIKey = &SecuritySchemeAPIKey{
+		cfg.APIKey = &openapi.SecuritySchemeAPIKey{
 			Name: name,
 			In:   in,
 		}
@@ -34,7 +36,7 @@ func SecurityAPIKey(name string, in SecuritySchemeAPIKeyIn) SecurityOption {
 // SecurityHTTPBearer creates a security scheme for HTTP Bearer authentication.
 func SecurityHTTPBearer(scheme string, bearerFormat ...string) SecurityOption {
 	return func(cfg *securityConfig) {
-		httpBearer := &SecuritySchemeHTTPBearer{
+		httpBearer := &openapi.SecuritySchemeHTTPBearer{
 			Scheme: scheme,
 		}
 		if len(bearerFormat) > 0 {
@@ -45,9 +47,9 @@ func SecurityHTTPBearer(scheme string, bearerFormat ...string) SecurityOption {
 }
 
 // SecurityOAuth2 creates a security scheme for OAuth 2.0 authentication.
-func SecurityOAuth2(flows OAuthFlows) SecurityOption {
+func SecurityOAuth2(flows openapi.OAuthFlows) SecurityOption {
 	return func(cfg *securityConfig) {
-		cfg.Oauth2 = &SecuritySchemeOAuth2{
+		cfg.Oauth2 = &openapi.SecuritySchemeOAuth2{
 			Flows: flows,
 		}
 	}

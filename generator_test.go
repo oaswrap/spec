@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/oaswrap/spec"
+	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 	"github.com/oaswrap/spec/pkg/testutil"
 	"github.com/stretchr/testify/assert"
@@ -143,7 +144,7 @@ func TestGenerator(t *testing.T) {
 			name:   "Generic Response",
 			golden: "generic_response",
 			opts: []option.OpenAPIOption{
-				option.WithTags(option.Tag{
+				option.WithTags(openapi.Tag{
 					Name:        "Authentication",
 					Description: "Operations related to user authentication",
 				}),
@@ -184,7 +185,7 @@ func TestGenerator(t *testing.T) {
 			opts: []option.OpenAPIOption{
 				option.WithServer("https://api.example.com/{version}",
 					option.ServerDescription("Production Server"),
-					option.ServerVariables(map[string]option.ServerVariable{
+					option.ServerVariables(map[string]openapi.ServerVariable{
 						"version": {
 							Default:     "v1",
 							Enum:        []string{"v1", "v2"},
@@ -194,7 +195,7 @@ func TestGenerator(t *testing.T) {
 				),
 				option.WithServer("https://api.example.dev/{version}",
 					option.ServerDescription("Development Server"),
-					option.ServerVariables(map[string]option.ServerVariable{
+					option.ServerVariables(map[string]openapi.ServerVariable{
 						"version": {
 							Default:     "v1",
 							Enum:        []string{"v1", "v2"},
@@ -208,12 +209,12 @@ func TestGenerator(t *testing.T) {
 			name:   "Spec Information",
 			golden: "spec_information",
 			opts: []option.OpenAPIOption{
-				option.WithContact(option.Contact{
+				option.WithContact(openapi.Contact{
 					Name:  "Support Team",
 					URL:   "https://support.example.com",
 					Email: "support@example.com",
 				}),
-				option.WithLicense(option.License{
+				option.WithLicense(openapi.License{
 					Name: "MIT License",
 					URL:  "https://opensource.org/licenses/MIT",
 				}),

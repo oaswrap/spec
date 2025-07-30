@@ -12,23 +12,13 @@ import (
 
 // Generator is responsible for generating OpenAPI documentation.
 type Generator struct {
-	reflector Reflector
-	spec      Spec
+	reflector reflector
+	spec      spec
 }
 
 // NewGenerator creates a new Generator instance with the provided configuration.
 func NewGenerator(opts ...option.OpenAPIOption) (*Generator, error) {
-	cfg := &option.OpenAPI{
-		OpenAPIVersion:  "3.1.0",
-		Title:           "API Documentation",
-		Version:         "1.0.0",
-		Description:     nil,
-		SecuritySchemes: make(map[string]*option.SecurityScheme),
-		Logger:          option.NoopLogger{},
-	}
-	for _, opt := range opts {
-		opt(cfg)
-	}
+	cfg := option.WithOpenAPIConfig(opts...)
 
 	reflector, err := newReflector(cfg)
 	if err != nil {
@@ -71,6 +61,7 @@ func (g *Generator) Options(path string, opts ...option.OperationOption) {
 	g.Add("OPTIONS", path, opts...)
 }
 
+// Trace registers a new TRACE operation with the specified path and options.
 func (g *Generator) Trace(path string, opts ...option.OperationOption) {
 	g.Add("TRACE", path, opts...)
 }
@@ -135,6 +126,7 @@ func (g *Generator) WriteSchemaTo(path string) error {
 	return os.WriteFile(path, schema, 0644)
 }
 
+// Validate checks if the generated OpenAPI specification is valid.
 func (g *Generator) Validate() error {
 	return g.reflector.Validate()
 }

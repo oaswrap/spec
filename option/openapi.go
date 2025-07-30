@@ -3,104 +3,40 @@ package option
 import (
 	"log"
 
+	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/pkg/util"
 )
 
-// Config holds the configuration for OpenAPI documentation generation.
-type OpenAPI struct {
-	OpenAPIVersion string // OpenAPI version, e.g., "3.1.0"
+type OpenAPIOption func(*openapi.Config)
 
-	Title       string   // Title of the API
-	Version     string   // Version of the API
-	Description *string  // Optional description of the API
-	Contact     *Contact // Contact information for the API
-	License     *License // License information for the API
+type noopLogger struct{}
 
-	Servers         []Server                   // List of servers for the API
-	SecuritySchemes map[string]*SecurityScheme // Security schemes for the API
-	Tags            []Tag                      // Tags for the API
-	ExternalDocs    *ExternalDocs              // External documentation for the API
+func (l noopLogger) Printf(format string, v ...any) {}
 
-	TypeMappings []TypeMapping // Custom type mappings for OpenAPI generation
+// WithOpenAPIConfig creates a new OpenAPI configuration with the provided options.
+// It initializes the configuration with default values and applies the provided options.
+func WithOpenAPIConfig(opts ...OpenAPIOption) *openapi.Config {
+	cfg := &openapi.Config{
+		OpenAPIVersion:  "3.1.0",
+		Title:           "API Documentation",
+		Version:         "1.0.0",
+		Description:     nil,
+		SecuritySchemes: make(map[string]*openapi.SecurityScheme),
+		Logger:          &noopLogger{},
+	}
 
-	DisableOpenAPI bool
-	BaseURL        string
-	DocsPath       string
-	SwaggerConfig  *SwaggerConfig
-	Logger         Logger
+	for _, opt := range opts {
+		opt(cfg)
+	}
+
+	return cfg
 }
-
-// TypeMapping holds a mapping between source and destination types.
-type TypeMapping struct {
-	Src any // Source type
-	Dst any // Destination type
-}
-
-// Contact structure is generated from "#/$defs/contact".
-type Contact struct {
-	Name          string
-	URL           string         // Format: uri.
-	Email         string         // Format: email.
-	MapOfAnything map[string]any // Key must match pattern: `^x-`.
-}
-
-// License structure is generated from "#/$defs/license".
-type License struct {
-	Name          string // Required.
-	Identifier    string
-	URL           string         // Format: uri.
-	MapOfAnything map[string]any // Key must match pattern: `^x-`.
-}
-
-// Tag structure is generated from "#/definitions/Tag".
-type Tag struct {
-	Name          string // Required.
-	Description   string
-	ExternalDocs  *ExternalDocs
-	MapOfAnything map[string]any // Key must match pattern: `^x-`.
-}
-
-// ExternalDocs structure is generated from "#/$defs/external-documentation".
-type ExternalDocs struct {
-	Description string
-	// Format: uri.
-	// Required.
-	URL           string
-	MapOfAnything map[string]any // Key must match pattern: `^x-`.
-}
-
-// SwaggerConfig holds the configuration for Swagger UI.
-type SwaggerConfig struct {
-	ShowTopBar         bool
-	HideCurl           bool
-	JsonEditor         bool
-	PreAuthorizeApiKey map[string]string
-
-	// SettingsUI contains keys and plain javascript values of SwaggerUIBundle configuration.
-	// Overrides default values.
-	// See https://swagger.io/docs/open-source-tools/swagger-ui/usage/configuration/ for available options.
-	SettingsUI map[string]string
-
-	// Proxy enables proxying requests through swgui handler.
-	// Can be useful if API is not directly available due to CORS policy.
-	Proxy bool
-}
-
-type Logger interface {
-	Printf(format string, v ...any)
-}
-
-type NoopLogger struct{}
-
-func (l NoopLogger) Printf(format string, v ...any) {}
-
-type OpenAPIOption func(*OpenAPI)
 
 // WithOpenAPIVersion sets the OpenAPI version for the documentation.
 // The default version is "3.1.0".
 // Supported versions are "3.0.0" and "3.1.0".
 func WithOpenAPIVersion(version string) OpenAPIOption {
-	return func(c *OpenAPI) {
+	return func(c *openapi.Config) {
 		c.OpenAPIVersion = version
 	}
 }
@@ -111,64 +47,64 @@ func WithOpenAPIVersion(version string) OpenAPIOption {
 //
 // This can be useful in production environments where you want to disable the documentation.
 func WithDisableOpenAPI(disable ...bool) OpenAPIOption {
-	return func(c *OpenAPI) {
+	return func(c *openapi.Config) {
 		c.DisableOpenAPI = util.Optional(true, disable...)
 	}
 }
 
 // WithBaseURL sets the base URL for the OpenAPI documentation.
 func WithBaseURL(baseURL string) OpenAPIOption {
-	return func(c *OpenAPI) {
+	return func(c *openapi.Config) {
 		c.BaseURL = baseURL
 	}
 }
 
 // WithTitle sets the title for the OpenAPI documentation.
 func WithTitle(title string) OpenAPIOption {
-	return func(c *OpenAPI) {
+	return func(c *openapi.Config) {
 		c.Title = title
 	}
 }
 
 // WithVersion sets the version for the OpenAPI documentation.
 func WithVersion(version string) OpenAPIOption {
-	return func(c *OpenAPI) {
+	return func(c *openapi.Config) {
 		c.Version = version
 	}
 }
 
 // WithDescription sets the description for the OpenAPI documentation.
 func WithDescription(description string) OpenAPIOption {
-	return func(c *OpenAPI) {
+	return func(c *openapi.Config) {
 		c.Description = &description
 	}
 }
 
 // WithContact sets the contact information for the OpenAPI documentation.
-func WithContact(contact Contact) OpenAPIOption {
-	return func(c *OpenAPI) {
+func WithContact(contact openapi.Contact) OpenAPIOption {
+	return func(c *openapi.Config) {
 		c.Contact = &contact
 	}
 }
 
 // WithLicense sets the license information for the OpenAPI documentation.
-func WithLicense(license License) OpenAPIOption {
-	return func(c *OpenAPI) {
+func WithLicense(license openapi.License) OpenAPIOption {
+	return func(c *openapi.Config) {
 		c.License = &license
 	}
 }
 
 // WithTags adds tags to the OpenAPI documentation.
-func WithTags(tags ...Tag) OpenAPIOption {
-	return func(c *OpenAPI) {
+func WithTags(tags ...openapi.Tag) OpenAPIOption {
+	return func(c *openapi.Config) {
 		c.Tags = append(c.Tags, tags...)
 	}
 }
 
 // WithServer adds a server to the OpenAPI documentation.
 func WithServer(url string, opts ...ServerOption) OpenAPIOption {
-	return func(c *OpenAPI) {
-		server := Server{
+	return func(c *openapi.Config) {
+		server := openapi.Server{
 			URL: url,
 		}
 		for _, opt := range opts {
@@ -180,8 +116,8 @@ func WithServer(url string, opts ...ServerOption) OpenAPIOption {
 
 // WithExternalDocs sets the external documentation for the OpenAPI documentation.
 func WithExternalDocs(url string, description ...string) OpenAPIOption {
-	return func(c *OpenAPI) {
-		externalDocs := &ExternalDocs{
+	return func(c *openapi.Config) {
+		externalDocs := &openapi.ExternalDocs{
 			URL: url,
 		}
 		if len(description) > 0 {
@@ -195,27 +131,27 @@ func WithExternalDocs(url string, description ...string) OpenAPIOption {
 //
 // It can be used to define API key or HTTP Bearer authentication schemes.
 func WithSecurity(name string, opts ...SecurityOption) OpenAPIOption {
-	return func(c *OpenAPI) {
+	return func(c *openapi.Config) {
 		securityConfig := &securityConfig{}
 		for _, opt := range opts {
 			opt(securityConfig)
 		}
 		if c.SecuritySchemes == nil {
-			c.SecuritySchemes = make(map[string]*SecurityScheme)
+			c.SecuritySchemes = make(map[string]*openapi.SecurityScheme)
 		}
 
 		if securityConfig.APIKey != nil {
-			c.SecuritySchemes[name] = &SecurityScheme{
+			c.SecuritySchemes[name] = &openapi.SecurityScheme{
 				Description: securityConfig.Description,
 				APIKey:      securityConfig.APIKey,
 			}
 		} else if securityConfig.HTTPBearer != nil {
-			c.SecuritySchemes[name] = &SecurityScheme{
+			c.SecuritySchemes[name] = &openapi.SecurityScheme{
 				Description: securityConfig.Description,
 				HTTPBearer:  securityConfig.HTTPBearer,
 			}
 		} else if securityConfig.Oauth2 != nil {
-			c.SecuritySchemes[name] = &SecurityScheme{
+			c.SecuritySchemes[name] = &openapi.SecurityScheme{
 				Description: securityConfig.Description,
 				OAuth2:      securityConfig.Oauth2,
 			}
@@ -231,8 +167,8 @@ func WithSecurity(name string, opts ...SecurityOption) OpenAPIOption {
 //
 //	option.WithTypeMapping(types.NullString{}, new(string))
 func WithTypeMapping(src, dst any) OpenAPIOption {
-	return func(c *OpenAPI) {
-		c.TypeMappings = append(c.TypeMappings, TypeMapping{
+	return func(c *openapi.Config) {
+		c.TypeMappings = append(c.TypeMappings, openapi.TypeMapping{
 			Src: src,
 			Dst: dst,
 		})
@@ -241,14 +177,14 @@ func WithTypeMapping(src, dst any) OpenAPIOption {
 
 // WithDocsPath sets the path for the OpenAPI documentation.
 func WithDocsPath(path string) OpenAPIOption {
-	return func(c *OpenAPI) {
+	return func(c *openapi.Config) {
 		c.DocsPath = path
 	}
 }
 
 // WithSwagger sets the configuration for Swagger UI.
-func WithSwaggerConfig(cfg ...SwaggerConfig) OpenAPIOption {
-	return func(c *OpenAPI) {
+func WithSwaggerConfig(cfg ...openapi.SwaggerConfig) OpenAPIOption {
+	return func(c *openapi.Config) {
 		if len(cfg) > 0 {
 			c.SwaggerConfig = &cfg[0]
 		}
@@ -257,11 +193,11 @@ func WithSwaggerConfig(cfg ...SwaggerConfig) OpenAPIOption {
 
 // WithDebug enables or disables debug logging for OpenAPI operations.
 func WithDebug(debug ...bool) OpenAPIOption {
-	return func(c *OpenAPI) {
+	return func(c *openapi.Config) {
 		if util.Optional(true, debug...) {
 			c.Logger = log.Default()
 		} else {
-			c.Logger = &NoopLogger{}
+			c.Logger = &noopLogger{}
 		}
 	}
 }
