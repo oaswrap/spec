@@ -1,0 +1,43 @@
+openapi: 3.0.3
+info:
+  title: Test API
+  version: 1.0.0
+paths:
+  /auth/me:
+    get:
+      description: This operation retrieves the authenticated user's profile.
+      operationId: getUserProfile
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecTestUserProfile'
+          description: OK
+      security:
+      - bearerAuth: []
+      summary: Get User Profile
+components:
+  schemas:
+    SpecTestUserProfile:
+      properties:
+        age:
+          nullable: true
+          type: integer
+        created_at:
+          format: date-time
+          type: string
+        email:
+          type: string
+        id:
+          type: integer
+        updated_at:
+          format: date-time
+          type: string
+        username:
+          type: string
+      type: object
+  securitySchemes:
+    bearerAuth:
+      scheme: Bearer
+      type: http

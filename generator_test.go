@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/oaswrap/spec"
 	"github.com/oaswrap/spec/option"
@@ -72,10 +73,29 @@ type Token struct {
 	Token string `json:"token" example:"abc123"`
 }
 
+type NullString struct {
+	String string
+	Valid  bool
+}
+type NullTime struct {
+	Time  time.Time
+	Valid bool
+}
+
+type UserProfile struct {
+	ID        int        `json:"id"`
+	Username  string     `json:"username"`
+	Email     NullString `json:"email"`
+	Age       *int       `json:"age,omitempty"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt NullTime   `json:"updated_at"`
+}
+
 func TestGenerator(t *testing.T) {
 	tests := []struct {
 		name   string
 		golden string
+		opts   []option.OpenAPIOption
 		setup  func(t *testing.T, g *spec.Generator)
 	}{
 		{
@@ -120,6 +140,25 @@ func TestGenerator(t *testing.T) {
 				assert.NoError(t, g.AddOperation(op))
 			},
 		},
+		{
+			name:   "User Profile",
+			golden: "user_profile",
+			opts: []option.OpenAPIOption{
+				option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
+				option.WithTypeMapping(NullString{}, new(string)),
+				option.WithTypeMapping(NullTime{}, new(time.Time)),
+			},
+			setup: func(t *testing.T, g *spec.Generator) {
+				op, err := g.NewOperationContext("GET", "/auth/me")
+				assert.NoError(t, err)
+				op.SetID("getUserProfile")
+				op.SetSummary("Get User Profile")
+				op.SetDescription("This operation retrieves the authenticated user's profile.")
+				op.AddSecurity("bearerAuth")
+				op.AddRespStructure(new(UserProfile), openapi.WithHTTPStatus(200))
+				assert.NoError(t, g.AddOperation(op))
+			},
+		},
 	}
 
 	versions := map[string]string{
@@ -134,6 +173,9 @@ func TestGenerator(t *testing.T) {
 					option.WithOpenAPIVersion(version),
 					option.WithTitle("Test API"),
 					option.WithVersion("1.0.0"),
+				}
+				if len(tt.opts) > 0 {
+					opts = append(opts, tt.opts...)
 				}
 				gen, err := spec.NewGenerator(opts...)
 				require.NoError(t, err)

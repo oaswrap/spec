@@ -12,7 +12,12 @@ func newReflector3(cfg *option.OpenAPI, jsonSchemaOpts []func(*jsonschema.Reflec
 	spec.Info.Title = cfg.Title
 	spec.Info.Version = cfg.Version
 	spec.Info.Description = cfg.Description
+	spec.Info.Contact = mapperContact3(cfg.Contact)
+	spec.Info.License = mapperLicense3(cfg.License)
+
+	spec.ExternalDocs = mapperExternalDocs3(cfg.ExternalDocs)
 	spec.Servers = mapperServers3(cfg.Servers)
+	spec.Tags = mapperTags3(cfg.Tags)
 
 	if len(cfg.SecuritySchemes) > 0 {
 		spec.Components = &openapi3.Components{}
@@ -33,6 +38,10 @@ func newReflector3(cfg *option.OpenAPI, jsonSchemaOpts []func(*jsonschema.Reflec
 
 	// Custom options for JSON schema generation
 	reflector.DefaultOptions = append(reflector.DefaultOptions, jsonSchemaOpts...)
+
+	for _, opt := range cfg.TypeMappings {
+		reflector.AddTypeMapping(opt.Src, opt.Dst)
+	}
 
 	return &reflector3{reflector: reflector}
 }
@@ -55,6 +64,73 @@ func (r *reflector3) NewOperationContext(method, path string) (OperationContext,
 
 func (r *reflector3) Spec() Spec {
 	return r.reflector.Spec
+}
+
+func mapperContact3(contact *option.Contact) *openapi3.Contact {
+	if contact == nil {
+		return nil
+	}
+	result := &openapi3.Contact{
+		MapOfAnything: contact.MapOfAnything,
+	}
+	if contact.Name != "" {
+		result.Name = &contact.Name
+	}
+	if contact.URL != "" {
+		result.URL = &contact.URL
+	}
+	if contact.Email != "" {
+		result.Email = &contact.Email
+	}
+	return result
+}
+
+func mapperLicense3(license *option.License) *openapi3.License {
+	if license == nil {
+		return nil
+	}
+	result := &openapi3.License{
+		Name:          license.Name,
+		MapOfAnything: license.MapOfAnything,
+	}
+	if license.URL != "" {
+		result.URL = &license.URL
+	}
+	return result
+}
+
+func mapperExternalDocs3(docs *option.ExternalDocumentation) *openapi3.ExternalDocumentation {
+	if docs == nil {
+		return nil
+	}
+	result := &openapi3.ExternalDocumentation{
+		URL: docs.URL,
+	}
+	if docs.Description != "" {
+		result.Description = &docs.Description
+	}
+	return result
+}
+
+func mapperTags3(tags []option.Tag) []openapi3.Tag {
+	result := make([]openapi3.Tag, 0, len(tags))
+	for _, tag := range tags {
+		result = append(result, mapperTag3(tag))
+	}
+	return result
+}
+
+func mapperTag3(tag option.Tag) openapi3.Tag {
+	result := openapi3.Tag{
+		Name: tag.Name,
+	}
+	if tag.Description != "" {
+		result.Description = &tag.Description
+	}
+	if tag.ExternalDocs != nil {
+		result.ExternalDocs = mapperExternalDocs3(tag.ExternalDocs)
+	}
+	return result
 }
 
 func mapperServers3(servers []option.Server) []openapi3.Server {

@@ -292,3 +292,167 @@ func TestWithDebug(t *testing.T) {
 		})
 	}
 }
+
+func TestWithContact(t *testing.T) {
+	tests := []struct {
+		name     string
+		contact  option.Contact
+		expected option.Contact
+	}{
+		{
+			name: "full contact info",
+			contact: option.Contact{
+				Name:  "API Support",
+				URL:   "https://example.com/support",
+				Email: "support@example.com",
+			},
+			expected: option.Contact{
+				Name:  "API Support",
+				URL:   "https://example.com/support",
+				Email: "support@example.com",
+			},
+		},
+		{
+			name: "minimal contact info",
+			contact: option.Contact{
+				Name: "Support Team",
+			},
+			expected: option.Contact{
+				Name: "Support Team",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := &option.OpenAPI{}
+			opt := option.WithContact(tt.contact)
+			opt(config)
+
+			require.NotNil(t, config.Contact)
+			assert.Equal(t, tt.expected, *config.Contact)
+		})
+	}
+}
+
+func TestWithLicense(t *testing.T) {
+	tests := []struct {
+		name     string
+		license  option.License
+		expected option.License
+	}{
+		{
+			name: "license with URL",
+			license: option.License{
+				Name: "MIT",
+				URL:  "https://opensource.org/licenses/MIT",
+			},
+			expected: option.License{
+				Name: "MIT",
+				URL:  "https://opensource.org/licenses/MIT",
+			},
+		},
+		{
+			name: "license without URL",
+			license: option.License{
+				Name: "Apache 2.0",
+			},
+			expected: option.License{
+				Name: "Apache 2.0",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := &option.OpenAPI{}
+			opt := option.WithLicense(tt.license)
+			opt(config)
+
+			require.NotNil(t, config.License)
+			assert.Equal(t, tt.expected, *config.License)
+		})
+	}
+}
+
+func TestWithExternalDocs(t *testing.T) {
+	tests := []struct {
+		name     string
+		url      string
+		desc     []string
+		expected *option.ExternalDocumentation
+	}{
+		{
+			name: "with description",
+			url:  "https://example.com/docs",
+			desc: []string{"External documentation"},
+			expected: &option.ExternalDocumentation{
+				URL:         "https://example.com/docs",
+				Description: "External documentation",
+			},
+		},
+		{
+			name: "without description",
+			url:  "https://example.com/docs",
+			desc: []string{},
+			expected: &option.ExternalDocumentation{
+				URL: "https://example.com/docs",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := &option.OpenAPI{}
+			opt := option.WithExternalDocs(tt.url, tt.desc...)
+			opt(config)
+
+			require.NotNil(t, config.ExternalDocs)
+			assert.Equal(t, tt.expected.URL, config.ExternalDocs.URL)
+			assert.Equal(t, tt.expected.Description, config.ExternalDocs.Description)
+		})
+	}
+}
+
+func TestWithTags(t *testing.T) {
+	tags := []option.Tag{
+		{
+			Name:        "users",
+			Description: "User management",
+		},
+		{
+			Name:        "orders",
+			Description: "Order management",
+		},
+	}
+
+	config := &option.OpenAPI{}
+	opt := option.WithTags(tags...)
+	opt(config)
+
+	require.Len(t, config.Tags, 2)
+	assert.Equal(t, "users", config.Tags[0].Name)
+	assert.Equal(t, "User management", config.Tags[0].Description)
+	assert.Equal(t, "orders", config.Tags[1].Name)
+	assert.Equal(t, "Order management", config.Tags[1].Description)
+}
+
+func TestOpenAPIConfigDefaults(t *testing.T) {
+	config := &option.OpenAPI{}
+
+	// Test that default values are properly set
+	assert.Empty(t, config.OpenAPIVersion)
+	assert.False(t, config.DisableOpenAPI)
+	assert.Empty(t, config.BaseURL)
+	assert.Empty(t, config.Title)
+	assert.Empty(t, config.Version)
+	assert.Nil(t, config.Description)
+	assert.Empty(t, config.Servers)
+	assert.Empty(t, config.DocsPath)
+	assert.Nil(t, config.SecuritySchemes)
+	assert.Nil(t, config.SwaggerConfig)
+	assert.Nil(t, config.Logger)
+	assert.Nil(t, config.Contact)
+	assert.Nil(t, config.License)
+	assert.Empty(t, config.Tags)
+}

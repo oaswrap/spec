@@ -8,19 +8,65 @@ import (
 
 // Config holds the configuration for OpenAPI documentation generation.
 type OpenAPI struct {
-	OpenAPIVersion  string // OpenAPI version, e.g., "3.1.0"
-	Title           string
-	Version         string
-	Description     *string
-	Servers         []Server
-	SecuritySchemes map[string]*SecurityScheme
+	OpenAPIVersion string // OpenAPI version, e.g., "3.1.0"
+
+	Title       string   // Title of the API
+	Version     string   // Version of the API
+	Description *string  // Optional description of the API
+	Contact     *Contact // Contact information for the API
+	License     *License // License information for the API
+
+	Servers         []Server                   // List of servers for the API
+	SecuritySchemes map[string]*SecurityScheme // Security schemes for the API
+	Tags            []Tag                      // Tags for the API
+	ExternalDocs    *ExternalDocumentation     // External documentation for the API
+
+	TypeMappings []TypeMapping // Custom type mappings for OpenAPI generation
 
 	DisableOpenAPI bool
 	BaseURL        string
 	DocsPath       string
 	SwaggerConfig  *SwaggerConfig
+	Logger         Logger
+}
 
-	Logger Logger
+// TypeMapping holds a mapping between source and destination types.
+type TypeMapping struct {
+	Src any // Source type
+	Dst any // Destination type
+}
+
+// Contact structure is generated from "#/$defs/contact".
+type Contact struct {
+	Name          string
+	URL           string         // Format: uri.
+	Email         string         // Format: email.
+	MapOfAnything map[string]any // Key must match pattern: `^x-`.
+}
+
+// License structure is generated from "#/$defs/license".
+type License struct {
+	Name          string // Required.
+	Identifier    string
+	URL           string         // Format: uri.
+	MapOfAnything map[string]any // Key must match pattern: `^x-`.
+}
+
+// Tag structure is generated from "#/definitions/Tag".
+type Tag struct {
+	Name          string // Required.
+	Description   string
+	ExternalDocs  *ExternalDocumentation
+	MapOfAnything map[string]any // Key must match pattern: `^x-`.
+}
+
+// ExternalDocumentation structure is generated from "#/$defs/external-documentation".
+type ExternalDocumentation struct {
+	Description string
+	// Format: uri.
+	// Required.
+	URL           string
+	MapOfAnything map[string]any // Key must match pattern: `^x-`.
 }
 
 // SwaggerConfig holds the configuration for Swagger UI.
@@ -98,6 +144,27 @@ func WithDescription(description string) OpenAPIOption {
 	}
 }
 
+// WithContact sets the contact information for the OpenAPI documentation.
+func WithContact(contact Contact) OpenAPIOption {
+	return func(c *OpenAPI) {
+		c.Contact = &contact
+	}
+}
+
+// WithLicense sets the license information for the OpenAPI documentation.
+func WithLicense(license License) OpenAPIOption {
+	return func(c *OpenAPI) {
+		c.License = &license
+	}
+}
+
+// WithTags adds tags to the OpenAPI documentation.
+func WithTags(tags ...Tag) OpenAPIOption {
+	return func(c *OpenAPI) {
+		c.Tags = append(c.Tags, tags...)
+	}
+}
+
 // WithServer adds a server to the OpenAPI documentation.
 func WithServer(url string, opts ...ServerOption) OpenAPIOption {
 	return func(c *OpenAPI) {
@@ -111,10 +178,16 @@ func WithServer(url string, opts ...ServerOption) OpenAPIOption {
 	}
 }
 
-// WithDocsPath sets the path for the OpenAPI documentation.
-func WithDocsPath(path string) OpenAPIOption {
+// WithExternalDocs sets the external documentation for the OpenAPI documentation.
+func WithExternalDocs(url string, description ...string) OpenAPIOption {
 	return func(c *OpenAPI) {
-		c.DocsPath = path
+		externalDocs := &ExternalDocumentation{
+			URL: url,
+		}
+		if len(description) > 0 {
+			externalDocs.Description = description[0]
+		}
+		c.ExternalDocs = externalDocs
 	}
 }
 
@@ -149,6 +222,27 @@ func WithSecurity(name string, opts ...SecurityOption) OpenAPIOption {
 		} else {
 			panic("At least one security scheme must be defined (APIKey, HTTPBearer, or Oauth2)")
 		}
+	}
+}
+
+// WithTypeMapping adds a type mapping for OpenAPI generation.
+//
+// Example usage:
+//
+//	option.WithTypeMapping(types.NullString{}, new(string))
+func WithTypeMapping(src, dst any) OpenAPIOption {
+	return func(c *OpenAPI) {
+		c.TypeMappings = append(c.TypeMappings, TypeMapping{
+			Src: src,
+			Dst: dst,
+		})
+	}
+}
+
+// WithDocsPath sets the path for the OpenAPI documentation.
+func WithDocsPath(path string) OpenAPIOption {
+	return func(c *OpenAPI) {
+		c.DocsPath = path
 	}
 }
 

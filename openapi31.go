@@ -12,7 +12,12 @@ func newReflector31(cfg *option.OpenAPI, jsonSchemaOpts []func(*jsonschema.Refle
 	spec.Info.Title = cfg.Title
 	spec.Info.Version = cfg.Version
 	spec.Info.Description = cfg.Description
+	spec.Info.Contact = mapperContact31(cfg.Contact)
+	spec.Info.License = mapperLicense31(cfg.License)
+
+	spec.ExternalDocs = mapperExternalDocs31(cfg.ExternalDocs)
 	spec.Servers = mapperServers31(cfg.Servers)
+	spec.Tags = mapperTags31(cfg.Tags)
 
 	if len(cfg.SecuritySchemes) > 0 {
 		spec.Components = &openapi31.Components{}
@@ -31,6 +36,10 @@ func newReflector31(cfg *option.OpenAPI, jsonSchemaOpts []func(*jsonschema.Refle
 
 	// Custom options for JSON schema generation
 	reflector.DefaultOptions = append(reflector.DefaultOptions, jsonSchemaOpts...)
+
+	for _, opt := range cfg.TypeMappings {
+		reflector.AddTypeMapping(opt.Src, opt.Dst)
+	}
 
 	return &reflector31{reflector: reflector}
 }
@@ -53,6 +62,75 @@ func (r *reflector31) NewOperationContext(method, path string) (OperationContext
 
 func (r *reflector31) Spec() Spec {
 	return r.reflector.Spec
+}
+
+func mapperContact31(contact *option.Contact) *openapi31.Contact {
+	if contact == nil {
+		return nil
+	}
+	result := &openapi31.Contact{
+		MapOfAnything: contact.MapOfAnything,
+	}
+	if contact.Name != "" {
+		result.Name = &contact.Name
+	}
+	if contact.URL != "" {
+		result.URL = &contact.URL
+	}
+	if contact.Email != "" {
+		result.Email = &contact.Email
+	}
+	return result
+}
+
+func mapperLicense31(license *option.License) *openapi31.License {
+	if license == nil {
+		return nil
+	}
+	result := &openapi31.License{
+		Name:          license.Name,
+		MapOfAnything: license.MapOfAnything,
+	}
+	if license.URL != "" {
+		result.URL = &license.URL
+	}
+	return result
+}
+
+func mapperExternalDocs31(externalDocs *option.ExternalDocumentation) *openapi31.ExternalDocumentation {
+	if externalDocs == nil {
+		return nil
+	}
+	result := &openapi31.ExternalDocumentation{
+		URL:           externalDocs.URL,
+		MapOfAnything: externalDocs.MapOfAnything,
+	}
+	if externalDocs.Description != "" {
+		result.Description = &externalDocs.Description
+	}
+	return result
+}
+
+func mapperTags31(tags []option.Tag) []openapi31.Tag {
+	result := make([]openapi31.Tag, 0, len(tags))
+	for _, tag := range tags {
+		result = append(result, mapperTag31(tag))
+	}
+	return result
+}
+
+func mapperTag31(tag option.Tag) openapi31.Tag {
+	result := openapi31.Tag{
+		Name:          tag.Name,
+		MapOfAnything: tag.MapOfAnything,
+	}
+	if tag.Description != "" {
+		result.Description = &tag.Description
+	}
+	if tag.ExternalDocs != nil {
+		result.ExternalDocs = mapperExternalDocs31(tag.ExternalDocs)
+	}
+	return result
 }
 
 func mapperServers31(servers []option.Server) []openapi31.Server {
