@@ -1,6 +1,7 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
-  title: Test API
+  description: This is the API documentation for Custom Type Mapping
+  title: 'API Doc: Custom Type Mapping'
   version: 1.0.0
 paths:
   /auth/me:
@@ -22,8 +23,9 @@ components:
     SpecTestUserProfile:
       properties:
         age:
-          nullable: true
-          type: integer
+          type:
+          - "null"
+          - integer
         created_at:
           format: date-time
           type: string

@@ -1,12 +1,18 @@
 openapi: 3.0.3
 info:
-  title: Test API
+  description: This is the API documentation for Basic Data Types
+  title: 'API Doc: Basic Data Types'
   version: 1.0.0
 paths:
   /basic-data-types:
-    get:
+    post:
       description: This operation returns all basic data types.
       operationId: getBasicDataTypes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpecTestAllBasicDataTypes'
       responses:
         "200":
           content:

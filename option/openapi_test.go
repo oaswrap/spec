@@ -103,7 +103,7 @@ func TestWithServer(t *testing.T) {
 				option.ServerVariables(map[string]option.ServerVariable{
 					"version": {
 						Default:     "v1",
-						Description: util.PtrOf("API version"),
+						Description: "API version",
 						Enum:        []string{"v1", "v2"},
 					},
 				}),
@@ -113,7 +113,7 @@ func TestWithServer(t *testing.T) {
 				Variables: map[string]option.ServerVariable{
 					"version": {
 						Default:     "v1",
-						Description: util.PtrOf("API version"),
+						Description: "API version",
 						Enum:        []string{"v1", "v2"},
 					},
 				},
@@ -380,13 +380,13 @@ func TestWithExternalDocs(t *testing.T) {
 		name     string
 		url      string
 		desc     []string
-		expected *option.ExternalDocumentation
+		expected *option.ExternalDocs
 	}{
 		{
 			name: "with description",
 			url:  "https://example.com/docs",
 			desc: []string{"External documentation"},
-			expected: &option.ExternalDocumentation{
+			expected: &option.ExternalDocs{
 				URL:         "https://example.com/docs",
 				Description: "External documentation",
 			},
@@ -395,7 +395,7 @@ func TestWithExternalDocs(t *testing.T) {
 			name: "without description",
 			url:  "https://example.com/docs",
 			desc: []string{},
-			expected: &option.ExternalDocumentation{
+			expected: &option.ExternalDocs{
 				URL: "https://example.com/docs",
 			},
 		},

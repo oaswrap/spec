@@ -43,27 +43,64 @@ func newReflector3(cfg *option.OpenAPI, jsonSchemaOpts []func(*jsonschema.Reflec
 		reflector.AddTypeMapping(opt.Src, opt.Dst)
 	}
 
-	return &reflector3{reflector: reflector}
+	errors := &SpecError{}
+
+	return &reflector3{reflector: reflector, logger: cfg.Logger, errors: errors}
 }
 
 type reflector3 struct {
+	logger    option.Logger
+	errors    *SpecError
 	reflector *openapi3.Reflector
-}
-
-func (r *reflector3) AddOperation(oc OperationContext) error {
-	return r.reflector.AddOperation(oc.unwrap())
-}
-
-func (r *reflector3) NewOperationContext(method, path string) (OperationContext, error) {
-	op, err := r.reflector.NewOperationContext(method, path)
-	if err != nil {
-		return nil, err
-	}
-	return &operationContext{OperationContext: op}, nil
 }
 
 func (r *reflector3) Spec() Spec {
 	return r.reflector.Spec
+}
+
+func (r *reflector3) Add(method, path string, opts ...option.OperationOption) {
+	op, err := r.newOperationContext(method, path)
+	if err != nil {
+		r.errors.add(err)
+		return
+	}
+
+	op.With(opts...)
+
+	if err := r.addOperation(op); err != nil {
+		r.errors.add(err)
+		return
+	}
+}
+
+func (r *reflector3) Validate() error {
+	if r.errors.HasErrors() {
+		return r.errors
+	}
+	return nil
+}
+
+func (r *reflector3) addOperation(oc OperationContext) error {
+	if oc == nil {
+		return nil
+	}
+	openapiOC := oc.build()
+	if openapiOC == nil {
+		return nil
+	}
+	return r.reflector.AddOperation(openapiOC)
+}
+
+func (r *reflector3) newOperationContext(method, path string) (OperationContext, error) {
+	op, err := r.reflector.NewOperationContext(method, path)
+	if err != nil {
+		return nil, err
+	}
+	return &operationContext{
+		op:     op,
+		logger: r.logger,
+		cfg:    &option.OperationConfig{},
+	}, nil
 }
 
 func mapperContact3(contact *option.Contact) *openapi3.Contact {
@@ -99,7 +136,7 @@ func mapperLicense3(license *option.License) *openapi3.License {
 	return result
 }
 
-func mapperExternalDocs3(docs *option.ExternalDocumentation) *openapi3.ExternalDocumentation {
+func mapperExternalDocs3(docs *option.ExternalDocs) *openapi3.ExternalDocumentation {
 	if docs == nil {
 		return nil
 	}
@@ -147,11 +184,15 @@ func mapperServer3(server option.Server) openapi3.Server {
 	if len(server.Variables) > 0 {
 		variables = make(map[string]openapi3.ServerVariable, len(server.Variables))
 		for name, variable := range server.Variables {
-			variables[name] = openapi3.ServerVariable{
-				Default:     variable.Default,
-				Description: variable.Description,
-				Enum:        variable.Enum,
+			oasServerVariable := openapi3.ServerVariable{
+				Default:       variable.Default,
+				Enum:          variable.Enum,
+				MapOfAnything: variable.MapOfAnything,
 			}
+			if variable.Description != "" {
+				oasServerVariable.Description = &variable.Description
+			}
+			variables[name] = oasServerVariable
 		}
 	}
 
@@ -163,17 +204,20 @@ func mapperServer3(server option.Server) openapi3.Server {
 }
 
 func mapperSecurityScheme3(scheme *option.SecurityScheme) *openapi3.SecurityScheme {
-	openapiScheme := &openapi3.SecurityScheme{}
-	if scheme.APIKey != nil {
-		openapiScheme.APIKeySecurityScheme = mapperAPIKey3(scheme, scheme.APIKey)
-	} else if scheme.HTTPBearer != nil {
-		openapiScheme.HTTPSecurityScheme = mapperHTTPBearer3(scheme, scheme.HTTPBearer)
-	} else if scheme.OAuth2 != nil {
-		openapiScheme.OAuth2SecurityScheme = mapperOAuth2SecurityScheme(scheme, scheme.OAuth2)
-	} else {
-		return nil // No valid security scheme found
+	if scheme == nil {
+		return nil
 	}
-	return openapiScheme
+	oasSecurityScheme := &openapi3.SecurityScheme{
+		APIKeySecurityScheme: mapperAPIKey3(scheme, scheme.APIKey),
+		HTTPSecurityScheme:   mapperHTTPBearer3(scheme, scheme.HTTPBearer),
+		OAuth2SecurityScheme: mapperOAuth2SecurityScheme(scheme, scheme.OAuth2),
+	}
+	if oasSecurityScheme.APIKeySecurityScheme == nil &&
+		oasSecurityScheme.HTTPSecurityScheme == nil &&
+		oasSecurityScheme.OAuth2SecurityScheme == nil {
+		return nil // No valid security scheme defined
+	}
+	return oasSecurityScheme
 }
 
 func mapperAPIKey3(scheme *option.SecurityScheme, apiKey *option.SecuritySchemeAPIKey) *openapi3.APIKeySecurityScheme {

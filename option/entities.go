@@ -14,7 +14,7 @@ type Server struct {
 type ServerVariable struct {
 	Enum          []string
 	Default       string // Required.
-	Description   *string
+	Description   string
 	MapOfAnything map[string]any // Key must match pattern: `^x-`.
 }
 

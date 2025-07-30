@@ -19,7 +19,7 @@ type OpenAPI struct {
 	Servers         []Server                   // List of servers for the API
 	SecuritySchemes map[string]*SecurityScheme // Security schemes for the API
 	Tags            []Tag                      // Tags for the API
-	ExternalDocs    *ExternalDocumentation     // External documentation for the API
+	ExternalDocs    *ExternalDocs              // External documentation for the API
 
 	TypeMappings []TypeMapping // Custom type mappings for OpenAPI generation
 
@@ -56,12 +56,12 @@ type License struct {
 type Tag struct {
 	Name          string // Required.
 	Description   string
-	ExternalDocs  *ExternalDocumentation
+	ExternalDocs  *ExternalDocs
 	MapOfAnything map[string]any // Key must match pattern: `^x-`.
 }
 
-// ExternalDocumentation structure is generated from "#/$defs/external-documentation".
-type ExternalDocumentation struct {
+// ExternalDocs structure is generated from "#/$defs/external-documentation".
+type ExternalDocs struct {
 	Description string
 	// Format: uri.
 	// Required.
@@ -181,7 +181,7 @@ func WithServer(url string, opts ...ServerOption) OpenAPIOption {
 // WithExternalDocs sets the external documentation for the OpenAPI documentation.
 func WithExternalDocs(url string, description ...string) OpenAPIOption {
 	return func(c *OpenAPI) {
-		externalDocs := &ExternalDocumentation{
+		externalDocs := &ExternalDocs{
 			URL: url,
 		}
 		if len(description) > 0 {

@@ -1,0 +1,16 @@
+openapi: 3.0.3
+info:
+  contact:
+    email: support@example.com
+    name: Support Team
+    url: https://support.example.com
+  description: This is the API documentation for Spec Information
+  license:
+    name: MIT License
+    url: https://opensource.org/licenses/MIT
+  title: 'API Doc: Spec Information'
+  version: 1.0.0
+externalDocs:
+  description: API Documentation
+  url: https://docs.example.com
+paths: {}

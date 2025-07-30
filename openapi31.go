@@ -41,27 +41,64 @@ func newReflector31(cfg *option.OpenAPI, jsonSchemaOpts []func(*jsonschema.Refle
 		reflector.AddTypeMapping(opt.Src, opt.Dst)
 	}
 
-	return &reflector31{reflector: reflector}
+	errors := &SpecError{}
+
+	return &reflector31{reflector: reflector, logger: cfg.Logger, errors: errors}
 }
 
 type reflector31 struct {
 	reflector *openapi31.Reflector
+	logger    option.Logger
+	errors    *SpecError
 }
 
-func (r *reflector31) AddOperation(oc OperationContext) error {
-	return r.reflector.AddOperation(oc.unwrap())
-}
-
-func (r *reflector31) NewOperationContext(method, path string) (OperationContext, error) {
-	op, err := r.reflector.NewOperationContext(method, path)
+func (r *reflector31) Add(method, path string, opts ...option.OperationOption) {
+	op, err := r.newOperationContext(method, path)
 	if err != nil {
-		return nil, err
+		r.errors.add(err)
+		return
 	}
-	return &operationContext{OperationContext: op}, nil
+
+	op.With(opts...)
+
+	if err := r.addOperation(op); err != nil {
+		r.errors.add(err)
+		return
+	}
 }
 
 func (r *reflector31) Spec() Spec {
 	return r.reflector.Spec
+}
+
+func (r *reflector31) Validate() error {
+	if r.errors.HasErrors() {
+		return r.errors
+	}
+	return nil
+}
+
+func (r *reflector31) addOperation(oc OperationContext) error {
+	if oc == nil {
+		return nil
+	}
+	openapiOC := oc.build()
+	if openapiOC == nil {
+		return nil
+	}
+	return r.reflector.AddOperation(openapiOC)
+}
+
+func (r *reflector31) newOperationContext(method, path string) (OperationContext, error) {
+	op, err := r.reflector.NewOperationContext(method, path)
+	if err != nil {
+		return nil, err
+	}
+	return &operationContext{
+		op:     op,
+		logger: r.logger,
+		cfg:    &option.OperationConfig{},
+	}, nil
 }
 
 func mapperContact31(contact *option.Contact) *openapi31.Contact {
@@ -97,7 +134,7 @@ func mapperLicense31(license *option.License) *openapi31.License {
 	return result
 }
 
-func mapperExternalDocs31(externalDocs *option.ExternalDocumentation) *openapi31.ExternalDocumentation {
+func mapperExternalDocs31(externalDocs *option.ExternalDocs) *openapi31.ExternalDocumentation {
 	if externalDocs == nil {
 		return nil
 	}
@@ -147,11 +184,15 @@ func mapperServer31(server option.Server) openapi31.Server {
 	if len(server.Variables) > 0 {
 		variables = make(map[string]openapi31.ServerVariable, len(server.Variables))
 		for name, variable := range server.Variables {
-			variables[name] = openapi31.ServerVariable{
-				Default:     variable.Default,
-				Description: variable.Description,
-				Enum:        variable.Enum,
+			oasServerVariable := openapi31.ServerVariable{
+				Default:       variable.Default,
+				Enum:          variable.Enum,
+				MapOfAnything: variable.MapOfAnything,
 			}
+			if variable.Description != "" {
+				oasServerVariable.Description = &variable.Description
+			}
+			variables[name] = oasServerVariable
 		}
 	}
 
@@ -163,18 +204,18 @@ func mapperServer31(server option.Server) openapi31.Server {
 }
 
 func mapperSecurityScheme31(scheme *option.SecurityScheme) *openapi31.SecurityScheme {
+	if scheme == nil {
+		return nil
+	}
 	openapiScheme := &openapi31.SecurityScheme{
 		Description:   scheme.Description,
 		MapOfAnything: scheme.MapOfAnything,
+		APIKey:        mapperAPIKey31(scheme.APIKey),
+		HTTPBearer:    mapperHTTPBearer31(scheme.HTTPBearer),
+		Oauth2:        mapperSecuritySchemeOauth2(scheme.OAuth2),
 	}
-	if scheme.APIKey != nil {
-		openapiScheme.APIKey = mapperAPIKey31(scheme.APIKey)
-	} else if scheme.HTTPBearer != nil {
-		openapiScheme.HTTPBearer = mapperHTTPBearer31(scheme.HTTPBearer)
-	} else if scheme.OAuth2 != nil {
-		openapiScheme.Oauth2 = mapperSecuritySchemeOauth2(scheme.OAuth2)
-	} else {
-		return nil // No valid security scheme found
+	if openapiScheme.APIKey == nil && openapiScheme.HTTPBearer == nil && openapiScheme.Oauth2 == nil {
+		return nil // No valid security scheme defined
 	}
 	return openapiScheme
 }

@@ -27,8 +27,8 @@ func Hide(hide ...bool) OperationOption {
 	}
 }
 
-// ID sets the operation ID for the OpenAPI operation.
-func ID(id string) OperationOption {
+// OperationID sets the operation ID for the OpenAPI operation.
+func OperationID(id string) OperationOption {
 	return func(cfg *OperationConfig) {
 		cfg.OperationID = id
 	}

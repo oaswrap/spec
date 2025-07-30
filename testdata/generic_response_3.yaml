@@ -1,7 +1,11 @@
 openapi: 3.0.3
 info:
-  title: Test API
+  description: This is the API documentation for Generic Response
+  title: 'API Doc: Generic Response'
   version: 1.0.0
+tags:
+- description: Operations related to user authentication
+  name: Authentication
 paths:
   /login:
     post:
@@ -20,6 +24,8 @@ paths:
                 $ref: '#/components/schemas/SpecTestResponseGithubComOaswrapSpecTestToken'
           description: OK
       summary: User Login
+      tags:
+      - Authentication
 components:
   schemas:
     SpecTestLoginRequest:

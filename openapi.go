@@ -7,7 +7,6 @@ import (
 
 	"github.com/oaswrap/spec/option"
 	"github.com/swaggest/jsonschema-go"
-	"github.com/swaggest/openapi-go"
 )
 
 var (
@@ -36,12 +35,4 @@ func newReflector(cfg *option.OpenAPI) (Reflector, error) {
 		return newReflector31(cfg, jsonSchemaOpts), nil
 	}
 	return nil, fmt.Errorf("unsupported OpenAPI version: %s", cfg.OpenAPIVersion)
-}
-
-type operationContext struct {
-	openapi.OperationContext
-}
-
-func (oc *operationContext) unwrap() openapi.OperationContext {
-	return oc.OperationContext
 }
