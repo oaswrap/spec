@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 )
 
@@ -14,6 +15,7 @@ import (
 type Generator struct {
 	reflector reflector
 	spec      spec
+	cfg       *openapi.Config
 }
 
 // NewGenerator creates a new Generator instance with the provided configuration.
@@ -25,7 +27,13 @@ func NewGenerator(opts ...option.OpenAPIOption) *Generator {
 	return &Generator{
 		reflector: reflector,
 		spec:      reflector.Spec(),
+		cfg:       cfg,
 	}
+}
+
+// Config returns the OpenAPI configuration used by the Generator.
+func (g *Generator) Config() *openapi.Config {
+	return g.cfg
 }
 
 // Get registers a new GET operation with the specified path and options.
