@@ -1,4 +1,4 @@
-package openapiwrapper
+package spec
 
 // Config holds the configuration for OpenAPI documentation generation.
 type Config struct {
@@ -37,3 +37,7 @@ type SwaggerConfig struct {
 type Logger interface {
 	Printf(format string, v ...any)
 }
+
+type NoopLogger struct{}
+
+func (l NoopLogger) Printf(format string, v ...any) {}

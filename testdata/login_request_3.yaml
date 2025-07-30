@@ -1,0 +1,50 @@
+openapi: 3.0.3
+info:
+  title: API Documentation
+  version: 1.0.0
+paths:
+  /login:
+    post:
+      description: This operation allows users to log in.
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpecTestLoginRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecTestResponseGithubComOaswrapSpecTestToken'
+          description: OK
+      summary: User Login
+components:
+  schemas:
+    SpecTestLoginRequest:
+      properties:
+        password:
+          example: password123
+          type: string
+        username:
+          example: john_doe
+          type: string
+      required:
+      - username
+      - password
+      type: object
+    SpecTestResponseGithubComOaswrapSpecTestToken:
+      properties:
+        data:
+          $ref: '#/components/schemas/SpecTestToken'
+        status:
+          example: 200
+          type: integer
+      type: object
+    SpecTestToken:
+      properties:
+        token:
+          example: abc123
+          type: string
+      type: object

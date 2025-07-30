@@ -1,4 +1,4 @@
-package openapiwrapper
+package spec
 
 // Server structure is generated from "#/$defs/server".
 type Server struct {
@@ -65,7 +65,7 @@ type OAuthFlows struct {
 	MapOfAnything     map[string]any // Key must match pattern: `^x-`.
 }
 
-// OauthFlowsDefsImplicit structure is generated from "#/$defs/oauth-flows/$defs/implicit".
+// OAuthFlowsDefsImplicit structure is generated from "#/$defs/oauth-flows/$defs/implicit".
 type OAuthFlowsDefsImplicit struct {
 	// Format: uri.
 	// Required.
@@ -75,7 +75,7 @@ type OAuthFlowsDefsImplicit struct {
 	MapOfAnything    map[string]any    // Key must match pattern: `^x-`.
 }
 
-// OauthFlowsDefsPassword structure is generated from "#/$defs/oauth-flows/$defs/password".
+// OAuthFlowsDefsPassword structure is generated from "#/$defs/oauth-flows/$defs/password".
 type OAuthFlowsDefsPassword struct {
 	// Format: uri.
 	// Required.
@@ -85,7 +85,7 @@ type OAuthFlowsDefsPassword struct {
 	MapOfAnything map[string]any    // Key must match pattern: `^x-`.
 }
 
-// OauthFlowsDefsClientCredentials structure is generated from "#/$defs/oauth-flows/$defs/client-credentials".
+// OAuthFlowsDefsClientCredentials structure is generated from "#/$defs/oauth-flows/$defs/client-credentials".
 type OAuthFlowsDefsClientCredentials struct {
 	// Format: uri.
 	// Required.
@@ -95,7 +95,7 @@ type OAuthFlowsDefsClientCredentials struct {
 	MapOfAnything map[string]any    // Key must match pattern: `^x-`.
 }
 
-// AuthFlowsDefsAuthorizationCode structure is generated from "#/$defs/oauth-flows/$defs/authorization-code".
+// OAuthFlowsDefsAuthorizationCode structure is generated from "#/$defs/oauth-flows/$defs/authorization-code".
 type OAuthFlowsDefsAuthorizationCode struct {
 	// Format: uri.
 	// Required.

@@ -1,6 +1,6 @@
 package option
 
-import "github.com/faizlabs/openapi-wrapper/internal/util"
+import "github.com/oaswrap/spec/pkg/util"
 
 // OperationConfig holds the configuration for an OpenAPI operation.
 type OperationConfig struct {

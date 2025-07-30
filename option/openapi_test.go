@@ -1,0 +1,287 @@
+package option_test
+
+import (
+	"log"
+	"testing"
+
+	"github.com/oaswrap/spec"
+	"github.com/oaswrap/spec/option"
+	"github.com/oaswrap/spec/pkg/util"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func TestWithOpenAPIVersion(t *testing.T) {
+	config := &spec.Config{}
+	opt := option.WithOpenAPIVersion("3.0.0")
+	opt(config)
+
+	assert.Equal(t, "3.0.0", config.OpenAPIVersion)
+}
+
+func TestWithDisableOpenAPI(t *testing.T) {
+	tests := []struct {
+		name     string
+		disable  []bool
+		expected bool
+	}{
+		{"default true", []bool{}, true},
+		{"explicit true", []bool{true}, true},
+		{"explicit false", []bool{false}, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := &spec.Config{}
+			opt := option.WithDisableOpenAPI(tt.disable...)
+			opt(config)
+
+			assert.Equal(t, tt.expected, config.DisableOpenAPI)
+		})
+	}
+}
+
+func TestWithBaseURL(t *testing.T) {
+	config := &spec.Config{}
+	opt := option.WithBaseURL("https://api.example.com")
+	opt(config)
+
+	assert.Equal(t, "https://api.example.com", config.BaseURL)
+}
+
+func TestWithTitle(t *testing.T) {
+	config := &spec.Config{}
+	opt := option.WithTitle("My API")
+	opt(config)
+
+	assert.Equal(t, "My API", config.Title)
+}
+
+func TestWithVersion(t *testing.T) {
+	config := &spec.Config{}
+	opt := option.WithVersion("1.0.0")
+	opt(config)
+
+	assert.Equal(t, "1.0.0", config.Version)
+}
+
+func TestWithDescription(t *testing.T) {
+	config := &spec.Config{}
+	opt := option.WithDescription("API description")
+	opt(config)
+
+	require.NotNil(t, config.Description)
+	assert.Equal(t, "API description", *config.Description)
+}
+
+func TestWithServer(t *testing.T) {
+	tests := []struct {
+		name     string
+		url      string
+		opts     []option.ServerOption
+		expected spec.Server
+	}{
+		{
+			name: "without description",
+			url:  "https://api.example.com",
+			expected: spec.Server{
+				URL: "https://api.example.com",
+			},
+		},
+		{
+			name: "with description",
+			url:  "https://api.example.com",
+			opts: []option.ServerOption{option.ServerDescription("Production server")},
+			expected: spec.Server{
+				URL:         "https://api.example.com",
+				Description: util.PtrOf("Production server"),
+			},
+		},
+		{
+			name: "with variables",
+			url:  "https://api.example.com",
+			opts: []option.ServerOption{
+				option.ServerVariables(map[string]spec.ServerVariable{
+					"version": {
+						Default:     "v1",
+						Description: util.PtrOf("API version"),
+						Enum:        []string{"v1", "v2"},
+					},
+				}),
+			},
+			expected: spec.Server{
+				URL: "https://api.example.com",
+				Variables: map[string]spec.ServerVariable{
+					"version": {
+						Default:     "v1",
+						Description: util.PtrOf("API version"),
+						Enum:        []string{"v1", "v2"},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := &spec.Config{}
+			opt := option.WithServer(tt.url, tt.opts...)
+			opt(config)
+
+			require.Len(t, config.Servers, 1)
+			assert.Equal(t, tt.expected.URL, config.Servers[0].URL)
+			if tt.expected.Description != nil {
+				require.NotNil(t, config.Servers[0].Description)
+				assert.Equal(t, *tt.expected.Description, *config.Servers[0].Description)
+			} else {
+				assert.Nil(t, config.Servers[0].Description)
+			}
+		})
+	}
+}
+
+func TestWithDocsPath(t *testing.T) {
+	config := &spec.Config{}
+	opt := option.WithDocsPath("/docs")
+	opt(config)
+
+	assert.Equal(t, "/docs", config.DocsPath)
+}
+
+func TestWithSecurity(t *testing.T) {
+	tests := []struct {
+		name     string
+		scheme   string
+		opts     []option.SecurityOption
+		expected *spec.SecurityScheme
+	}{
+		{
+			name:   "API Key Scheme",
+			scheme: "apiKey",
+			opts: []option.SecurityOption{
+				option.SecurityAPIKey("x-api-key", "header"),
+				option.SecurityDescription("API key for authentication"),
+			},
+			expected: &spec.SecurityScheme{
+				Description: util.PtrOf("API key for authentication"),
+				APIKey: &spec.SecuritySchemeAPIKey{
+					Name: "x-api-key",
+					In:   "header",
+				},
+			},
+		},
+		{
+			name:   "HTTP Bearer Scheme",
+			scheme: "bearerAuth",
+			opts: []option.SecurityOption{
+				option.SecurityHTTPBearer("Bearer"),
+				option.SecurityDescription(""),
+			},
+			expected: &spec.SecurityScheme{
+				HTTPBearer: &spec.SecuritySchemeHTTPBearer{
+					Scheme: "Bearer",
+				},
+			},
+		},
+		{
+			name:   "OAuth2 Scheme",
+			scheme: "oauth2",
+			opts: []option.SecurityOption{
+				option.SecurityOAuth2(spec.OAuthFlows{
+					Implicit: &spec.OAuthFlowsDefsImplicit{
+						AuthorizationURL: "https://auth.example.com/authorize",
+						Scopes: map[string]string{
+							"read":  "Read access",
+							"write": "Write access",
+						},
+					},
+				}),
+			},
+			expected: &spec.SecurityScheme{
+				OAuth2: &spec.SecuritySchemeOAuth2{
+					Flows: spec.OAuthFlows{
+						Implicit: &spec.OAuthFlowsDefsImplicit{
+							AuthorizationURL: "https://auth.example.com/authorize",
+							Scopes: map[string]string{
+								"read":  "Read access",
+								"write": "Write access",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := &spec.Config{}
+			opt := option.WithSecurity(tt.scheme, tt.opts...)
+			opt(config)
+
+			require.NotNil(t, config.SecuritySchemes)
+			require.Len(t, config.SecuritySchemes, 1)
+			assert.Equal(t, tt.expected, config.SecuritySchemes[tt.scheme])
+		})
+	}
+}
+
+func TestWithSwaggerConfig(t *testing.T) {
+	tests := []struct {
+		name     string
+		cfg      []*spec.SwaggerConfig
+		expected *spec.SwaggerConfig
+	}{
+		{
+			name:     "no config",
+			cfg:      []*spec.SwaggerConfig{},
+			expected: nil,
+		},
+		{
+			name:     "nil config",
+			cfg:      []*spec.SwaggerConfig{nil},
+			expected: nil,
+		},
+		{
+			name:     "valid config",
+			cfg:      []*spec.SwaggerConfig{{}},
+			expected: &spec.SwaggerConfig{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := &spec.Config{}
+			opt := option.WithSwaggerConfig(tt.cfg...)
+			opt(config)
+
+			assert.Equal(t, tt.expected, config.SwaggerConfig)
+		})
+	}
+}
+
+func TestWithDebug(t *testing.T) {
+	tests := []struct {
+		name      string
+		debug     []bool
+		expectLog bool
+	}{
+		{"default true", []bool{}, true},
+		{"explicit true", []bool{true}, true},
+		{"explicit false", []bool{false}, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := &spec.Config{}
+			opt := option.WithDebug(tt.debug...)
+			opt(config)
+
+			if tt.expectLog {
+				assert.Equal(t, log.Default(), config.Logger)
+			} else {
+				assert.IsType(t, &spec.NoopLogger{}, config.Logger)
+			}
+		})
+	}
+}

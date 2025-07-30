@@ -1,0 +1,65 @@
+openapi: 3.1.0
+info:
+  title: API Documentation
+  version: 1.0.0
+paths:
+  /basic-data-types-pointers:
+    get:
+      description: This operation returns all basic data types as pointers.
+      operationId: getBasicDataTypesPointers
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecTestAllBasicDataTypes'
+          description: OK
+      summary: Get Basic Data Types Pointers
+components:
+  schemas:
+    SpecTestAllBasicDataTypes:
+      properties:
+        bool:
+          type: boolean
+        byte:
+          minimum: 0
+          type: integer
+        float32:
+          format: float
+          type: number
+        float64:
+          format: double
+          type: number
+        int:
+          type: integer
+        int8:
+          type: integer
+        int16:
+          type: integer
+        int32:
+          format: int32
+          type: integer
+        int64:
+          format: int64
+          type: integer
+        rune:
+          format: int32
+          type: integer
+        string:
+          type: string
+        uint:
+          minimum: 0
+          type: integer
+        uint8:
+          minimum: 0
+          type: integer
+        uint16:
+          minimum: 0
+          type: integer
+        uint32:
+          minimum: 0
+          type: integer
+        uint64:
+          minimum: 0
+          type: integer
+      type: object

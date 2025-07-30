@@ -1,17 +1,18 @@
 package option
 
-import "github.com/faizlabs/openapi-wrapper/internal/util"
-
-type RouteSecurityConfig struct {
-	Name   string
-	Scopes []string
-}
+import "github.com/oaswrap/spec/pkg/util"
 
 // Operation is a function that configures an OpenAPI operation.
 type RouteConfig struct {
 	Tags     []string
 	Security []RouteSecurityConfig
 	Hide     bool
+}
+
+// RouteSecurityConfig holds the security configuration for a route.
+type RouteSecurityConfig struct {
+	Name   string
+	Scopes []string
 }
 
 // RouteOption is a function that applies configuration to a RouteConfig.
