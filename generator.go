@@ -17,18 +17,15 @@ type Generator struct {
 }
 
 // NewGenerator creates a new Generator instance with the provided configuration.
-func NewGenerator(opts ...option.OpenAPIOption) (*Generator, error) {
+func NewGenerator(opts ...option.OpenAPIOption) *Generator {
 	cfg := option.WithOpenAPIConfig(opts...)
 
-	reflector, err := newReflector(cfg)
-	if err != nil {
-		return nil, err
-	}
+	reflector := newReflector(cfg)
 
 	return &Generator{
 		reflector: reflector,
 		spec:      reflector.Spec(),
-	}, nil
+	}
 }
 
 // Get registers a new GET operation with the specified path and options.

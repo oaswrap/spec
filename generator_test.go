@@ -240,8 +240,7 @@ func TestGenerator(t *testing.T) {
 				if len(tt.opts) > 0 {
 					opts = append(opts, tt.opts...)
 				}
-				gen, err := spec.NewGenerator(opts...)
-				require.NoError(t, err)
+				gen := spec.NewGenerator(opts...)
 
 				if tt.setup != nil {
 					tt.setup(gen)
@@ -312,12 +311,11 @@ func TestGenerator_GenerateSchema(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gen, err := spec.NewGenerator(
+			gen := spec.NewGenerator(
 				option.WithOpenAPIVersion("3.1.0"),
 				option.WithTitle("Test API"),
 				option.WithVersion("1.0.0"),
 			)
-			require.NoError(t, err)
 
 			// Add a simple operation to ensure we have some content
 			gen.Add("GET", "/test",
@@ -391,12 +389,11 @@ func TestGenerator_WriteSchemaTo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create generator with test configuration
-			gen, err := spec.NewGenerator(
+			gen := spec.NewGenerator(
 				option.WithOpenAPIVersion("3.1.0"),
 				option.WithTitle("Test API"),
 				option.WithVersion("1.0.0"),
 			)
-			require.NoError(t, err)
 
 			// Add a simple operation to ensure we have content
 			gen.Add("GET", "/test",
@@ -414,7 +411,7 @@ func TestGenerator_WriteSchemaTo(t *testing.T) {
 			}
 
 			// Write schema to file
-			err = gen.WriteSchemaTo(fullPath)
+			err := gen.WriteSchemaTo(fullPath)
 
 			if tt.expectError {
 				assert.Error(t, err)

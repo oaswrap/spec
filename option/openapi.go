@@ -155,8 +155,6 @@ func WithSecurity(name string, opts ...SecurityOption) OpenAPIOption {
 				Description: securityConfig.Description,
 				OAuth2:      securityConfig.Oauth2,
 			}
-		} else {
-			panic("At least one security scheme must be defined (APIKey, HTTPBearer, or Oauth2)")
 		}
 	}
 }
