@@ -6,23 +6,23 @@ COVERAGE_FILE := coverage.out
 .PHONY: all
 all: test
 
-# Run tests
+# Run tests with gotestsum
 .PHONY: test
 test:
-	@echo "Running tests..."
-	@go test -v $(PKG)
+	@echo "Running tests with gotestsum..."
+	@gotestsum --format standard-quiet -- $(PKG)
 
-# Run tests with and update golden files
+# Run tests and update golden files
 .PHONY: test-update
 test-update:
-	@echo "Running tests and updating golden files..."
-	@go test -v $(PKG) -update
+	@echo "Running tests with gotestsum and updating golden files..."
+	@gotestsum --format standard-quiet -- -update $(PKG)
 
 # Run tests with coverage and generate report
 .PHONY: coverage
 coverage:
-	@echo "Running tests with coverage..."
-	@go test -coverprofile=$(COVERAGE_FILE) $(PKG)
+	@echo "Running tests with gotestsum and coverage..."
+	@gotestsum --format standard-quiet -- -coverprofile=$(COVERAGE_FILE) $(PKG)
 	@go tool cover -func=$(COVERAGE_FILE)
 	@echo "Open HTML coverage report: make coverage-html"
 

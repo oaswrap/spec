@@ -15,5 +15,6 @@ type Spec interface {
 
 type OperationContext interface {
 	openapi.OperationContext
-	OpenAPIOperationContext() openapi.OperationContext
+
+	unwrap() openapi.OperationContext
 }

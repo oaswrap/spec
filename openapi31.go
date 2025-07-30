@@ -1,11 +1,12 @@
 package spec
 
 import (
+	"github.com/oaswrap/spec/option"
 	"github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/openapi-go/openapi31"
 )
 
-func newReflector31(cfg *Config, jsonSchemaOpts []func(*jsonschema.ReflectContext)) Reflector {
+func newReflector31(cfg *option.OpenAPI, jsonSchemaOpts []func(*jsonschema.ReflectContext)) Reflector {
 	reflector := openapi31.NewReflector()
 	spec := reflector.Spec
 	spec.Info.Title = cfg.Title
@@ -39,7 +40,7 @@ type reflector31 struct {
 }
 
 func (r *reflector31) AddOperation(oc OperationContext) error {
-	return r.reflector.AddOperation(oc.OpenAPIOperationContext())
+	return r.reflector.AddOperation(oc.unwrap())
 }
 
 func (r *reflector31) NewOperationContext(method, path string) (OperationContext, error) {
@@ -54,7 +55,7 @@ func (r *reflector31) Spec() Spec {
 	return r.reflector.Spec
 }
 
-func mapperServers31(servers []Server) []openapi31.Server {
+func mapperServers31(servers []option.Server) []openapi31.Server {
 	result := make([]openapi31.Server, 0, len(servers))
 	for _, server := range servers {
 		result = append(result, mapperServer31(server))
@@ -62,7 +63,7 @@ func mapperServers31(servers []Server) []openapi31.Server {
 	return result
 }
 
-func mapperServer31(server Server) openapi31.Server {
+func mapperServer31(server option.Server) openapi31.Server {
 	var variables map[string]openapi31.ServerVariable
 
 	if len(server.Variables) > 0 {
@@ -83,7 +84,7 @@ func mapperServer31(server Server) openapi31.Server {
 	}
 }
 
-func mapperSecurityScheme31(scheme *SecurityScheme) *openapi31.SecurityScheme {
+func mapperSecurityScheme31(scheme *option.SecurityScheme) *openapi31.SecurityScheme {
 	openapiScheme := &openapi31.SecurityScheme{
 		Description:   scheme.Description,
 		MapOfAnything: scheme.MapOfAnything,
@@ -100,7 +101,7 @@ func mapperSecurityScheme31(scheme *SecurityScheme) *openapi31.SecurityScheme {
 	return openapiScheme
 }
 
-func mapperAPIKey31(apiKey *SecuritySchemeAPIKey) *openapi31.SecuritySchemeAPIKey {
+func mapperAPIKey31(apiKey *option.SecuritySchemeAPIKey) *openapi31.SecuritySchemeAPIKey {
 	if apiKey == nil {
 		return nil
 	}
@@ -110,7 +111,7 @@ func mapperAPIKey31(apiKey *SecuritySchemeAPIKey) *openapi31.SecuritySchemeAPIKe
 	}
 }
 
-func mapperHTTPBearer31(scheme *SecuritySchemeHTTPBearer) *openapi31.SecuritySchemeHTTPBearer {
+func mapperHTTPBearer31(scheme *option.SecuritySchemeHTTPBearer) *openapi31.SecuritySchemeHTTPBearer {
 	if scheme == nil {
 		return nil
 	}
@@ -120,7 +121,7 @@ func mapperHTTPBearer31(scheme *SecuritySchemeHTTPBearer) *openapi31.SecuritySch
 	}
 }
 
-func mapperSecuritySchemeOauth2(oauth2 *SecuritySchemeOAuth2) *openapi31.SecuritySchemeOauth2 {
+func mapperSecuritySchemeOauth2(oauth2 *option.SecuritySchemeOAuth2) *openapi31.SecuritySchemeOauth2 {
 	if oauth2 == nil {
 		return nil
 	}
@@ -129,7 +130,7 @@ func mapperSecuritySchemeOauth2(oauth2 *SecuritySchemeOAuth2) *openapi31.Securit
 	}
 }
 
-func mapperOauth2Flows31(flows OAuthFlows) openapi31.OauthFlows {
+func mapperOauth2Flows31(flows option.OAuthFlows) openapi31.OauthFlows {
 	return openapi31.OauthFlows{
 		Implicit:          mapperOauthFlowsDefsImplicit31(flows.Implicit),
 		Password:          mapperOauthFlowsDefsPassword31(flows.Password),
@@ -138,7 +139,7 @@ func mapperOauth2Flows31(flows OAuthFlows) openapi31.OauthFlows {
 	}
 }
 
-func mapperOauthFlowsDefsImplicit31(flows *OAuthFlowsDefsImplicit) *openapi31.OauthFlowsDefsImplicit {
+func mapperOauthFlowsDefsImplicit31(flows *option.OAuthFlowsDefsImplicit) *openapi31.OauthFlowsDefsImplicit {
 	if flows == nil {
 		return nil
 	}
@@ -150,7 +151,7 @@ func mapperOauthFlowsDefsImplicit31(flows *OAuthFlowsDefsImplicit) *openapi31.Oa
 	}
 }
 
-func mapperOauthFlowsDefsPassword31(flows *OAuthFlowsDefsPassword) *openapi31.OauthFlowsDefsPassword {
+func mapperOauthFlowsDefsPassword31(flows *option.OAuthFlowsDefsPassword) *openapi31.OauthFlowsDefsPassword {
 	if flows == nil {
 		return nil
 	}
@@ -162,7 +163,7 @@ func mapperOauthFlowsDefsPassword31(flows *OAuthFlowsDefsPassword) *openapi31.Oa
 	}
 }
 
-func mapperOauthFlowsDefsClientCredentials31(flows *OAuthFlowsDefsClientCredentials) *openapi31.OauthFlowsDefsClientCredentials {
+func mapperOauthFlowsDefsClientCredentials31(flows *option.OAuthFlowsDefsClientCredentials) *openapi31.OauthFlowsDefsClientCredentials {
 	if flows == nil {
 		return nil
 	}
@@ -173,7 +174,7 @@ func mapperOauthFlowsDefsClientCredentials31(flows *OAuthFlowsDefsClientCredenti
 	}
 }
 
-func mapperOauthFlowsDefsAuthorizationCode31(flows *OAuthFlowsDefsAuthorizationCode) *openapi31.OauthFlowsDefsAuthorizationCode {
+func mapperOauthFlowsDefsAuthorizationCode31(flows *option.OAuthFlowsDefsAuthorizationCode) *openapi31.OauthFlowsDefsAuthorizationCode {
 	if flows == nil {
 		return nil
 	}

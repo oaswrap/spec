@@ -1,4 +1,4 @@
-package spec
+package option
 
 // Server structure is generated from "#/$defs/server".
 type Server struct {

@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/oaswrap/spec/option"
 	"github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/openapi-go"
 )
@@ -14,7 +15,7 @@ var (
 	re31 = regexp.MustCompile(`^3\.1\.\d+(-.+)?$`)
 )
 
-func newReflector(cfg *Config) (Reflector, error) {
+func newReflector(cfg *option.OpenAPI) (Reflector, error) {
 	jsonSchemaOpts := []func(*jsonschema.ReflectContext){
 		jsonschema.InterceptProp(func(params jsonschema.InterceptPropParams) error {
 			if !params.Processed {
@@ -41,6 +42,6 @@ type operationContext struct {
 	openapi.OperationContext
 }
 
-func (oc *operationContext) OpenAPIOperationContext() openapi.OperationContext {
+func (oc *operationContext) unwrap() openapi.OperationContext {
 	return oc.OperationContext
 }

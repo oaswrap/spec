@@ -130,13 +130,12 @@ func TestGenerator(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			for version, alias := range versions {
-				cfg := &spec.Config{
-					Title:       "API Documentation",
-					Version:     "1.0.0",
-					Description: nil,
+				opts := []option.OpenAPIOption{
+					option.WithOpenAPIVersion(version),
+					option.WithTitle("Test API"),
+					option.WithVersion("1.0.0"),
 				}
-				cfg.OpenAPIVersion = version
-				gen, err := spec.NewGenerator(cfg)
+				gen, err := spec.NewGenerator(opts...)
 				require.NoError(t, err)
 
 				tt.setup(t, gen)
@@ -168,6 +167,7 @@ func TestGenerator_New(t *testing.T) {
 		name        string
 		opts        []option.OpenAPIOption
 		shouldError bool
+		expected    *option.OpenAPI
 	}{
 		{
 			name: "With Default Config",
@@ -189,7 +189,7 @@ func TestGenerator_New(t *testing.T) {
 				option.WithOpenAPIVersion("3.0.0"),
 				option.WithServer("https://api.example.com/v1",
 					option.ServerDescription("Production Server"),
-					option.ServerVariables(map[string]spec.ServerVariable{
+					option.ServerVariables(map[string]option.ServerVariable{
 						"version": {
 							Default:     "v1",
 							Enum:        []string{"v1", "v2"},
@@ -205,7 +205,7 @@ func TestGenerator_New(t *testing.T) {
 				option.WithOpenAPIVersion("3.1.0"),
 				option.WithServer("https://api.example.com/v1",
 					option.ServerDescription("Production Server"),
-					option.ServerVariables(map[string]spec.ServerVariable{
+					option.ServerVariables(map[string]option.ServerVariable{
 						"version": {
 							Default:     "v1",
 							Enum:        []string{"v1", "v2"},
@@ -247,29 +247,29 @@ func TestGenerator_New(t *testing.T) {
 			name: "With Security Schemes OAuth2 3.0.0",
 			opts: []option.OpenAPIOption{
 				option.WithOpenAPIVersion("3.0.0"),
-				option.WithSecurity("oauth2", option.SecurityOAuth2(spec.OAuthFlows{
-					Implicit: &spec.OAuthFlowsDefsImplicit{
+				option.WithSecurity("oauth2", option.SecurityOAuth2(option.OAuthFlows{
+					Implicit: &option.OAuthFlowsDefsImplicit{
 						AuthorizationURL: "https://auth.example.com/oauth/authorize",
 						Scopes: map[string]string{
 							"read":  "Read access",
 							"write": "Write access",
 						},
 					},
-					Password: &spec.OAuthFlowsDefsPassword{
+					Password: &option.OAuthFlowsDefsPassword{
 						TokenURL: "https://auth.example.com/oauth/token",
 						Scopes: map[string]string{
 							"read":  "Read access",
 							"write": "Write access",
 						},
 					},
-					ClientCredentials: &spec.OAuthFlowsDefsClientCredentials{
+					ClientCredentials: &option.OAuthFlowsDefsClientCredentials{
 						TokenURL: "https://auth.example.com/oauth/token",
 						Scopes: map[string]string{
 							"read":  "Read access",
 							"write": "Write access",
 						},
 					},
-					AuthorizationCode: &spec.OAuthFlowsDefsAuthorizationCode{
+					AuthorizationCode: &option.OAuthFlowsDefsAuthorizationCode{
 						AuthorizationURL: "https://auth.example.com/oauth/authorize",
 						TokenURL:         "https://auth.example.com/oauth/token",
 						Scopes: map[string]string{
@@ -284,29 +284,29 @@ func TestGenerator_New(t *testing.T) {
 			name: "With Security Schemes OAuth2 3.1.0",
 			opts: []option.OpenAPIOption{
 				option.WithOpenAPIVersion("3.1.0"),
-				option.WithSecurity("oauth2", option.SecurityOAuth2(spec.OAuthFlows{
-					Implicit: &spec.OAuthFlowsDefsImplicit{
+				option.WithSecurity("oauth2", option.SecurityOAuth2(option.OAuthFlows{
+					Implicit: &option.OAuthFlowsDefsImplicit{
 						AuthorizationURL: "https://auth.example.com/oauth/authorize",
 						Scopes: map[string]string{
 							"read":  "Read access",
 							"write": "Write access",
 						},
 					},
-					Password: &spec.OAuthFlowsDefsPassword{
+					Password: &option.OAuthFlowsDefsPassword{
 						TokenURL: "https://auth.example.com/oauth/token",
 						Scopes: map[string]string{
 							"read":  "Read access",
 							"write": "Write access",
 						},
 					},
-					ClientCredentials: &spec.OAuthFlowsDefsClientCredentials{
+					ClientCredentials: &option.OAuthFlowsDefsClientCredentials{
 						TokenURL: "https://auth.example.com/oauth/token",
 						Scopes: map[string]string{
 							"read":  "Read access",
 							"write": "Write access",
 						},
 					},
-					AuthorizationCode: &spec.OAuthFlowsDefsAuthorizationCode{
+					AuthorizationCode: &option.OAuthFlowsDefsAuthorizationCode{
 						AuthorizationURL: "https://auth.example.com/oauth/authorize",
 						TokenURL:         "https://auth.example.com/oauth/token",
 						Scopes: map[string]string{
@@ -328,13 +328,7 @@ func TestGenerator_New(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cfg := &spec.Config{
-				OpenAPIVersion: "3.1.0",
-			}
-			for _, opt := range tt.opts {
-				opt(cfg)
-			}
-			_, err := spec.NewGenerator(cfg)
+			_, err := spec.NewGenerator(tt.opts...)
 			if tt.shouldError {
 				assert.Error(t, err, "expected error but got none")
 				return
@@ -385,12 +379,11 @@ func TestGenerator_GenerateSchema(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cfg := &spec.Config{
-				OpenAPIVersion: "3.1.0",
-				Title:          "Test API",
-				Version:        "1.0.0",
-			}
-			gen, err := spec.NewGenerator(cfg)
+			gen, err := spec.NewGenerator(
+				option.WithOpenAPIVersion("3.1.0"),
+				option.WithTitle("Test API"),
+				option.WithVersion("1.0.0"),
+			)
 			require.NoError(t, err)
 
 			// Add a simple operation to ensure we have some content
@@ -465,12 +458,11 @@ func TestGenerator_WriteSchemaTo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create generator with test configuration
-			cfg := &spec.Config{
-				OpenAPIVersion: "3.1.0",
-				Title:          "Test API",
-				Version:        "1.0.0",
-			}
-			gen, err := spec.NewGenerator(cfg)
+			gen, err := spec.NewGenerator(
+				option.WithOpenAPIVersion("3.1.0"),
+				option.WithTitle("Test API"),
+				option.WithVersion("1.0.0"),
+			)
 			require.NoError(t, err)
 
 			// Add a simple operation to ensure we have content

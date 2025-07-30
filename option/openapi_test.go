@@ -4,7 +4,6 @@ import (
 	"log"
 	"testing"
 
-	"github.com/oaswrap/spec"
 	"github.com/oaswrap/spec/option"
 	"github.com/oaswrap/spec/pkg/util"
 	"github.com/stretchr/testify/assert"
@@ -12,7 +11,7 @@ import (
 )
 
 func TestWithOpenAPIVersion(t *testing.T) {
-	config := &spec.Config{}
+	config := &option.OpenAPI{}
 	opt := option.WithOpenAPIVersion("3.0.0")
 	opt(config)
 
@@ -32,7 +31,7 @@ func TestWithDisableOpenAPI(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			config := &spec.Config{}
+			config := &option.OpenAPI{}
 			opt := option.WithDisableOpenAPI(tt.disable...)
 			opt(config)
 
@@ -42,7 +41,7 @@ func TestWithDisableOpenAPI(t *testing.T) {
 }
 
 func TestWithBaseURL(t *testing.T) {
-	config := &spec.Config{}
+	config := &option.OpenAPI{}
 	opt := option.WithBaseURL("https://api.example.com")
 	opt(config)
 
@@ -50,7 +49,7 @@ func TestWithBaseURL(t *testing.T) {
 }
 
 func TestWithTitle(t *testing.T) {
-	config := &spec.Config{}
+	config := &option.OpenAPI{}
 	opt := option.WithTitle("My API")
 	opt(config)
 
@@ -58,7 +57,7 @@ func TestWithTitle(t *testing.T) {
 }
 
 func TestWithVersion(t *testing.T) {
-	config := &spec.Config{}
+	config := &option.OpenAPI{}
 	opt := option.WithVersion("1.0.0")
 	opt(config)
 
@@ -66,7 +65,7 @@ func TestWithVersion(t *testing.T) {
 }
 
 func TestWithDescription(t *testing.T) {
-	config := &spec.Config{}
+	config := &option.OpenAPI{}
 	opt := option.WithDescription("API description")
 	opt(config)
 
@@ -79,12 +78,12 @@ func TestWithServer(t *testing.T) {
 		name     string
 		url      string
 		opts     []option.ServerOption
-		expected spec.Server
+		expected option.Server
 	}{
 		{
 			name: "without description",
 			url:  "https://api.example.com",
-			expected: spec.Server{
+			expected: option.Server{
 				URL: "https://api.example.com",
 			},
 		},
@@ -92,7 +91,7 @@ func TestWithServer(t *testing.T) {
 			name: "with description",
 			url:  "https://api.example.com",
 			opts: []option.ServerOption{option.ServerDescription("Production server")},
-			expected: spec.Server{
+			expected: option.Server{
 				URL:         "https://api.example.com",
 				Description: util.PtrOf("Production server"),
 			},
@@ -101,7 +100,7 @@ func TestWithServer(t *testing.T) {
 			name: "with variables",
 			url:  "https://api.example.com",
 			opts: []option.ServerOption{
-				option.ServerVariables(map[string]spec.ServerVariable{
+				option.ServerVariables(map[string]option.ServerVariable{
 					"version": {
 						Default:     "v1",
 						Description: util.PtrOf("API version"),
@@ -109,9 +108,9 @@ func TestWithServer(t *testing.T) {
 					},
 				}),
 			},
-			expected: spec.Server{
+			expected: option.Server{
 				URL: "https://api.example.com",
-				Variables: map[string]spec.ServerVariable{
+				Variables: map[string]option.ServerVariable{
 					"version": {
 						Default:     "v1",
 						Description: util.PtrOf("API version"),
@@ -124,7 +123,7 @@ func TestWithServer(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			config := &spec.Config{}
+			config := &option.OpenAPI{}
 			opt := option.WithServer(tt.url, tt.opts...)
 			opt(config)
 
@@ -141,7 +140,7 @@ func TestWithServer(t *testing.T) {
 }
 
 func TestWithDocsPath(t *testing.T) {
-	config := &spec.Config{}
+	config := &option.OpenAPI{}
 	opt := option.WithDocsPath("/docs")
 	opt(config)
 
@@ -153,7 +152,7 @@ func TestWithSecurity(t *testing.T) {
 		name     string
 		scheme   string
 		opts     []option.SecurityOption
-		expected *spec.SecurityScheme
+		expected *option.SecurityScheme
 	}{
 		{
 			name:   "API Key Scheme",
@@ -162,9 +161,9 @@ func TestWithSecurity(t *testing.T) {
 				option.SecurityAPIKey("x-api-key", "header"),
 				option.SecurityDescription("API key for authentication"),
 			},
-			expected: &spec.SecurityScheme{
+			expected: &option.SecurityScheme{
 				Description: util.PtrOf("API key for authentication"),
-				APIKey: &spec.SecuritySchemeAPIKey{
+				APIKey: &option.SecuritySchemeAPIKey{
 					Name: "x-api-key",
 					In:   "header",
 				},
@@ -177,8 +176,8 @@ func TestWithSecurity(t *testing.T) {
 				option.SecurityHTTPBearer("Bearer"),
 				option.SecurityDescription(""),
 			},
-			expected: &spec.SecurityScheme{
-				HTTPBearer: &spec.SecuritySchemeHTTPBearer{
+			expected: &option.SecurityScheme{
+				HTTPBearer: &option.SecuritySchemeHTTPBearer{
 					Scheme: "Bearer",
 				},
 			},
@@ -187,8 +186,8 @@ func TestWithSecurity(t *testing.T) {
 			name:   "OAuth2 Scheme",
 			scheme: "oauth2",
 			opts: []option.SecurityOption{
-				option.SecurityOAuth2(spec.OAuthFlows{
-					Implicit: &spec.OAuthFlowsDefsImplicit{
+				option.SecurityOAuth2(option.OAuthFlows{
+					Implicit: &option.OAuthFlowsDefsImplicit{
 						AuthorizationURL: "https://auth.example.com/authorize",
 						Scopes: map[string]string{
 							"read":  "Read access",
@@ -197,10 +196,10 @@ func TestWithSecurity(t *testing.T) {
 					},
 				}),
 			},
-			expected: &spec.SecurityScheme{
-				OAuth2: &spec.SecuritySchemeOAuth2{
-					Flows: spec.OAuthFlows{
-						Implicit: &spec.OAuthFlowsDefsImplicit{
+			expected: &option.SecurityScheme{
+				OAuth2: &option.SecuritySchemeOAuth2{
+					Flows: option.OAuthFlows{
+						Implicit: &option.OAuthFlowsDefsImplicit{
 							AuthorizationURL: "https://auth.example.com/authorize",
 							Scopes: map[string]string{
 								"read":  "Read access",
@@ -215,7 +214,7 @@ func TestWithSecurity(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			config := &spec.Config{}
+			config := &option.OpenAPI{}
 			opt := option.WithSecurity(tt.scheme, tt.opts...)
 			opt(config)
 
@@ -229,29 +228,37 @@ func TestWithSecurity(t *testing.T) {
 func TestWithSwaggerConfig(t *testing.T) {
 	tests := []struct {
 		name     string
-		cfg      []*spec.SwaggerConfig
-		expected *spec.SwaggerConfig
+		cfg      []option.SwaggerConfig
+		expected *option.SwaggerConfig
 	}{
 		{
 			name:     "no config",
-			cfg:      []*spec.SwaggerConfig{},
+			cfg:      []option.SwaggerConfig{},
 			expected: nil,
 		},
 		{
 			name:     "nil config",
-			cfg:      []*spec.SwaggerConfig{nil},
+			cfg:      []option.SwaggerConfig{},
 			expected: nil,
 		},
 		{
-			name:     "valid config",
-			cfg:      []*spec.SwaggerConfig{{}},
-			expected: &spec.SwaggerConfig{},
+			name: "valid config",
+			cfg: []option.SwaggerConfig{
+				{
+					ShowTopBar: true,
+					HideCurl:   false,
+				},
+			},
+			expected: &option.SwaggerConfig{
+				ShowTopBar: true,
+				HideCurl:   false,
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			config := &spec.Config{}
+			config := &option.OpenAPI{}
 			opt := option.WithSwaggerConfig(tt.cfg...)
 			opt(config)
 
@@ -273,14 +280,14 @@ func TestWithDebug(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			config := &spec.Config{}
+			config := &option.OpenAPI{}
 			opt := option.WithDebug(tt.debug...)
 			opt(config)
 
 			if tt.expectLog {
 				assert.Equal(t, log.Default(), config.Logger)
 			} else {
-				assert.IsType(t, &spec.NoopLogger{}, config.Logger)
+				assert.IsType(t, &option.NoopLogger{}, config.Logger)
 			}
 		})
 	}

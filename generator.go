@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/oaswrap/spec/option"
 )
 
 // Generator is responsible for generating OpenAPI documentation.
@@ -14,21 +16,17 @@ type Generator struct {
 	spec      Spec
 }
 
-var defaultConfig = &Config{
-	OpenAPIVersion:  "3.1.0",
-	Title:           "API Documentation",
-	Version:         "1.0.0",
-	Description:     nil,
-	SecuritySchemes: make(map[string]*SecurityScheme),
-}
-
 // NewGenerator creates a new Generator instance with the provided configuration.
-func NewGenerator(configs ...*Config) (*Generator, error) {
-	var cfg *Config
-	if len(configs) > 0 {
-		cfg = configs[0]
-	} else {
-		cfg = defaultConfig
+func NewGenerator(opts ...option.OpenAPIOption) (*Generator, error) {
+	cfg := &option.OpenAPI{
+		OpenAPIVersion:  "3.1.0",
+		Title:           "API Documentation",
+		Version:         "1.0.0",
+		Description:     nil,
+		SecuritySchemes: make(map[string]*option.SecurityScheme),
+	}
+	for _, opt := range opts {
+		opt(cfg)
 	}
 
 	reflector, err := newReflector(cfg)

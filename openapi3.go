@@ -1,11 +1,12 @@
 package spec
 
 import (
+	"github.com/oaswrap/spec/option"
 	"github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/openapi-go/openapi3"
 )
 
-func newReflector3(cfg *Config, jsonSchemaOpts []func(*jsonschema.ReflectContext)) Reflector {
+func newReflector3(cfg *option.OpenAPI, jsonSchemaOpts []func(*jsonschema.ReflectContext)) Reflector {
 	reflector := openapi3.NewReflector()
 	spec := reflector.Spec
 	spec.Info.Title = cfg.Title
@@ -41,7 +42,7 @@ type reflector3 struct {
 }
 
 func (r *reflector3) AddOperation(oc OperationContext) error {
-	return r.reflector.AddOperation(oc.OpenAPIOperationContext())
+	return r.reflector.AddOperation(oc.unwrap())
 }
 
 func (r *reflector3) NewOperationContext(method, path string) (OperationContext, error) {
@@ -56,7 +57,7 @@ func (r *reflector3) Spec() Spec {
 	return r.reflector.Spec
 }
 
-func mapperServers3(servers []Server) []openapi3.Server {
+func mapperServers3(servers []option.Server) []openapi3.Server {
 	result := make([]openapi3.Server, 0, len(servers))
 	for _, server := range servers {
 		result = append(result, mapperServer3(server))
@@ -64,7 +65,7 @@ func mapperServers3(servers []Server) []openapi3.Server {
 	return result
 }
 
-func mapperServer3(server Server) openapi3.Server {
+func mapperServer3(server option.Server) openapi3.Server {
 	var variables map[string]openapi3.ServerVariable
 
 	if len(server.Variables) > 0 {
@@ -85,7 +86,7 @@ func mapperServer3(server Server) openapi3.Server {
 	}
 }
 
-func mapperSecurityScheme3(scheme *SecurityScheme) *openapi3.SecurityScheme {
+func mapperSecurityScheme3(scheme *option.SecurityScheme) *openapi3.SecurityScheme {
 	openapiScheme := &openapi3.SecurityScheme{}
 	if scheme.APIKey != nil {
 		openapiScheme.APIKeySecurityScheme = mapperAPIKey3(scheme, scheme.APIKey)
@@ -99,7 +100,7 @@ func mapperSecurityScheme3(scheme *SecurityScheme) *openapi3.SecurityScheme {
 	return openapiScheme
 }
 
-func mapperAPIKey3(scheme *SecurityScheme, apiKey *SecuritySchemeAPIKey) *openapi3.APIKeySecurityScheme {
+func mapperAPIKey3(scheme *option.SecurityScheme, apiKey *option.SecuritySchemeAPIKey) *openapi3.APIKeySecurityScheme {
 	if apiKey == nil {
 		return nil
 	}
@@ -110,7 +111,7 @@ func mapperAPIKey3(scheme *SecurityScheme, apiKey *SecuritySchemeAPIKey) *openap
 	}
 }
 
-func mapperHTTPBearer3(scheme *SecurityScheme, securityScheme *SecuritySchemeHTTPBearer) *openapi3.HTTPSecurityScheme {
+func mapperHTTPBearer3(scheme *option.SecurityScheme, securityScheme *option.SecuritySchemeHTTPBearer) *openapi3.HTTPSecurityScheme {
 	if securityScheme == nil {
 		return nil
 	}
@@ -121,7 +122,7 @@ func mapperHTTPBearer3(scheme *SecurityScheme, securityScheme *SecuritySchemeHTT
 	}
 }
 
-func mapperOAuth2SecurityScheme(scheme *SecurityScheme, oauth2 *SecuritySchemeOAuth2) *openapi3.OAuth2SecurityScheme {
+func mapperOAuth2SecurityScheme(scheme *option.SecurityScheme, oauth2 *option.SecuritySchemeOAuth2) *openapi3.OAuth2SecurityScheme {
 	if oauth2 == nil {
 		return nil
 	}
@@ -131,7 +132,7 @@ func mapperOAuth2SecurityScheme(scheme *SecurityScheme, oauth2 *SecuritySchemeOA
 	}
 }
 
-func mapperOauth2Flows3(flows OAuthFlows) openapi3.OAuthFlows {
+func mapperOauth2Flows3(flows option.OAuthFlows) openapi3.OAuthFlows {
 	return openapi3.OAuthFlows{
 		Implicit:          mapperOauthFlowsDefsImplicit3(flows.Implicit),
 		Password:          mapperOauthFlowsDefsPassword3(flows.Password),
@@ -140,7 +141,7 @@ func mapperOauth2Flows3(flows OAuthFlows) openapi3.OAuthFlows {
 	}
 }
 
-func mapperOauthFlowsDefsImplicit3(flows *OAuthFlowsDefsImplicit) *openapi3.ImplicitOAuthFlow {
+func mapperOauthFlowsDefsImplicit3(flows *option.OAuthFlowsDefsImplicit) *openapi3.ImplicitOAuthFlow {
 	if flows == nil {
 		return nil
 	}
@@ -152,7 +153,7 @@ func mapperOauthFlowsDefsImplicit3(flows *OAuthFlowsDefsImplicit) *openapi3.Impl
 	}
 }
 
-func mapperOauthFlowsDefsPassword3(flows *OAuthFlowsDefsPassword) *openapi3.PasswordOAuthFlow {
+func mapperOauthFlowsDefsPassword3(flows *option.OAuthFlowsDefsPassword) *openapi3.PasswordOAuthFlow {
 	if flows == nil {
 		return nil
 	}
@@ -164,7 +165,7 @@ func mapperOauthFlowsDefsPassword3(flows *OAuthFlowsDefsPassword) *openapi3.Pass
 	}
 }
 
-func mapperOauthFlowsDefsClientCredentials3(flows *OAuthFlowsDefsClientCredentials) *openapi3.ClientCredentialsFlow {
+func mapperOauthFlowsDefsClientCredentials3(flows *option.OAuthFlowsDefsClientCredentials) *openapi3.ClientCredentialsFlow {
 	if flows == nil {
 		return nil
 	}
@@ -175,7 +176,7 @@ func mapperOauthFlowsDefsClientCredentials3(flows *OAuthFlowsDefsClientCredentia
 	}
 }
 
-func mapperOauthFlowsDefsAuthorizationCode3(flows *OAuthFlowsDefsAuthorizationCode) *openapi3.AuthorizationCodeOAuthFlow {
+func mapperOauthFlowsDefsAuthorizationCode3(flows *option.OAuthFlowsDefsAuthorizationCode) *openapi3.AuthorizationCodeOAuthFlow {
 	if flows == nil {
 		return nil
 	}
