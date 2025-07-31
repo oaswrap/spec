@@ -10,10 +10,16 @@ type OperationConfig struct {
 	Summary     string
 	Deprecated  bool
 	Tags        []string
-	Security    []RouteSecurityConfig
+	Security    []OperationSecurityConfig
 
 	Requests  []*ContentConfig
 	Responses []*ContentConfig
+}
+
+// OperationSecurityConfig holds the security configuration for an operation.
+type OperationSecurityConfig struct {
+	Name   string
+	Scopes []string
 }
 
 // Operation is a function that configures an OpenAPI operation.
@@ -68,7 +74,7 @@ func Tags(tags ...string) OperationOption {
 // Security adds security requirements to the OpenAPI operation.
 func Security(securityName string, scopes ...string) OperationOption {
 	return func(cfg *OperationConfig) {
-		cfg.Security = append(cfg.Security, RouteSecurityConfig{
+		cfg.Security = append(cfg.Security, OperationSecurityConfig{
 			Name:   securityName,
 			Scopes: scopes,
 		})

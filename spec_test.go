@@ -268,20 +268,19 @@ func TestRouter(t *testing.T) {
 						option.Request(new(LoginRequest)),
 						option.Response(200, new(Token)),
 					)
-					auth := r.Group("/", option.RouteSecurity("bearerAuth"))
+					auth := r.Group("/", option.GroupSecurity("bearerAuth"))
 					auth.Get("/me",
 						option.Summary("Get Profile v1"),
-						option.Tags("Profile"),
 						option.Response(200, new(User)),
-					)
-				}, option.RouteTags("Authentication"))
+					).With(option.Tags("Profile"))
+				}, option.GroupTags("Authentication"))
 				v1.Route("/profile", func(r spec.Router) {
 					r.Put("/",
 						option.Summary("Update Profile v1"),
 						option.Request(new(User)),
 						option.Response(200, new(User)),
 					)
-				}, option.RouteSecurity("bearerAuth")).Use(option.RouteTags("Profile"))
+				}, option.GroupSecurity("bearerAuth")).Use(option.GroupTags("Profile"))
 			},
 		},
 		{
