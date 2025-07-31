@@ -106,6 +106,12 @@ func (p *CustomParser) Parse(path string) (string, error) {
 	return p.re.ReplaceAllString(path, "{$1}"), nil
 }
 
+type ErrorCustomParser struct{}
+
+func (p *ErrorCustomParser) Parse(path string) (string, error) {
+	return "", fmt.Errorf("failed to parse path: %s", path)
+}
+
 func TestRouter(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -379,6 +385,24 @@ func TestRouter(t *testing.T) {
 			},
 			shouldError: true, // Invalid path parameter without a proper tag
 		},
+		{
+			name: "Error Custom Path Parser",
+			opts: []option.OpenAPIOption{
+				option.WithPathParser(&ErrorCustomParser{}),
+			},
+			setup: func(r spec.Router) {
+				r.Get("/user/:id",
+					option.OperationID("getUserById"),
+					option.Summary("Get User by ID"),
+					option.Description("This operation retrieves a user by ID."),
+					option.Request(new(struct {
+						ID int `path:"id" validate:"required"`
+					})),
+					option.Response(200, new(User)),
+				)
+			},
+			shouldError: true, // Custom parser should fail
+		},
 	}
 
 	versions := map[string]string{
@@ -407,7 +431,7 @@ func TestRouter(t *testing.T) {
 
 				if tt.shouldError {
 					assert.Error(t, r.Validate(), "Expected router to fail validation")
-					return
+					continue
 				}
 				assert.NoError(t, r.Validate(), "Router validation failed")
 

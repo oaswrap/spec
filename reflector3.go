@@ -140,9 +140,6 @@ func (r *reflector3) Validate() error {
 }
 
 func (r *reflector3) addOperation(oc operationContext) error {
-	if oc == nil {
-		return nil
-	}
 	openapiOC := oc.build()
 	if openapiOC == nil {
 		return nil

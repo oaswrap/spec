@@ -11,6 +11,134 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestWithOpenAPIConfig(t *testing.T) {
+	tests := []struct {
+		name     string
+		opts     []option.OpenAPIOption
+		validate func(t *testing.T, config *openapi.Config)
+	}{
+		{
+			name: "default configuration",
+			opts: []option.OpenAPIOption{},
+			validate: func(t *testing.T, config *openapi.Config) {
+				assert.Equal(t, "3.0.3", config.OpenAPIVersion)
+				assert.Equal(t, "API Documentation", config.Title)
+				assert.Nil(t, config.Description)
+				assert.NotNil(t, config.Logger)
+				assert.Empty(t, config.BaseURL)
+				assert.Empty(t, config.Version)
+				assert.Nil(t, config.Contact)
+				assert.Nil(t, config.License)
+				assert.Empty(t, config.Tags)
+				assert.Empty(t, config.Servers)
+				assert.Nil(t, config.ExternalDocs)
+				assert.Nil(t, config.SecuritySchemes)
+				assert.Nil(t, config.ReflectorConfig)
+				assert.False(t, config.DisableDocs)
+				assert.Empty(t, config.DocsPath)
+				assert.Nil(t, config.SwaggerConfig)
+				assert.Nil(t, config.PathParser)
+			},
+		},
+		{
+			name: "single option",
+			opts: []option.OpenAPIOption{
+				option.WithTitle("My Custom API"),
+			},
+			validate: func(t *testing.T, config *openapi.Config) {
+				assert.Equal(t, "3.0.3", config.OpenAPIVersion)
+				assert.Equal(t, "My Custom API", config.Title)
+				assert.Nil(t, config.Description)
+				assert.NotNil(t, config.Logger)
+			},
+		},
+		{
+			name: "multiple options",
+			opts: []option.OpenAPIOption{
+				option.WithOpenAPIVersion("3.1.0"),
+				option.WithTitle("Advanced API"),
+				option.WithVersion("2.0.0"),
+				option.WithDescription("A comprehensive API"),
+				option.WithBaseURL("https://api.example.com"),
+			},
+			validate: func(t *testing.T, config *openapi.Config) {
+				assert.Equal(t, "3.1.0", config.OpenAPIVersion)
+				assert.Equal(t, "Advanced API", config.Title)
+				assert.Equal(t, "2.0.0", config.Version)
+				assert.Equal(t, "https://api.example.com", config.BaseURL)
+				require.NotNil(t, config.Description)
+				assert.Equal(t, "A comprehensive API", *config.Description)
+			},
+		},
+		{
+			name: "complex configuration",
+			opts: []option.OpenAPIOption{
+				option.WithTitle("Complete API"),
+				option.WithVersion("1.0.0"),
+				option.WithDescription("Full-featured API"),
+				option.WithContact(openapi.Contact{
+					Name:  "Support",
+					Email: "support@example.com",
+				}),
+				option.WithLicense(openapi.License{
+					Name: "MIT",
+					URL:  "https://opensource.org/licenses/MIT",
+				}),
+				option.WithServer("https://api.example.com"),
+				option.WithTags(openapi.Tag{
+					Name:        "users",
+					Description: "User operations",
+				}),
+				option.WithDebug(true),
+				option.WithDisableDocs(false),
+			},
+			validate: func(t *testing.T, config *openapi.Config) {
+				assert.Equal(t, "Complete API", config.Title)
+				assert.Equal(t, "1.0.0", config.Version)
+				require.NotNil(t, config.Description)
+				assert.Equal(t, "Full-featured API", *config.Description)
+				require.NotNil(t, config.Contact)
+				assert.Equal(t, "Support", config.Contact.Name)
+				assert.Equal(t, "support@example.com", config.Contact.Email)
+				require.NotNil(t, config.License)
+				assert.Equal(t, "MIT", config.License.Name)
+				assert.Equal(t, "https://opensource.org/licenses/MIT", config.License.URL)
+				require.Len(t, config.Servers, 1)
+				assert.Equal(t, "https://api.example.com", config.Servers[0].URL)
+				require.Len(t, config.Tags, 1)
+				assert.Equal(t, "users", config.Tags[0].Name)
+				assert.Equal(t, "User operations", config.Tags[0].Description)
+				assert.NotNil(t, config.Logger)
+				assert.False(t, config.DisableDocs)
+			},
+		},
+		{
+			name: "overriding defaults",
+			opts: []option.OpenAPIOption{
+				option.WithOpenAPIVersion("3.1.0"),
+				option.WithTitle("Override Title"),
+				option.WithDescription("Override Description"),
+				option.WithDebug(false),
+			},
+			validate: func(t *testing.T, config *openapi.Config) {
+				assert.Equal(t, "3.1.0", config.OpenAPIVersion)
+				assert.Equal(t, "Override Title", config.Title)
+				require.NotNil(t, config.Description)
+				assert.Equal(t, "Override Description", *config.Description)
+				assert.NotNil(t, config.Logger)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := option.WithOpenAPIConfig(tt.opts...)
+			require.NotNil(t, config)
+			tt.validate(t, config)
+		})
+	}
+}
+
 func TestWithOpenAPIVersion(t *testing.T) {
 	config := &openapi.Config{}
 	opt := option.WithOpenAPIVersion("3.0.0")
@@ -403,6 +531,93 @@ func TestWithTags(t *testing.T) {
 	assert.Equal(t, "User management", config.Tags[0].Description)
 	assert.Equal(t, "orders", config.Tags[1].Name)
 	assert.Equal(t, "Order management", config.Tags[1].Description)
+}
+
+func TestWithReflectorConfig(t *testing.T) {
+	tests := []struct {
+		name     string
+		opts     []option.ReflectorOption
+		validate func(t *testing.T, config *openapi.Config)
+	}{
+		{
+			name: "creates new reflector config when nil",
+			opts: []option.ReflectorOption{},
+			validate: func(t *testing.T, config *openapi.Config) {
+				require.NotNil(t, config.ReflectorConfig)
+			},
+		},
+		{
+			name: "applies single option",
+			opts: []option.ReflectorOption{
+				option.InlineRefs(),
+			},
+			validate: func(t *testing.T, config *openapi.Config) {
+				require.NotNil(t, config.ReflectorConfig)
+				assert.True(t, config.ReflectorConfig.InlineRefs)
+			},
+		},
+		{
+			name: "applies multiple options",
+			opts: []option.ReflectorOption{
+				option.RequiredPropByValidateTag("validate", ","),
+				option.StripDefNamePrefix("MyPrefix"),
+			},
+			validate: func(t *testing.T, config *openapi.Config) {
+				require.NotNil(t, config.ReflectorConfig)
+				assert.NotNil(t, config.ReflectorConfig.InterceptPropFunc)
+				assert.NotEmpty(t, config.ReflectorConfig.StripDefNamePrefix)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := &openapi.Config{}
+
+			// For the "preserves existing reflector config" test, pre-populate the config
+			if tt.name == "preserves existing reflector config" {
+				config.ReflectorConfig = &openapi.ReflectorConfig{}
+			}
+
+			opt := option.WithReflectorConfig(tt.opts...)
+			opt(config)
+
+			tt.validate(t, config)
+		})
+	}
+}
+
+func TestWithDebug(t *testing.T) {
+	config := &openapi.Config{}
+	opt := option.WithDebug(true)
+	opt(config)
+
+	assert.NotNil(t, config.Logger)
+
+	config = &openapi.Config{}
+	opt = option.WithDebug(false)
+	opt(config)
+	assert.NotNil(t, config.Logger)
+}
+
+func TestWithPathParser(t *testing.T) {
+	// Mock path parser for testing
+	mockParser := &mockPathParser{}
+
+	config := &openapi.Config{}
+	opt := option.WithPathParser(mockParser)
+	opt(config)
+
+	assert.Equal(t, mockParser, config.PathParser)
+	assert.NotNil(t, config.PathParser)
+}
+
+// mockPathParser is a test implementation of openapi.PathParser
+type mockPathParser struct{}
+
+func (m *mockPathParser) Parse(path string) (string, error) {
+	// Simple mock implementation that converts :param to {param}
+	return path, nil
 }
 
 func TestOpenAPIConfigDefaults(t *testing.T) {
