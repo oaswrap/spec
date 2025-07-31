@@ -23,14 +23,8 @@ type Generator struct {
 	prefix string
 	groups []*Generator
 	routes []*route
-	opts   []option.RouteOption
+	opts   []option.GroupOption
 	once   sync.Once
-}
-
-type route struct {
-	method string
-	path   string
-	opts   []option.OperationOption
 }
 
 var _ Router = (*Generator)(nil)
@@ -63,48 +57,48 @@ func (g *Generator) Config() *openapi.Config {
 }
 
 // Get registers a new GET operation with the specified path and options.
-func (g *Generator) Get(path string, opts ...option.OperationOption) {
-	g.Add("GET", path, opts...)
+func (g *Generator) Get(path string, opts ...option.OperationOption) Route {
+	return g.Add("GET", path, opts...)
 }
 
 // Post registers a new POST operation with the specified path and options.
-func (g *Generator) Post(path string, opts ...option.OperationOption) {
-	g.Add("POST", path, opts...)
+func (g *Generator) Post(path string, opts ...option.OperationOption) Route {
+	return g.Add("POST", path, opts...)
 }
 
 // Put registers a new PUT operation with the specified path and options.
-func (g *Generator) Put(path string, opts ...option.OperationOption) {
-	g.Add("PUT", path, opts...)
+func (g *Generator) Put(path string, opts ...option.OperationOption) Route {
+	return g.Add("PUT", path, opts...)
 }
 
 // Delete registers a new DELETE operation with the specified path and options.
-func (g *Generator) Delete(path string, opts ...option.OperationOption) {
-	g.Add("DELETE", path, opts...)
+func (g *Generator) Delete(path string, opts ...option.OperationOption) Route {
+	return g.Add("DELETE", path, opts...)
 }
 
 // Patch registers a new PATCH operation with the specified path and options.
-func (g *Generator) Patch(path string, opts ...option.OperationOption) {
-	g.Add("PATCH", path, opts...)
+func (g *Generator) Patch(path string, opts ...option.OperationOption) Route {
+	return g.Add("PATCH", path, opts...)
 }
 
 // Options registers a new OPTIONS operation with the specified path and options.
-func (g *Generator) Options(path string, opts ...option.OperationOption) {
-	g.Add("OPTIONS", path, opts...)
+func (g *Generator) Options(path string, opts ...option.OperationOption) Route {
+	return g.Add("OPTIONS", path, opts...)
 }
 
 // Trace registers a new TRACE operation with the specified path and options.
-func (g *Generator) Trace(path string, opts ...option.OperationOption) {
-	g.Add("TRACE", path, opts...)
+func (g *Generator) Trace(path string, opts ...option.OperationOption) Route {
+	return g.Add("TRACE", path, opts...)
 }
 
 // Head registers a new HEAD operation with the specified path and options.
-func (g *Generator) Head(path string, opts ...option.OperationOption) {
-	g.Add("HEAD", path, opts...)
+func (g *Generator) Head(path string, opts ...option.OperationOption) Route {
+	return g.Add("HEAD", path, opts...)
 }
 
 // Add registers a new operation with the specified method and path.
 // It applies the provided operation options to the operation context.
-func (g *Generator) Add(method, path string, opts ...option.OperationOption) {
+func (g *Generator) Add(method, path string, opts ...option.OperationOption) Route {
 	if g.prefix != "" {
 		path = g.cleanPath(path)
 	}
@@ -114,19 +108,21 @@ func (g *Generator) Add(method, path string, opts ...option.OperationOption) {
 		opts:   opts,
 	}
 	g.routes = append(g.routes, route)
+
+	return route
 }
 
 // Route registers a new route with the specified pattern and function.
 //
 // The function receives a Router instance to define sub-routes.
-func (g *Generator) Route(pattern string, fn func(router Router), opts ...option.RouteOption) Router {
+func (g *Generator) Route(pattern string, fn func(router Router), opts ...option.GroupOption) Router {
 	subGroup := g.Group(pattern, opts...)
 	fn(subGroup)
 	return subGroup
 }
 
 // Group creates a new sub-router with the specified prefix and options.
-func (g *Generator) Group(pattern string, opts ...option.RouteOption) Router {
+func (g *Generator) Group(pattern string, opts ...option.GroupOption) Router {
 	group := &Generator{
 		prefix:    g.cleanPath(pattern),
 		reflector: g.reflector,
@@ -138,7 +134,7 @@ func (g *Generator) Group(pattern string, opts ...option.RouteOption) Router {
 }
 
 // Use applies the provided options to the router.
-func (g *Generator) Use(opts ...option.RouteOption) Router {
+func (g *Generator) Use(opts ...option.GroupOption) Router {
 	g.opts = append(g.opts, opts...)
 	return g
 }
@@ -216,7 +212,7 @@ func (g *Generator) build() []*route {
 		var opts []option.OperationOption
 
 		if len(g.opts) > 0 {
-			cfg := &option.RouteConfig{}
+			cfg := &option.GroupConfig{}
 			for _, opt := range g.opts {
 				opt(cfg)
 			}
@@ -249,4 +245,17 @@ func (g *Generator) cleanPath(path string) string {
 	cleaned := stdpath.Join(g.prefix, path)
 	cleaned = stdpath.Clean(cleaned)
 	return cleaned
+}
+
+type route struct {
+	method string
+	path   string
+	opts   []option.OperationOption
+}
+
+var _ Route = (*route)(nil)
+
+func (r *route) With(opts ...option.OperationOption) Route {
+	r.opts = append(r.opts, opts...)
+	return r
 }
