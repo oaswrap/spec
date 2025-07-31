@@ -96,13 +96,13 @@ func TestRouter(t *testing.T) {
 		name        string
 		golden      string
 		opts        []option.OpenAPIOption
-		setup       func(r *spec.Router)
+		setup       func(r spec.Router)
 		shouldError bool
 	}{
 		{
 			name:   "Basic Data Types",
 			golden: "basic_data_types",
-			setup: func(r *spec.Router) {
+			setup: func(r spec.Router) {
 				r.Post("/basic-data-types",
 					option.OperationID("getBasicDataTypes"),
 					option.Summary("Get Basic Data Types"),
@@ -115,7 +115,7 @@ func TestRouter(t *testing.T) {
 		{
 			name:   "Basic Data Types Pointers",
 			golden: "basic_data_types_pointers",
-			setup: func(r *spec.Router) {
+			setup: func(r spec.Router) {
 				r.Put("/basic-data-types-pointers",
 					option.OperationID("getBasicDataTypesPointers"),
 					option.Summary("Get Basic Data Types Pointers"),
@@ -128,7 +128,7 @@ func TestRouter(t *testing.T) {
 		{
 			name:   "All methods",
 			golden: "all_methods",
-			setup: func(r *spec.Router) {
+			setup: func(r spec.Router) {
 				type UserDetailRequest struct {
 					ID int `path:"id" validate:"required"`
 				}
@@ -151,7 +151,7 @@ func TestRouter(t *testing.T) {
 					Description: "Operations related to user authentication",
 				}),
 			},
-			setup: func(r *spec.Router) {
+			setup: func(r spec.Router) {
 				r.Post("/login",
 					option.OperationID("login"),
 					option.Summary("User Login"),
@@ -172,7 +172,7 @@ func TestRouter(t *testing.T) {
 					option.TypeMapping(NullTime{}, new(time.Time)),
 				),
 			},
-			setup: func(r *spec.Router) {
+			setup: func(r spec.Router) {
 				r.Get("/auth/me",
 					option.OperationID("getUserProfile"),
 					option.Summary("Get User Profile"),
@@ -189,7 +189,7 @@ func TestRouter(t *testing.T) {
 			opts: []option.OpenAPIOption{
 				option.WithSecurity("apiKey", option.SecurityAPIKey("x-api-key", "header")),
 			},
-			setup: func(r *spec.Router) {
+			setup: func(r spec.Router) {
 				r.Get("/operation/options",
 					option.OperationID("getOperationOptions"),
 					option.Summary("Get Operation Options"),
@@ -205,7 +205,7 @@ func TestRouter(t *testing.T) {
 		{
 			name:   "Hide Operation",
 			golden: "hide_operation",
-			setup: func(r *spec.Router) {
+			setup: func(r spec.Router) {
 				r.Get("/hidden/operation",
 					option.OperationID("hiddenOperation"),
 					option.Summary("Hidden Operation"),
@@ -239,7 +239,7 @@ func TestRouter(t *testing.T) {
 					option.TypeMapping(NullTime{}, new(time.Time)),
 				),
 			},
-			setup: func(r *spec.Router) {
+			setup: func(r spec.Router) {
 				r.Get("/reflector/options",
 					option.OperationID("getReflectorOptions"),
 					option.Summary("Get Reflector Options"),
@@ -300,7 +300,7 @@ func TestRouter(t *testing.T) {
 		},
 		{
 			name: "Invalid URL Path Parameter",
-			setup: func(r *spec.Router) {
+			setup: func(r spec.Router) {
 				r.Get("/user/{id}",
 					option.OperationID("getUserById"),
 					option.Summary("Get User by ID"),
