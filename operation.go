@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/oaswrap/spec/internal/debuglog"
 	"github.com/oaswrap/spec/option"
-	"github.com/oaswrap/spec/pkg/debuglog"
 	"github.com/swaggest/openapi-go"
 )
 

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -89,6 +90,26 @@ type User struct {
 	Age       *int       `json:"age,omitempty"`
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt NullTime   `json:"updated_at"`
+}
+
+type CustomParser struct {
+	re *regexp.Regexp
+}
+
+func NewCustomParser() *CustomParser {
+	return &CustomParser{
+		re: regexp.MustCompile(`:([a-zA-Z_][a-zA-Z0-9_]*)`),
+	}
+}
+
+func (p *CustomParser) Parse(path string) (string, error) {
+	return p.re.ReplaceAllString(path, "{$1}"), nil
+}
+
+type ErrorCustomParser struct{}
+
+func (p *ErrorCustomParser) Parse(path string) (string, error) {
+	return "", fmt.Errorf("failed to parse path: %s", path)
 }
 
 func TestRouter(t *testing.T) {
@@ -284,6 +305,24 @@ func TestRouter(t *testing.T) {
 			},
 		},
 		{
+			name:   "Custom Path Parser",
+			golden: "custom_path_parser",
+			opts: []option.OpenAPIOption{
+				option.WithPathParser(NewCustomParser()),
+			},
+			setup: func(r spec.Router) {
+				r.Get("/user/:id",
+					option.OperationID("getUserById"),
+					option.Summary("Get User by ID"),
+					option.Description("This operation retrieves a user by ID."),
+					option.Request(new(struct {
+						ID int `path:"id" validate:"required"`
+					})),
+					option.Response(200, new(User)),
+				)
+			},
+		},
+		{
 			name:   "Server Variables",
 			golden: "server_variables",
 			opts: []option.OpenAPIOption{
@@ -346,6 +385,24 @@ func TestRouter(t *testing.T) {
 			},
 			shouldError: true, // Invalid path parameter without a proper tag
 		},
+		{
+			name: "Error Custom Path Parser",
+			opts: []option.OpenAPIOption{
+				option.WithPathParser(&ErrorCustomParser{}),
+			},
+			setup: func(r spec.Router) {
+				r.Get("/user/:id",
+					option.OperationID("getUserById"),
+					option.Summary("Get User by ID"),
+					option.Description("This operation retrieves a user by ID."),
+					option.Request(new(struct {
+						ID int `path:"id" validate:"required"`
+					})),
+					option.Response(200, new(User)),
+				)
+			},
+			shouldError: true, // Custom parser should fail
+		},
 	}
 
 	versions := map[string]string{
@@ -374,7 +431,7 @@ func TestRouter(t *testing.T) {
 
 				if tt.shouldError {
 					assert.Error(t, r.Validate(), "Expected router to fail validation")
-					return
+					continue
 				}
 				assert.NoError(t, r.Validate(), "Router validation failed")
 
@@ -423,19 +480,19 @@ func TestRouter_GenerateSchema(t *testing.T) {
 			name:        "Unsupported format",
 			formats:     []string{"xml"},
 			expectError: true,
-			errorMsg:    "unsupported format: xml, only 'json' and 'yaml' are supported",
+			errorMsg:    "unsupported format: xml, expected 'json', 'yaml', or 'yml'",
 		},
 		{
 			name:        "Empty string format",
 			formats:     []string{""},
 			expectError: true,
-			errorMsg:    "unsupported format: , only 'json' and 'yaml' are supported",
+			errorMsg:    "unsupported format: , expected 'json', 'yaml', or 'yml'",
 		},
 		{
 			name:        "Invalid format",
 			formats:     []string{"invalid"},
 			expectError: true,
-			errorMsg:    "unsupported format: invalid, only 'json' and 'yaml' are supported",
+			errorMsg:    "unsupported format: invalid, expected 'json', 'yaml', or 'yml'",
 		},
 	}
 
@@ -500,9 +557,9 @@ func TestRouter_WriteSchemaTo(t *testing.T) {
 			expectJSON: true,
 		},
 		{
-			name:       "Write file without extension (defaults to YAML)",
-			path:       "test_schema",
-			expectJSON: false,
+			name:        "Write file without extension (defaults to YAML)",
+			path:        "test_schema",
+			expectError: true,
 		},
 		{
 			name:       "Write file with .yml extension (YAML)",

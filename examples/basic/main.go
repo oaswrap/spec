@@ -33,7 +33,7 @@ func main() {
 			option.Security("bearerAuth"),
 			option.Response(200, new(Response[User])),
 		)
-	}, option.RouteTags("Authentication"))
+	}, option.GroupTags("Authentication"))
 
 	// Generate the OpenAPI file
 	if err := r.WriteSchemaTo("openapi.yaml"); err != nil {

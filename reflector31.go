@@ -4,12 +4,19 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/oaswrap/spec/internal/debuglog"
 	"github.com/oaswrap/spec/internal/mapper"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
-	"github.com/oaswrap/spec/pkg/debuglog"
 	"github.com/swaggest/openapi-go/openapi31"
 )
+
+type reflector31 struct {
+	reflector  *openapi31.Reflector
+	logger     *debuglog.Logger
+	pathParser openapi.PathParser
+	errors     *SpecError
+}
 
 func newReflector31(cfg *openapi.Config, logger *debuglog.Logger) reflector {
 	reflector := openapi31.NewReflector()
@@ -71,28 +78,35 @@ func newReflector31(cfg *openapi.Config, logger *debuglog.Logger) reflector {
 	}
 
 	// Custom options for JSON schema generation
-	jsonSchemaOpts := getJSONSchemaOpts(cfg.ReflectorConfig, logger)
-	if len(jsonSchemaOpts) > 0 {
-		reflector.DefaultOptions = append(reflector.DefaultOptions, jsonSchemaOpts...)
+	if cfg.ReflectorConfig != nil {
+		jsonSchemaOpts := getJSONSchemaOpts(cfg.ReflectorConfig, logger)
+		if len(jsonSchemaOpts) > 0 {
+			reflector.DefaultOptions = append(reflector.DefaultOptions, jsonSchemaOpts...)
+		}
+
+		for _, opt := range cfg.ReflectorConfig.TypeMappings {
+			reflector.AddTypeMapping(opt.Src, opt.Dst)
+			logger.LogAction("add type mapping", fmt.Sprintf("%T -> %T", opt.Src, opt.Dst))
+		}
 	}
 
-	for _, opt := range cfg.ReflectorConfig.TypeMappings {
-		reflector.AddTypeMapping(opt.Src, opt.Dst)
-		logger.LogAction("add type mapping", fmt.Sprintf("%T -> %T", opt.Src, opt.Dst))
+	return &reflector31{
+		reflector:  reflector,
+		logger:     logger,
+		errors:     &SpecError{},
+		pathParser: cfg.PathParser,
 	}
-
-	errors := &SpecError{}
-
-	return &reflector31{reflector: reflector, logger: logger, errors: errors}
-}
-
-type reflector31 struct {
-	reflector *openapi31.Reflector
-	logger    *debuglog.Logger
-	errors    *SpecError
 }
 
 func (r *reflector31) Add(method, path string, opts ...option.OperationOption) {
+	if r.pathParser != nil {
+		parsedPath, err := r.pathParser.Parse(path)
+		if err != nil {
+			r.errors.add(err)
+			return
+		}
+		path = parsedPath
+	}
 	op, err := r.newOperationContext(method, path)
 	if err != nil {
 		r.errors.add(err)
@@ -123,9 +137,6 @@ func (r *reflector31) Validate() error {
 }
 
 func (r *reflector31) addOperation(oc operationContext) error {
-	if oc == nil {
-		return nil
-	}
 	openapiOC := oc.build()
 	if openapiOC == nil {
 		return nil

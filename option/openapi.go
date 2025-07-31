@@ -3,8 +3,8 @@ package option
 import (
 	"log"
 
+	"github.com/oaswrap/spec/internal/util"
 	"github.com/oaswrap/spec/openapi"
-	"github.com/oaswrap/spec/pkg/util"
 )
 
 // OpenAPIOption defines a function that modifies the OpenAPI configuration.
@@ -14,14 +14,10 @@ type OpenAPIOption func(*openapi.Config)
 // It initializes the configuration with default values and applies the provided options.
 func WithOpenAPIConfig(opts ...OpenAPIOption) *openapi.Config {
 	cfg := &openapi.Config{
-		OpenAPIVersion:  "3.1.0",
-		Title:           "API Documentation",
-		Version:         "1.0.0",
-		Description:     nil,
-		SecuritySchemes: make(map[string]*openapi.SecurityScheme),
-		Logger:          &noopLogger{},
-		SwaggerConfig:   &openapi.SwaggerConfig{},
-		ReflectorConfig: &openapi.ReflectorConfig{},
+		OpenAPIVersion: "3.0.3",
+		Title:          "API Documentation",
+		Description:    nil,
+		Logger:         &noopLogger{},
 	}
 
 	for _, opt := range opts {
@@ -32,22 +28,12 @@ func WithOpenAPIConfig(opts ...OpenAPIOption) *openapi.Config {
 }
 
 // WithOpenAPIVersion sets the OpenAPI version for the documentation.
-// The default version is "3.1.0".
-// Supported versions are "3.0.0" and "3.1.0".
+//
+// The default version is "3.0.3".
+// Supported versions are "3.0.3" and "3.1.0".
 func WithOpenAPIVersion(version string) OpenAPIOption {
 	return func(c *openapi.Config) {
 		c.OpenAPIVersion = version
-	}
-}
-
-// WithDisableOpenAPI disables the OpenAPI documentation generation.
-// By default, OpenAPI documentation generation is enabled.
-// If set to true, the OpenAPI documentation will not be generated.
-//
-// This can be useful in production environments where you want to disable the documentation.
-func WithDisableOpenAPI(disable ...bool) OpenAPIOption {
-	return func(c *openapi.Config) {
-		c.DisableOpenAPI = util.Optional(true, disable...)
 	}
 }
 
@@ -161,9 +147,22 @@ func WithSecurity(name string, opts ...SecurityOption) OpenAPIOption {
 // WithReflectorConfig applies custom configurations to the OpenAPI reflector.
 func WithReflectorConfig(opts ...ReflectorOption) OpenAPIOption {
 	return func(c *openapi.Config) {
+		if c.ReflectorConfig == nil {
+			c.ReflectorConfig = &openapi.ReflectorConfig{}
+		}
 		for _, opt := range opts {
 			opt(c.ReflectorConfig)
 		}
+	}
+}
+
+// WithDisableDocs disables the OpenAPI documentation.
+//
+// If set to true, the OpenAPI documentation will not be served at the specified path.
+// By default, this is false, meaning the documentation is enabled.
+func WithDisableDocs(disable ...bool) OpenAPIOption {
+	return func(c *openapi.Config) {
+		c.DisableDocs = util.Optional(true, disable...)
 	}
 }
 
@@ -177,18 +176,19 @@ func WithDocsPath(path string) OpenAPIOption {
 	}
 }
 
-// WithSwagger sets the configuration for Swagger UI.
+// WithSwaggerConfig sets the configuration for Swagger UI.
 //
 // This allows customization of the Swagger UI appearance and behavior.
-func WithSwaggerConfig(cfg ...openapi.SwaggerConfig) OpenAPIOption {
+func WithSwaggerConfig(cfg openapi.SwaggerConfig) OpenAPIOption {
 	return func(c *openapi.Config) {
-		if len(cfg) > 0 {
-			c.SwaggerConfig = &cfg[0]
-		}
+		c.SwaggerConfig = &cfg
 	}
 }
 
 // WithDebug enables or disables debug logging for OpenAPI operations.
+//
+// If debug is true, debug logging is enabled, otherwise it is disabled.
+// By default, debug logging is disabled.
 func WithDebug(debug ...bool) OpenAPIOption {
 	return func(c *openapi.Config) {
 		if util.Optional(true, debug...) {
@@ -196,6 +196,38 @@ func WithDebug(debug ...bool) OpenAPIOption {
 		} else {
 			c.Logger = &noopLogger{}
 		}
+	}
+}
+
+// WithPathParser sets a custom path parser for the OpenAPI documentation.
+//
+// The parser must convert framework-style paths to OpenAPI-style parameter syntax.
+// For example, a path like "/users/:id" should be converted to "/users/{id}".
+//
+// Example:
+//
+//	// myCustomParser implements PathParser and converts ":param" to "{param}".
+//	type myCustomParser struct {
+//		re *regexp.Regexp
+//	}
+//
+//	// newMyCustomParser creates an instance with a regexp for colon-prefixed params.
+//	func newMyCustomParser() *myCustomParser {
+//		return &myCustomParser{
+//			re: regexp.MustCompile(`:([a-zA-Z_][a-zA-Z0-9_]*)`),
+//		}
+//	}
+//
+//	// Parse replaces ":param" with "{param}" to match OpenAPI path syntax.
+//	func (p *myCustomParser) Parse(path string) (string, error) {
+//		return p.re.ReplaceAllString(path, "{$1}"), nil
+//	}
+//
+//	// Example usage:
+//	opt := option.WithPathParser(newMyCustomParser())
+func WithPathParser(parser openapi.PathParser) OpenAPIOption {
+	return func(c *openapi.Config) {
+		c.PathParser = parser
 	}
 }
 

@@ -1,10 +1,10 @@
 package mapper_test
 
 import (
+	"github.com/oaswrap/spec/internal/util"
 	"testing"
 
 	"github.com/oaswrap/spec/openapi"
-	"github.com/oaswrap/spec/pkg/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/openapi-go/openapi31"

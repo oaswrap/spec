@@ -21,11 +21,12 @@ type Config struct {
 
 	ReflectorConfig *ReflectorConfig // Configuration for the OpenAPI reflector
 
-	DisableOpenAPI bool
-	BaseURL        string
-	DocsPath       string
-	SwaggerConfig  *SwaggerConfig
-	Logger         Logger
+	BaseURL       string
+	DocsPath      string
+	DisableDocs   bool
+	Logger        Logger
+	SwaggerConfig *SwaggerConfig
+	PathParser    PathParser
 }
 
 // ReflectorConfig holds the configuration for the OpenAPI reflector.
@@ -94,4 +95,9 @@ type InterceptSchemaParams struct {
 // Logger is an interface for logging.
 type Logger interface {
 	Printf(format string, v ...any)
+}
+
+// PathParser is an interface for parsing paths in OpenAPI documentation.
+type PathParser interface {
+	Parse(path string) (string, error)
 }
