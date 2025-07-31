@@ -184,6 +184,72 @@ func TestGenerator(t *testing.T) {
 			},
 		},
 		{
+			name:   "All Operation Options",
+			golden: "all_operation_options",
+			opts: []option.OpenAPIOption{
+				option.WithSecurity("apiKey", option.SecurityAPIKey("x-api-key", "header")),
+			},
+			setup: func(g *spec.Generator) {
+				g.Get("/operation/options",
+					option.OperationID("getOperationOptions"),
+					option.Summary("Get Operation Options"),
+					option.Description("This operation retrieves all operation options."),
+					option.Security("apiKey"),
+					option.Tags("Operation Options"),
+					option.Deprecated(),
+					option.Request(new(LoginRequest), option.WithContentType("application/json")),
+					option.Response(200, new(Response[UserProfile]), option.WithContentType("application/json")),
+				)
+			},
+		},
+		{
+			name:   "Hide Operation",
+			golden: "hide_operation",
+			setup: func(g *spec.Generator) {
+				g.Get("/hidden/operation",
+					option.OperationID("hiddenOperation"),
+					option.Summary("Hidden Operation"),
+					option.Description("This operation is hidden and should not appear in the spec."),
+					option.Hide(),
+					option.Request(new(LoginRequest)),
+					option.Response(200, new(Response[UserProfile])),
+				)
+			},
+		},
+		{
+			name:   "All Reflector Options",
+			golden: "all_reflector_options",
+			opts: []option.OpenAPIOption{
+				option.WithReflectorConfig(
+					option.InlineRefs(),
+					option.RootRef(),
+					option.RootNullable(),
+					option.StripDefNamePrefix("Test", "Mock"),
+					option.InterceptDefNameFunc(func(t reflect.Type, defaultDefName string) string {
+						return defaultDefName + "_Custom"
+					}),
+					option.InterceptPropFunc(func(params openapi.InterceptPropParams) error {
+						return nil
+					}),
+					option.RequiredPropByValidateTag(),
+					option.InterceptSchemaFunc(func(params openapi.InterceptSchemaParams) (stop bool, err error) {
+						return false, nil
+					}),
+					option.TypeMapping(NullString{}, new(string)),
+					option.TypeMapping(NullTime{}, new(time.Time)),
+				),
+			},
+			setup: func(g *spec.Generator) {
+				g.Get("/reflector/options",
+					option.OperationID("getReflectorOptions"),
+					option.Summary("Get Reflector Options"),
+					option.Description("This operation retrieves the OpenAPI reflector options."),
+					option.Request(new(LoginRequest)),
+					option.Response(200, new(Response[UserProfile])),
+				)
+			},
+		},
+		{
 			name:   "Server Variables",
 			golden: "server_variables",
 			opts: []option.OpenAPIOption{
@@ -223,39 +289,6 @@ func TestGenerator(t *testing.T) {
 					URL:  "https://opensource.org/licenses/MIT",
 				}),
 				option.WithExternalDocs("https://docs.example.com", "API Documentation"),
-			},
-		},
-		{
-			name:   "All Reflector Options",
-			golden: "all_reflector_options",
-			opts: []option.OpenAPIOption{
-				option.WithReflectorConfig(
-					option.InlineRefs(),
-					option.RootRef(),
-					option.RootNullable(),
-					option.StripDefNamePrefix("Test", "Mock"),
-					option.InterceptDefNameFunc(func(t reflect.Type, defaultDefName string) string {
-						return defaultDefName + "_Custom"
-					}),
-					option.InterceptPropFunc(func(params openapi.InterceptPropParams) error {
-						return nil
-					}),
-					option.RequiredPropByValidateTag(),
-					option.InterceptSchemaFunc(func(params openapi.InterceptSchemaParams) (stop bool, err error) {
-						return false, nil
-					}),
-					option.TypeMapping(NullString{}, new(string)),
-					option.TypeMapping(NullTime{}, new(time.Time)),
-				),
-			},
-			setup: func(g *spec.Generator) {
-				g.Get("/reflector/options",
-					option.OperationID("getReflectorOptions"),
-					option.Summary("Get Reflector Options"),
-					option.Description("This operation retrieves the OpenAPI reflector options."),
-					option.Request(new(LoginRequest)),
-					option.Response(200, new(Response[UserProfile])),
-				)
 			},
 		},
 		{

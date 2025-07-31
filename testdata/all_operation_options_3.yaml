@@ -1,0 +1,59 @@
+openapi: 3.0.3
+info:
+  description: This is the API documentation for All Operation Options
+  title: 'API Doc: All Operation Options'
+  version: 1.0.0
+paths:
+  /operation/options:
+    get:
+      deprecated: true
+      description: This operation retrieves all operation options.
+      operationId: getOperationOptions
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecTestResponseGithubComOaswrapSpecTestUserProfile'
+          description: OK
+      security:
+      - apiKey: []
+      summary: Get Operation Options
+      tags:
+      - Operation Options
+components:
+  schemas:
+    SpecTestNullString:
+      type: object
+    SpecTestNullTime:
+      type: object
+    SpecTestResponseGithubComOaswrapSpecTestUserProfile:
+      properties:
+        data:
+          $ref: '#/components/schemas/SpecTestUserProfile'
+        status:
+          example: 200
+          type: integer
+      type: object
+    SpecTestUserProfile:
+      properties:
+        age:
+          nullable: true
+          type: integer
+        created_at:
+          format: date-time
+          type: string
+        email:
+          $ref: '#/components/schemas/SpecTestNullString'
+        id:
+          type: integer
+        updated_at:
+          $ref: '#/components/schemas/SpecTestNullTime'
+        username:
+          type: string
+      type: object
+  securitySchemes:
+    apiKey:
+      in: header
+      name: x-api-key
+      type: apiKey
