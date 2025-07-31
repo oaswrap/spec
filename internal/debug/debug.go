@@ -1,8 +1,6 @@
 package debug
 
-import (
-	"github.com/oaswrap/spec/openapi"
-)
+import "github.com/oaswrap/spec/openapi"
 
 type Logger struct {
 	prefix string

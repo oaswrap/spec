@@ -48,10 +48,10 @@ func InterceptDefNameFunc(fn openapi.InterceptDefNameFunc) ReflectorOption {
 	}
 }
 
-// WithInterceptPropFunc sets a function to intercept property schema generation.
+// InterceptPropFunc sets a function to intercept property schema generation.
 //
 // This function will be called with the parameters needed to generate the property schema.
-func WithInterceptPropFunc(fn openapi.InterceptPropFunc) ReflectorOption {
+func InterceptPropFunc(fn openapi.InterceptPropFunc) ReflectorOption {
 	return func(c *openapi.ReflectorConfig) {
 		c.InterceptPropFunc = fn
 	}
@@ -62,7 +62,7 @@ func WithInterceptPropFunc(fn openapi.InterceptPropFunc) ReflectorOption {
 // If the "validate" tag contains "required", the property will be added to the required list of the parent schema.
 // This is useful for automatically generating required properties based on validation tags.
 func RequiredPropByValidateTag(seps ...string) ReflectorOption {
-	return WithInterceptPropFunc(func(params openapi.InterceptPropParams) error {
+	return InterceptPropFunc(func(params openapi.InterceptPropParams) error {
 		if !params.Processed {
 			return nil
 		}

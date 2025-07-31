@@ -1,0 +1,44 @@
+openapi: 3.1.0
+info:
+  description: This is the API documentation for All Reflector Options
+  title: 'API Doc: All Reflector Options'
+  version: 1.0.0
+paths:
+  /reflector/options:
+    get:
+      description: This operation retrieves the OpenAPI reflector options.
+      operationId: getReflectorOptions
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    properties:
+                      age:
+                        type:
+                        - "null"
+                        - integer
+                      created_at:
+                        format: date-time
+                        type: string
+                      email:
+                        type: string
+                      id:
+                        type: integer
+                      updated_at:
+                        format: date-time
+                        type: string
+                      username:
+                        type: string
+                    type: object
+                  status:
+                    examples:
+                    - 200
+                    type: integer
+                type:
+                - object
+                - "null"
+          description: OK
+      summary: Get Reflector Options
