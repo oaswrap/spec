@@ -1,0 +1,102 @@
+openapi: 3.0.3
+info:
+  description: This is the API documentation for Sub Router
+  title: 'API Doc: Sub Router'
+  version: 1.0.0
+paths:
+  /api/v1/auth/login:
+    post:
+      description: User Login v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpecTestLoginRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecTestToken'
+          description: OK
+      summary: User Login v1
+      tags:
+      - Authentication
+  /api/v1/auth/me:
+    get:
+      description: Get Profile v1
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecTestUser'
+          description: OK
+      security:
+      - bearerAuth: []
+      summary: Get Profile v1
+      tags:
+      - Profile
+      - Authentication
+  /api/v1/profile:
+    put:
+      description: Update Profile v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpecTestUser'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecTestUser'
+          description: OK
+      security:
+      - bearerAuth: []
+      summary: Update Profile v1
+      tags:
+      - Profile
+components:
+  schemas:
+    SpecTestLoginRequest:
+      properties:
+        password:
+          example: password123
+          type: string
+        username:
+          example: john_doe
+          type: string
+      required:
+      - username
+      - password
+      type: object
+    SpecTestToken:
+      properties:
+        token:
+          example: abc123
+          type: string
+      type: object
+    SpecTestUser:
+      properties:
+        age:
+          nullable: true
+          type: integer
+        created_at:
+          format: date-time
+          type: string
+        email:
+          type: string
+        id:
+          type: integer
+        updated_at:
+          format: date-time
+          type: string
+        username:
+          type: string
+      type: object
+  securitySchemes:
+    bearerAuth:
+      scheme: Bearer
+      type: http

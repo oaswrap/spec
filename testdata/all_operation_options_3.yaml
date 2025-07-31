@@ -14,7 +14,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SpecTestResponseGithubComOaswrapSpecTestUserProfile'
+                $ref: '#/components/schemas/SpecTestResponseGithubComOaswrapSpecTestUser'
           description: OK
       security:
       - apiKey: []
@@ -27,15 +27,15 @@ components:
       type: object
     SpecTestNullTime:
       type: object
-    SpecTestResponseGithubComOaswrapSpecTestUserProfile:
+    SpecTestResponseGithubComOaswrapSpecTestUser:
       properties:
         data:
-          $ref: '#/components/schemas/SpecTestUserProfile'
+          $ref: '#/components/schemas/SpecTestUser'
         status:
           example: 200
           type: integer
       type: object
-    SpecTestUserProfile:
+    SpecTestUser:
       properties:
         age:
           nullable: true

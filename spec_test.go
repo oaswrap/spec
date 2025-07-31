@@ -82,7 +82,7 @@ type NullTime struct {
 	Valid bool
 }
 
-type UserProfile struct {
+type User struct {
 	ID        int        `json:"id"`
 	Username  string     `json:"username"`
 	Email     NullString `json:"email"`
@@ -178,8 +178,8 @@ func TestRouter(t *testing.T) {
 					option.Summary("Get User Profile"),
 					option.Description("This operation retrieves the authenticated user's profile."),
 					option.Security("bearerAuth"),
-					option.Request(new(UserProfile)),
-					option.Response(200, new(UserProfile)),
+					option.Request(new(User)),
+					option.Response(200, new(User)),
 				)
 			},
 		},
@@ -198,7 +198,7 @@ func TestRouter(t *testing.T) {
 					option.Tags("Operation Options"),
 					option.Deprecated(),
 					option.Request(new(LoginRequest), option.WithContentType("application/json")),
-					option.Response(200, new(Response[UserProfile]), option.WithContentType("application/json")),
+					option.Response(200, new(Response[User]), option.WithContentType("application/json")),
 				)
 			},
 		},
@@ -212,7 +212,7 @@ func TestRouter(t *testing.T) {
 					option.Description("This operation is hidden and should not appear in the spec."),
 					option.Hide(),
 					option.Request(new(LoginRequest)),
-					option.Response(200, new(Response[UserProfile])),
+					option.Response(200, new(Response[User])),
 				)
 			},
 		},
@@ -245,8 +245,43 @@ func TestRouter(t *testing.T) {
 					option.Summary("Get Reflector Options"),
 					option.Description("This operation retrieves the OpenAPI reflector options."),
 					option.Request(new(LoginRequest)),
-					option.Response(200, new(Response[UserProfile])),
+					option.Response(200, new(Response[User])),
 				)
+			},
+		},
+		{
+			name:   "Sub Router",
+			golden: "sub_router",
+			opts: []option.OpenAPIOption{
+				option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
+				option.WithReflectorConfig(
+					option.TypeMapping(NullString{}, new(string)),
+					option.TypeMapping(NullTime{}, new(time.Time)),
+				),
+			},
+			setup: func(r spec.Router) {
+				api := r.Group("/api")
+				v1 := api.Group("/v1")
+				v1.Route("/auth", func(r spec.Router) {
+					r.Post("/login",
+						option.Summary("User Login v1"),
+						option.Request(new(LoginRequest)),
+						option.Response(200, new(Token)),
+					)
+					auth := r.Group("/", option.RouteSecurity("bearerAuth"))
+					auth.Get("/me",
+						option.Summary("Get Profile v1"),
+						option.Tags("Profile"),
+						option.Response(200, new(User)),
+					)
+				}, option.RouteTags("Authentication"))
+				v1.Route("/profile", func(r spec.Router) {
+					r.Put("/",
+						option.Summary("Update Profile v1"),
+						option.Request(new(User)),
+						option.Response(200, new(User)),
+					)
+				}, option.RouteSecurity("bearerAuth")).Use(option.RouteTags("Profile"))
 			},
 		},
 		{

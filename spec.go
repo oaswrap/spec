@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	stdpath "path"
 	"strings"
 	"sync"
 
@@ -105,7 +106,7 @@ func (g *Generator) Head(path string, opts ...option.OperationOption) {
 // It applies the provided operation options to the operation context.
 func (g *Generator) Add(method, path string, opts ...option.OperationOption) {
 	if g.prefix != "" {
-		path = g.joinPath(path)
+		path = g.cleanPath(path)
 	}
 	route := &route{
 		method: method,
@@ -127,10 +128,10 @@ func (g *Generator) Route(pattern string, fn func(router Router), opts ...option
 // Group creates a new sub-router with the specified prefix and options.
 func (g *Generator) Group(pattern string, opts ...option.RouteOption) Router {
 	group := &Generator{
-		prefix:    g.joinPath(pattern),
+		prefix:    g.cleanPath(pattern),
 		reflector: g.reflector,
 		cfg:       g.cfg,
-		opts:      append(g.opts, opts...),
+		opts:      opts,
 	}
 	g.groups = append(g.groups, group)
 	return group
@@ -244,12 +245,8 @@ func (g *Generator) build() []*route {
 	return routes
 }
 
-func (g *Generator) joinPath(path string) string {
-	if g.prefix == "" {
-		return path
-	}
-	if strings.HasPrefix(path, "/") {
-		return g.prefix + path
-	}
-	return g.prefix + "/" + path
+func (g *Generator) cleanPath(path string) string {
+	cleaned := stdpath.Join(g.prefix, path)
+	cleaned = stdpath.Clean(cleaned)
+	return cleaned
 }
