@@ -8,95 +8,58 @@ import (
 )
 
 func main() {
-	r := spec.NewGenerator(
+	// Create a new OpenAPI router with basic info and security scheme
+	r := spec.NewRouter(
 		option.WithTitle("My API"),
 		option.WithVersion("1.0.0"),
-		option.WithDescription("This is my API"),
-		option.WithServer("https://api.example.com", option.ServerDescription("Main server")),
+		option.WithDescription("Example API"),
+		option.WithServer("https://api.example.com"),
 		option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
-		option.WithReflectorConfig(
-			option.RequiredPropByValidateTag(),
-		),
-		option.WithDebug(),
-	)
-	r.Post("/api/v1/login",
-		option.OperationID("loginUser"),
-		option.Summary("Login User"),
-		option.Description("Logs in a user and returns a token"),
-		option.Tags("Authentication"),
-		option.Request(new(LoginRequest)),
-		option.Response(200, new(Response[Token])),
-		option.Response(401, new(ErrorResponse)),
-		option.Response(422, new(ValidationResponse)),
-	)
-	r.Get("/api/v1/users/{user_id}",
-		option.OperationID("getUserDetail"),
-		option.Summary("Get User Detail"),
-		option.Description("Retrieves details of a user by ID"),
-		option.Tags("Users"),
-		option.Security("bearerAuth"),
-		option.Request(new(GetUserDetailRequest)),
-		option.Response(200, new(Response[User])),
-		option.Response(401, new(ErrorResponse)),
 	)
 
-	if err := r.Validate(); err != nil {
-		log.Fatal("Failed to validate OpenAPI schema: ", err)
-	}
+	// Versioned API group
+	v1 := r.Group("/api/v1")
 
+	// Auth routes
+	v1.Route("/auth", func(r spec.Router) {
+		r.Post("/login",
+			option.Summary("User Login"),
+			option.Request(new(LoginRequest)),
+			option.Response(200, new(Response[Token])),
+		)
+
+		r.Get("/me",
+			option.Summary("Get Profile"),
+			option.Security("bearerAuth"),
+			option.Response(200, new(Response[User])),
+		)
+	}, option.RouteTags("Authentication"))
+
+	// Generate the OpenAPI file
 	if err := r.WriteSchemaTo("openapi.yaml"); err != nil {
-		log.Fatal("Failed to write OpenAPI schema: ", err)
+		log.Fatal(err)
 	}
 
-	log.Println("OpenAPI schema generated successfully at openapi.yaml")
+	log.Println("✅ OpenAPI schema generated at openapi.yaml")
 }
+
+// Example request & response structs
 
 type LoginRequest struct {
-	Username   string `json:"username" example:"john_doe" validate:"required"`
-	Password   string `json:"password" example:"password123" validate:"required"`
-	RememberMe bool   `json:"remember_me" example:"true"`
-}
-
-type GetUserDetailRequest struct {
-	UserID string `path:"user_id" example:"12345"`
+	Username string `json:"username" required:"true"`
+	Password string `json:"password" required:"true"`
 }
 
 type Token struct {
-	AccessToken  string `json:"access_token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
-	RefreshToken string `json:"refresh_token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
+	AccessToken string `json:"access_token"`
 }
 
 type User struct {
-	ID       string `json:"id" example:"12345"`
-	Username string `json:"username" example:"john_doe"`
-	Email    string `json:"email" example:"john_doe@example.com"`
-	Name     string `json:"name" example:"John Doe"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 type Response[T any] struct {
-	Status int `json:"status" example:"200"`
-	Data   T   `json:"data,omitempty"`
-}
-
-type MessageResponse struct {
-	Status  int    `json:"status" example:"200"`
-	Message string `json:"message" example:"Operation successful"`
-}
-
-type ErrorResponse struct {
-	Status int    `json:"status" example:"400"`
-	Title  string `json:"title" example:"Bad Request"`
-	Detail string `json:"detail" example:"Invalid input data"`
-}
-
-type ValidationResponse struct {
-	Status int          `json:"status" example:"422"`
-	Title  string       `json:"title" example:"Validation Error"`
-	Detail string       `json:"detail" example:"Input data does not meet validation criteria"`
-	Errors []FieldError `json:"errors" example:"[{\"field\":\"email\",\"message\":\"Email is required\"}]"`
-}
-
-type FieldError struct {
-	Field   string `json:"field" example:"email"`
-	Message string `json:"message" example:"Email is required"`
+	Status int `json:"status"`
+	Data   T   `json:"data"`
 }

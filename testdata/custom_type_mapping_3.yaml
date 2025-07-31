@@ -13,14 +13,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SpecTestUserProfile'
+                $ref: '#/components/schemas/SpecTestUser'
           description: OK
       security:
       - bearerAuth: []
       summary: Get User Profile
 components:
   schemas:
-    SpecTestUserProfile:
+    SpecTestUser:
       properties:
         age:
           nullable: true
