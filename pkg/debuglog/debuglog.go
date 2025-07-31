@@ -1,14 +1,18 @@
-package debug
+package debuglog
 
-import "github.com/oaswrap/spec/openapi"
+import (
+	"fmt"
+
+	"github.com/oaswrap/spec/openapi"
+)
 
 type Logger struct {
 	prefix string
 	logger openapi.Logger
 }
 
-func NewLogger(logger openapi.Logger) *Logger {
-	return &Logger{logger: logger, prefix: "[spec]"}
+func NewLogger(prefix string, logger openapi.Logger) *Logger {
+	return &Logger{logger: logger, prefix: fmt.Sprintf("[%s]", prefix)}
 }
 
 func (l *Logger) Printf(format string, v ...any) {

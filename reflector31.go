@@ -4,16 +4,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/oaswrap/spec/internal/debug"
 	"github.com/oaswrap/spec/internal/mapper"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
+	"github.com/oaswrap/spec/pkg/debuglog"
 	"github.com/swaggest/openapi-go/openapi31"
 )
 
-func newReflector31(cfg *openapi.Config) reflector {
-	logger := debug.NewLogger(cfg.Logger)
-
+func newReflector31(cfg *openapi.Config, logger *debuglog.Logger) reflector {
 	reflector := openapi31.NewReflector()
 	logger.LogAction("Using OpenAPI 3.1 reflector for version", cfg.OpenAPIVersion)
 	spec := reflector.Spec
@@ -90,7 +88,7 @@ func newReflector31(cfg *openapi.Config) reflector {
 
 type reflector31 struct {
 	reflector *openapi31.Reflector
-	logger    *debug.Logger
+	logger    *debuglog.Logger
 	errors    *SpecError
 }
 

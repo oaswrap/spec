@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/oaswrap/spec/internal/debug"
 	"github.com/oaswrap/spec/option"
+	"github.com/oaswrap/spec/pkg/debuglog"
 	"github.com/swaggest/openapi-go"
 )
 
@@ -14,7 +14,7 @@ var _ operationContext = (*operationContextImpl)(nil)
 type operationContextImpl struct {
 	op     openapi.OperationContext
 	cfg    *option.OperationConfig
-	logger *debug.Logger
+	logger *debuglog.Logger
 }
 
 func (oc *operationContextImpl) With(opts ...option.OperationOption) operationContext {

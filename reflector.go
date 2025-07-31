@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/oaswrap/spec/internal/debug"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
+	"github.com/oaswrap/spec/pkg/debuglog"
 	"github.com/swaggest/jsonschema-go"
 )
 
@@ -16,12 +16,15 @@ var (
 )
 
 func newReflector(cfg *openapi.Config) reflector {
+	logger := debuglog.NewLogger("spec", cfg.Logger)
+
 	if re3.MatchString(cfg.OpenAPIVersion) {
-		return newReflector3(cfg)
+		return newReflector3(cfg, logger)
 	} else if re31.MatchString(cfg.OpenAPIVersion) {
-		return newReflector31(cfg)
+		return newReflector31(cfg, logger)
 	}
 
+	logger.Printf("Unsupported OpenAPI version: %s", cfg.OpenAPIVersion)
 	return newNoopReflector(fmt.Errorf("unsupported OpenAPI version: %s", cfg.OpenAPIVersion))
 }
 
@@ -64,7 +67,7 @@ func (s *noopSpec) MarshalJSON() ([]byte, error) {
 	return nil, nil
 }
 
-func getJSONSchemaOpts(cfg *openapi.ReflectorConfig, logger *debug.Logger) []func(*jsonschema.ReflectContext) {
+func getJSONSchemaOpts(cfg *openapi.ReflectorConfig, logger *debuglog.Logger) []func(*jsonschema.ReflectContext) {
 	var opts []func(*jsonschema.ReflectContext)
 
 	if cfg.InlineRefs {
