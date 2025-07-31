@@ -14,6 +14,7 @@ This makes it easy to use with any router — directly or through adapters for f
 Under the hood, `oaswrap/spec` uses [`swaggest/openapi-go`](https://github.com/swaggest/openapi-go) for robust OpenAPI schema generation.
 
 > ✅ Looking for a ready-to-use Gin integration? Check out [`oaswrap/ginopenapi`](https://github.com/oaswrap/ginopenapi).
+
 > ✅ Looking for a ready-to-use Fiber integration? Check out [`oaswrap/fiberopenapi`](https://github.com/oaswrap/fiberopenapi).
 
 ## ✨ Features
