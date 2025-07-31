@@ -91,19 +91,19 @@ type UserProfile struct {
 	UpdatedAt NullTime   `json:"updated_at"`
 }
 
-func TestGenerator(t *testing.T) {
+func TestRouter(t *testing.T) {
 	tests := []struct {
 		name        string
 		golden      string
 		opts        []option.OpenAPIOption
-		setup       func(g *spec.Generator)
+		setup       func(r *spec.Router)
 		shouldError bool
 	}{
 		{
 			name:   "Basic Data Types",
 			golden: "basic_data_types",
-			setup: func(g *spec.Generator) {
-				g.Post("/basic-data-types",
+			setup: func(r *spec.Router) {
+				r.Post("/basic-data-types",
 					option.OperationID("getBasicDataTypes"),
 					option.Summary("Get Basic Data Types"),
 					option.Description("This operation returns all basic data types."),
@@ -115,8 +115,8 @@ func TestGenerator(t *testing.T) {
 		{
 			name:   "Basic Data Types Pointers",
 			golden: "basic_data_types_pointers",
-			setup: func(g *spec.Generator) {
-				g.Put("/basic-data-types-pointers",
+			setup: func(r *spec.Router) {
+				r.Put("/basic-data-types-pointers",
 					option.OperationID("getBasicDataTypesPointers"),
 					option.Summary("Get Basic Data Types Pointers"),
 					option.Description("This operation returns all basic data types as pointers."),
@@ -128,18 +128,18 @@ func TestGenerator(t *testing.T) {
 		{
 			name:   "All methods",
 			golden: "all_methods",
-			setup: func(g *spec.Generator) {
+			setup: func(r *spec.Router) {
 				type UserDetailRequest struct {
 					ID int `path:"id" validate:"required"`
 				}
-				g.Get("/user", option.OperationID("getUser"), option.Summary("Get User"))
-				g.Post("/user", option.OperationID("createUser"), option.Summary("Create User"), option.Response(201, new(string), option.WithContentType("plain/text")))
-				g.Put("/user/{id}", option.OperationID("updateUser"), option.Summary("Update User"), option.Request(new(UserDetailRequest)))
-				g.Patch("/user/{id}", option.OperationID("patchUser"), option.Summary("Patch User"), option.Request(new(UserDetailRequest)))
-				g.Delete("/user/{id}", option.OperationID("deleteUser"), option.Summary("Delete User"), option.Request(new(UserDetailRequest)))
-				g.Head("/user/{id}", option.OperationID("headUser"), option.Summary("Head User"), option.Request(new(UserDetailRequest)))
-				g.Options("/user", option.OperationID("optionsUser"), option.Summary("Options User"))
-				g.Trace("/user/{id}", option.OperationID("traceUser"), option.Summary("Trace User"), option.Request(new(UserDetailRequest)))
+				r.Get("/user", option.OperationID("getUser"), option.Summary("Get User"))
+				r.Post("/user", option.OperationID("createUser"), option.Summary("Create User"), option.Response(201, new(string), option.WithContentType("plain/text")))
+				r.Put("/user/{id}", option.OperationID("updateUser"), option.Summary("Update User"), option.Request(new(UserDetailRequest)))
+				r.Patch("/user/{id}", option.OperationID("patchUser"), option.Summary("Patch User"), option.Request(new(UserDetailRequest)))
+				r.Delete("/user/{id}", option.OperationID("deleteUser"), option.Summary("Delete User"), option.Request(new(UserDetailRequest)))
+				r.Head("/user/{id}", option.OperationID("headUser"), option.Summary("Head User"), option.Request(new(UserDetailRequest)))
+				r.Options("/user", option.OperationID("optionsUser"), option.Summary("Options User"))
+				r.Trace("/user/{id}", option.OperationID("traceUser"), option.Summary("Trace User"), option.Request(new(UserDetailRequest)))
 			},
 		},
 		{
@@ -151,8 +151,8 @@ func TestGenerator(t *testing.T) {
 					Description: "Operations related to user authentication",
 				}),
 			},
-			setup: func(g *spec.Generator) {
-				g.Post("/login",
+			setup: func(r *spec.Router) {
+				r.Post("/login",
 					option.OperationID("login"),
 					option.Summary("User Login"),
 					option.Description("This operation allows users to log in."),
@@ -172,8 +172,8 @@ func TestGenerator(t *testing.T) {
 					option.TypeMapping(NullTime{}, new(time.Time)),
 				),
 			},
-			setup: func(g *spec.Generator) {
-				g.Get("/auth/me",
+			setup: func(r *spec.Router) {
+				r.Get("/auth/me",
 					option.OperationID("getUserProfile"),
 					option.Summary("Get User Profile"),
 					option.Description("This operation retrieves the authenticated user's profile."),
@@ -189,8 +189,8 @@ func TestGenerator(t *testing.T) {
 			opts: []option.OpenAPIOption{
 				option.WithSecurity("apiKey", option.SecurityAPIKey("x-api-key", "header")),
 			},
-			setup: func(g *spec.Generator) {
-				g.Get("/operation/options",
+			setup: func(r *spec.Router) {
+				r.Get("/operation/options",
 					option.OperationID("getOperationOptions"),
 					option.Summary("Get Operation Options"),
 					option.Description("This operation retrieves all operation options."),
@@ -205,8 +205,8 @@ func TestGenerator(t *testing.T) {
 		{
 			name:   "Hide Operation",
 			golden: "hide_operation",
-			setup: func(g *spec.Generator) {
-				g.Get("/hidden/operation",
+			setup: func(r *spec.Router) {
+				r.Get("/hidden/operation",
 					option.OperationID("hiddenOperation"),
 					option.Summary("Hidden Operation"),
 					option.Description("This operation is hidden and should not appear in the spec."),
@@ -239,8 +239,8 @@ func TestGenerator(t *testing.T) {
 					option.TypeMapping(NullTime{}, new(time.Time)),
 				),
 			},
-			setup: func(g *spec.Generator) {
-				g.Get("/reflector/options",
+			setup: func(r *spec.Router) {
+				r.Get("/reflector/options",
 					option.OperationID("getReflectorOptions"),
 					option.Summary("Get Reflector Options"),
 					option.Description("This operation retrieves the OpenAPI reflector options."),
@@ -300,8 +300,8 @@ func TestGenerator(t *testing.T) {
 		},
 		{
 			name: "Invalid URL Path Parameter",
-			setup: func(g *spec.Generator) {
-				g.Get("/user/{id}",
+			setup: func(r *spec.Router) {
+				r.Get("/user/{id}",
 					option.OperationID("getUserById"),
 					option.Summary("Get User by ID"),
 					option.Description("This operation retrieves a user by ID."),
@@ -332,19 +332,19 @@ func TestGenerator(t *testing.T) {
 				if len(tt.opts) > 0 {
 					opts = append(opts, tt.opts...)
 				}
-				gen := spec.NewGenerator(opts...)
+				r := spec.NewRouter(opts...)
 
 				if tt.setup != nil {
-					tt.setup(gen)
+					tt.setup(r)
 				}
 
 				if tt.shouldError {
-					assert.Error(t, gen.Validate(), "Expected generator to fail validation")
+					assert.Error(t, r.Validate(), "Expected router to fail validation")
 					return
 				}
-				assert.NoError(t, gen.Validate(), "Generator validation failed")
+				assert.NoError(t, r.Validate(), "Router validation failed")
 
-				schema, err := gen.GenerateSchema("yaml")
+				schema, err := r.GenerateSchema("yaml")
 				require.NoError(t, err)
 
 				golden := fmt.Sprintf("%s_%s.yaml", tt.golden, alias)
@@ -366,7 +366,7 @@ func TestGenerator(t *testing.T) {
 	}
 }
 
-func TestGenerator_GenerateSchema(t *testing.T) {
+func TestRouter_GenerateSchema(t *testing.T) {
 	tests := []struct {
 		name        string
 		formats     []string
@@ -407,20 +407,20 @@ func TestGenerator_GenerateSchema(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gen := spec.NewGenerator(
+			r := spec.NewRouter(
 				option.WithOpenAPIVersion("3.1.0"),
 				option.WithTitle("Test API"),
 				option.WithVersion("1.0.0"),
 			)
 
 			// Add a simple operation to ensure we have some content
-			gen.Add("GET", "/test",
+			r.Add("GET", "/test",
 				option.OperationID("test"),
 				option.Summary("Test operation"),
 				option.Description("This is a test operation."),
 			)
 
-			schema, err := gen.GenerateSchema(tt.formats...)
+			schema, err := r.GenerateSchema(tt.formats...)
 
 			if tt.expectError {
 				assert.Error(t, err)
@@ -448,7 +448,7 @@ func TestGenerator_GenerateSchema(t *testing.T) {
 	}
 }
 
-func TestGenerator_WriteSchemaTo(t *testing.T) {
+func TestRouter_WriteSchemaTo(t *testing.T) {
 	tests := []struct {
 		name        string
 		path        string
@@ -484,15 +484,15 @@ func TestGenerator_WriteSchemaTo(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Create generator with test configuration
-			gen := spec.NewGenerator(
+			// Create router with test configuration
+			r := spec.NewRouter(
 				option.WithOpenAPIVersion("3.1.0"),
 				option.WithTitle("Test API"),
 				option.WithVersion("1.0.0"),
 			)
 
 			// Add a simple operation to ensure we have content
-			gen.Add("GET", "/test",
+			r.Add("GET", "/test",
 				option.OperationID("test"),
 				option.Summary("Test operation"),
 				option.Description("This is a test operation."),
@@ -507,7 +507,7 @@ func TestGenerator_WriteSchemaTo(t *testing.T) {
 			}
 
 			// Write schema to file
-			err := gen.WriteSchemaTo(fullPath)
+			err := r.WriteSchemaTo(fullPath)
 
 			if tt.expectError {
 				assert.Error(t, err)

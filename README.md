@@ -43,7 +43,7 @@ import (
 )
 
 func main() {
-	r := spec.NewGenerator(
+	r := spec.NewRouter(
 		option.WithTitle("My API"),
 		option.WithVersion("1.0.0"),
 	)

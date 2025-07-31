@@ -11,81 +11,81 @@ import (
 	"github.com/oaswrap/spec/option"
 )
 
-// Generator is responsible for generating OpenAPI documentation.
-type Generator struct {
+// Router is the main struct for managing OpenAPI operations and specifications.
+type Router struct {
 	reflector reflector
 	spec      spec
 	cfg       *openapi.Config
 }
 
-// NewGenerator creates a new Generator instance with the provided configuration.
-func NewGenerator(opts ...option.OpenAPIOption) *Generator {
+// NewRouter creates a new Router instance with the provided OpenAPI options.
+func NewRouter(opts ...option.OpenAPIOption) *Router {
 	cfg := option.WithOpenAPIConfig(opts...)
 
 	reflector := newReflector(cfg)
 
-	return &Generator{
+	return &Router{
 		reflector: reflector,
 		spec:      reflector.Spec(),
 		cfg:       cfg,
 	}
 }
 
-// Config returns the OpenAPI configuration used by the Generator.
-func (g *Generator) Config() *openapi.Config {
+// Config returns the OpenAPI configuration used by the Router.
+func (g *Router) Config() *openapi.Config {
 	return g.cfg
 }
 
 // Get registers a new GET operation with the specified path and options.
-func (g *Generator) Get(path string, opts ...option.OperationOption) {
+func (g *Router) Get(path string, opts ...option.OperationOption) {
 	g.Add("GET", path, opts...)
 }
 
 // Post registers a new POST operation with the specified path and options.
-func (g *Generator) Post(path string, opts ...option.OperationOption) {
+func (g *Router) Post(path string, opts ...option.OperationOption) {
 	g.Add("POST", path, opts...)
 }
 
 // Put registers a new PUT operation with the specified path and options.
-func (g *Generator) Put(path string, opts ...option.OperationOption) {
+func (g *Router) Put(path string, opts ...option.OperationOption) {
 	g.Add("PUT", path, opts...)
 }
 
 // Delete registers a new DELETE operation with the specified path and options.
-func (g *Generator) Delete(path string, opts ...option.OperationOption) {
+func (g *Router) Delete(path string, opts ...option.OperationOption) {
 	g.Add("DELETE", path, opts...)
 }
 
 // Patch registers a new PATCH operation with the specified path and options.
-func (g *Generator) Patch(path string, opts ...option.OperationOption) {
+func (g *Router) Patch(path string, opts ...option.OperationOption) {
 	g.Add("PATCH", path, opts...)
 }
 
 // Options registers a new OPTIONS operation with the specified path and options.
-func (g *Generator) Options(path string, opts ...option.OperationOption) {
+func (g *Router) Options(path string, opts ...option.OperationOption) {
 	g.Add("OPTIONS", path, opts...)
 }
 
 // Trace registers a new TRACE operation with the specified path and options.
-func (g *Generator) Trace(path string, opts ...option.OperationOption) {
+func (g *Router) Trace(path string, opts ...option.OperationOption) {
 	g.Add("TRACE", path, opts...)
 }
 
 // Head registers a new HEAD operation with the specified path and options.
-func (g *Generator) Head(path string, opts ...option.OperationOption) {
+func (g *Router) Head(path string, opts ...option.OperationOption) {
 	g.Add("HEAD", path, opts...)
 }
 
 // Add registers a new operation with the specified method and path.
 // It applies the provided operation options to the operation context.
-func (g *Generator) Add(method, path string, opts ...option.OperationOption) {
+func (g *Router) Add(method, path string, opts ...option.OperationOption) {
 	g.reflector.Add(method, path, opts...)
 }
 
 // GenerateSchema generates the OpenAPI schema in the specified format (JSON or YAML).
 //
 // By default, it generates YAML. If "json" is specified, it generates JSON.
-func (g *Generator) GenerateSchema(formats ...string) ([]byte, error) {
+func (g *Router) GenerateSchema(formats ...string) ([]byte, error) {
 	format := "yaml"
 	if len(formats) > 0 {
 		format = formats[0]
@@ -119,7 +119,7 @@ func (g *Generator) GenerateSchema(formats ...string) ([]byte, error) {
 // WriteSchemaTo writes the OpenAPI schema to the specified file path.
 //
 // The file format is determined by the file extension: ".json" for JSON and ".yaml" for YAML.
-func (g *Generator) WriteSchemaTo(path string) error {
+func (g *Router) WriteSchemaTo(path string) error {
 	format := "yaml"
 	if strings.HasSuffix(path, ".json") {
 		format = "json"
@@ -132,6 +132,6 @@ func (g *Generator) WriteSchemaTo(path string) error {
 }
 
 // Validate checks if the generated OpenAPI specification is valid.
-func (g *Generator) Validate() error {
+func (g *Router) Validate() error {
 	return g.reflector.Validate()
 }
