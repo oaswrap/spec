@@ -1,6 +1,6 @@
 package option
 
-import "github.com/oaswrap/spec/pkg/util"
+import "github.com/oaswrap/spec/internal/util"
 
 // GroupConfig holds the configuration for a group of routes in an OpenAPI specification.
 type GroupConfig struct {

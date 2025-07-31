@@ -80,8 +80,8 @@ const (
 type SecuritySchemeHTTPBearer struct {
 	// Value must match pattern: `^[Bb][Ee][Aa][Rr][Ee][Rr]$`.
 	// Required.
-	Scheme       string  `json:"scheme"`
-	BearerFormat *string `json:"bearerFormat,omitempty"`
+	Scheme       string
+	BearerFormat *string
 }
 
 // SecuritySchemeOAuth2 structure is generated from "#/$defs/security-scheme/$defs/type-oauth2".

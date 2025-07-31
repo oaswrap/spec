@@ -1,9 +1,9 @@
 package util_test
 
 import (
+	"github.com/oaswrap/spec/internal/util"
 	"testing"
 
-	"github.com/oaswrap/spec/pkg/util"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -69,4 +69,3 @@ func TestPtrOf(t *testing.T) {
 		assert.Equal(t, value, *result)
 	})
 }
-

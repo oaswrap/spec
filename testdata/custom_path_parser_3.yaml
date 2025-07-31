@@ -1,0 +1,47 @@
+openapi: 3.0.3
+info:
+  description: This is the API documentation for Custom Path Parser
+  title: 'API Doc: Custom Path Parser'
+  version: 1.0.0
+paths:
+  /user/{id}:
+    get:
+      description: This operation retrieves a user by ID.
+      operationId: getUserById
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecTestUser'
+          description: OK
+      summary: Get User by ID
+components:
+  schemas:
+    SpecTestNullString:
+      type: object
+    SpecTestNullTime:
+      type: object
+    SpecTestUser:
+      properties:
+        age:
+          nullable: true
+          type: integer
+        created_at:
+          format: date-time
+          type: string
+        email:
+          $ref: '#/components/schemas/SpecTestNullString'
+        id:
+          type: integer
+        updated_at:
+          $ref: '#/components/schemas/SpecTestNullTime'
+        username:
+          type: string
+      type: object

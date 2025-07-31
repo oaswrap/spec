@@ -3,9 +3,10 @@ package option_test
 import (
 	"testing"
 
+	"github.com/oaswrap/spec/internal/util"
+
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
-	"github.com/oaswrap/spec/pkg/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -18,7 +19,7 @@ func TestWithOpenAPIVersion(t *testing.T) {
 	assert.Equal(t, "3.0.0", config.OpenAPIVersion)
 }
 
-func TestWithDisableOpenAPI(t *testing.T) {
+func TestWithDisableDocs(t *testing.T) {
 	tests := []struct {
 		name     string
 		disable  []bool
@@ -32,10 +33,10 @@ func TestWithDisableOpenAPI(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			config := &openapi.Config{}
-			opt := option.WithDisableOpenAPI(tt.disable...)
+			opt := option.WithDisableDocs(tt.disable...)
 			opt(config)
 
-			assert.Equal(t, tt.expected, config.DisableOpenAPI)
+			assert.Equal(t, tt.expected, config.DisableDocs)
 		})
 	}
 }
@@ -228,26 +229,19 @@ func TestWithSecurity(t *testing.T) {
 func TestWithSwaggerConfig(t *testing.T) {
 	tests := []struct {
 		name     string
-		cfg      []openapi.SwaggerConfig
+		cfg      openapi.SwaggerConfig
 		expected *openapi.SwaggerConfig
 	}{
 		{
 			name:     "no config",
-			cfg:      []openapi.SwaggerConfig{},
-			expected: nil,
-		},
-		{
-			name:     "nil config",
-			cfg:      []openapi.SwaggerConfig{},
-			expected: nil,
+			cfg:      openapi.SwaggerConfig{},
+			expected: &openapi.SwaggerConfig{},
 		},
 		{
 			name: "valid config",
-			cfg: []openapi.SwaggerConfig{
-				{
-					ShowTopBar: true,
-					HideCurl:   false,
-				},
+			cfg: openapi.SwaggerConfig{
+				ShowTopBar: true,
+				HideCurl:   false,
 			},
 			expected: &openapi.SwaggerConfig{
 				ShowTopBar: true,
@@ -259,7 +253,7 @@ func TestWithSwaggerConfig(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			config := &openapi.Config{}
-			opt := option.WithSwaggerConfig(tt.cfg...)
+			opt := option.WithSwaggerConfig(tt.cfg)
 			opt(config)
 
 			assert.Equal(t, tt.expected, config.SwaggerConfig)
@@ -416,7 +410,7 @@ func TestOpenAPIConfigDefaults(t *testing.T) {
 
 	// Test that default values are properly set
 	assert.Empty(t, config.OpenAPIVersion)
-	assert.False(t, config.DisableOpenAPI)
+	assert.False(t, config.DisableDocs)
 	assert.Empty(t, config.BaseURL)
 	assert.Empty(t, config.Title)
 	assert.Empty(t, config.Version)
@@ -429,4 +423,5 @@ func TestOpenAPIConfigDefaults(t *testing.T) {
 	assert.Nil(t, config.Contact)
 	assert.Nil(t, config.License)
 	assert.Empty(t, config.Tags)
+	assert.Nil(t, config.PathParser)
 }

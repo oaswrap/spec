@@ -24,6 +24,10 @@ func SecurityDescription(description string) SecurityOption {
 }
 
 // SecurityAPIKey creates a security scheme for API key authentication.
+//
+// Example usage:
+//
+//	option.WithSecurity("apiKey", option.SecurityAPIKey("x-api-key", openapi.SecuritySchemeAPIKeyInHeader))
 func SecurityAPIKey(name string, in openapi.SecuritySchemeAPIKeyIn) SecurityOption {
 	return func(cfg *securityConfig) {
 		cfg.APIKey = &openapi.SecuritySchemeAPIKey{

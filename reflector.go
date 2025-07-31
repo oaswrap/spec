@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/oaswrap/spec/internal/debuglog"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
-	"github.com/oaswrap/spec/pkg/debuglog"
 	"github.com/swaggest/jsonschema-go"
 )
 

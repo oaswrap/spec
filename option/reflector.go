@@ -4,13 +4,14 @@ import (
 	"strings"
 
 	"github.com/oaswrap/spec/openapi"
-	"github.com/oaswrap/spec/pkg/util"
 )
 
 // ReflectorOption defines a function that modifies the OpenAPI reflector configuration.
 type ReflectorOption func(*openapi.ReflectorConfig)
 
 // InlineRefs sets whether to inline references in the OpenAPI documentation.
+//
+// If set to true, references will be inlined instead of being stored in the components section.
 func InlineRefs() ReflectorOption {
 	return func(c *openapi.ReflectorConfig) {
 		c.InlineRefs = true
@@ -18,6 +19,8 @@ func InlineRefs() ReflectorOption {
 }
 
 // RootRef sets whether to use a root reference in the OpenAPI documentation.
+//
+// If set to true, the root schema will be used as a reference for all schemas.
 func RootRef() ReflectorOption {
 	return func(c *openapi.ReflectorConfig) {
 		c.RootRef = true
@@ -59,15 +62,23 @@ func InterceptPropFunc(fn openapi.InterceptPropFunc) ReflectorOption {
 
 // RequiredPropByValidateTag sets a function to mark properties as required based on the "validate" tag.
 //
-// If the "validate" tag contains "required", the property will be added to the required list of the parent schema.
-// This is useful for automatically generating required properties based on validation tags.
-func RequiredPropByValidateTag(seps ...string) ReflectorOption {
+// It checks if the "validate" tag contains "required" and adds the property to the required list.
+//
+// This is useful for automatically marking properties as required based on validation tags because default it use "required:true" tag.
+func RequiredPropByValidateTag(tags ...string) ReflectorOption {
 	return InterceptPropFunc(func(params openapi.InterceptPropParams) error {
 		if !params.Processed {
 			return nil
 		}
-		if v, ok := params.Field.Tag.Lookup("validate"); ok {
-			sep := util.Optional(",", seps...)
+		validateTag := "validate"
+		sep := ","
+		if len(tags) > 0 {
+			validateTag = tags[0]
+		}
+		if len(tags) > 1 {
+			sep = tags[1]
+		}
+		if v, ok := params.Field.Tag.Lookup(validateTag); ok {
 			parts := strings.Split(v, sep)
 
 			for _, part := range parts {
@@ -95,9 +106,11 @@ func InterceptSchemaFunc(fn openapi.InterceptSchemaFunc) ReflectorOption {
 //
 // Example usage:
 //
-//	option.WithReflectorConfig(
-//		option.TypeMapping(types.NullString{}, new(string)),
-//	)
+//	type NullString struct {
+//	     sql.NullString
+//	}
+//
+//	option.WithReflectorConfig(option.TypeMapping(NullString{}, new(string)))
 func TypeMapping(src, dst any) ReflectorOption {
 	return func(c *openapi.ReflectorConfig) {
 		c.TypeMappings = append(c.TypeMappings, openapi.TypeMapping{

@@ -1,6 +1,8 @@
 package option
 
-import "github.com/oaswrap/spec/pkg/util"
+import (
+	"github.com/oaswrap/spec/internal/util"
+)
 
 // OperationConfig holds the configuration for an OpenAPI operation.
 type OperationConfig struct {
