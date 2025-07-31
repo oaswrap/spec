@@ -1,7 +1,10 @@
 package spec
 
 import (
-	specopenapi "github.com/oaswrap/spec/openapi"
+	"fmt"
+	"strings"
+
+	"github.com/oaswrap/spec/internal/debug"
 	"github.com/oaswrap/spec/option"
 	"github.com/swaggest/openapi-go"
 )
@@ -11,7 +14,7 @@ var _ operationContext = (*operationContextImpl)(nil)
 type operationContextImpl struct {
 	op     openapi.OperationContext
 	cfg    *option.OperationConfig
-	logger specopenapi.Logger
+	logger *debug.Logger
 }
 
 func (oc *operationContextImpl) With(opts ...option.OperationOption) operationContext {
@@ -21,66 +24,69 @@ func (oc *operationContextImpl) With(opts ...option.OperationOption) operationCo
 	return oc
 }
 
-func (oc *operationContextImpl) Set(opt option.OperationOption) {
-	opt(oc.cfg)
-}
-
 func (oc *operationContextImpl) build() openapi.OperationContext {
-	path := oc.op.Method() + " " + oc.op.PathPattern()
+	method := strings.ToUpper(oc.op.Method())
+	path := oc.op.PathPattern()
+
+	logger := oc.logger
 
 	cfg := oc.cfg
 	if cfg == nil {
 		return nil
 	}
 	if cfg.Hide {
-		oc.logger.Printf("Skipping operation %s: hidden", path)
+		logger.LogAction("skip operation", fmt.Sprintf("%s %s", method, path))
 		return nil
 	}
 	if cfg.Deprecated {
-		oc.logger.Printf("Marking operation %s as deprecated", path)
 		oc.op.SetIsDeprecated(true)
+		logger.LogOp(method, path, "set is deprecated", "true")
 	}
 	if cfg.OperationID != "" {
-		oc.logger.Printf("Setting operation ID for %s: %s", path, cfg.OperationID)
 		oc.op.SetID(cfg.OperationID)
+		logger.LogOp(method, path, "set operation ID", cfg.OperationID)
 	}
 	if cfg.Summary != "" {
-		oc.logger.Printf("Setting summary for operation %s: %s", path, cfg.Summary)
 		oc.op.SetSummary(cfg.Summary)
+		logger.LogOp(method, path, "set summary", cfg.Summary)
 	}
 	if cfg.Description != "" {
-		oc.logger.Printf("Setting description for operation %s: %s", path, cfg.Description)
 		oc.op.SetDescription(cfg.Description)
+		logger.LogOp(method, path, "set description", cfg.Description)
 	}
 	if len(cfg.Tags) > 0 {
-		oc.logger.Printf("Setting tags for operation %s: %v", path, cfg.Tags)
 		oc.op.SetTags(cfg.Tags...)
+		logger.LogOp(method, path, "set tags", fmt.Sprintf("%v", cfg.Tags))
 	}
 	if len(cfg.Security) > 0 {
 		for _, sec := range cfg.Security {
-			oc.logger.Printf("Adding security scheme %s to operation %s", sec.Name, path)
 			oc.op.AddSecurity(sec.Name, sec.Scopes...)
 		}
+		logger.LogOp(method, path, "set security", fmt.Sprintf("%v", cfg.Security))
 	}
 
 	for _, req := range cfg.Requests {
+		value := fmt.Sprintf("%T", req.Structure)
 		opts := []openapi.ContentOption{}
 		if req.ContentType != "" {
+			value += fmt.Sprintf(" (Content-Type: %s)", req.ContentType)
 			opts = append(opts, openapi.WithContentType(req.ContentType))
 		}
-		oc.logger.Printf("Adding request structure for operation %s with content type %s", path, req.ContentType)
 		oc.op.AddReqStructure(req.Structure, opts...)
+		logger.LogOp(method, path, "add request", value)
 	}
 
 	for _, resp := range cfg.Responses {
+		value := fmt.Sprintf("%T (HTTP %d)", resp.Structure, resp.HTTPStatus)
 		opts := []openapi.ContentOption{
 			openapi.WithHTTPStatus(resp.HTTPStatus),
 		}
 		if resp.ContentType != "" {
+			value += fmt.Sprintf(" (Content-Type: %s)", resp.ContentType)
 			opts = append(opts, openapi.WithContentType(resp.ContentType))
 		}
-		oc.logger.Printf("Adding response structure for operation %s with HTTP status %d and content type %s", path, resp.HTTPStatus, resp.ContentType)
 		oc.op.AddRespStructure(resp.Structure, opts...)
+		logger.LogOp(method, path, "add response", value)
 	}
 
 	return oc.op

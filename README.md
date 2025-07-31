@@ -1,5 +1,11 @@
 # oaswrap/spec
 
+[![CI](https://github.com/oaswrap/spec/actions/workflows/ci.yml/badge.svg)](https://github.com/oaswrap/spec/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/oaswrap/spec/branch/main/graph/badge.svg)](https://codecov.io/gh/oaswrap/spec)
+[![Go Reference](https://pkg.go.dev/badge/github.com/oaswrap/spec.svg)](https://pkg.go.dev/github.com/oaswrap/spec)
+[![Go Report Card](https://goreportcard.com/badge/github.com/oaswrap/spec)](https://goreportcard.com/report/github.com/oaswrap/spec)
+[![License](https://img.shields.io/github/license/oaswrap/spec)](LICENSE)
+
 **`oaswrap/spec`** is a lightweight, framework-agnostic OpenAPI 3.x specification builder for Go.  
 It provides the core logic to describe your API operations, paths, parameters, and schemas — without locking you into any specific web framework.
 
@@ -57,8 +63,8 @@ func main() {
 }
 
 type LoginRequest struct {
-	Username string `json:"username" validate:"required"`
-	Password string `json:"password" validate:"required"`
+	Username string `json:"username" required:"true"`
+	Password string `json:"password" required:"true"`
 }
 
 type TokenResponse struct {

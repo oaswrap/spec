@@ -14,6 +14,10 @@ func main() {
 		option.WithDescription("This is my API"),
 		option.WithServer("https://api.example.com", option.ServerDescription("Main server")),
 		option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
+		option.WithReflectorConfig(
+			option.RequiredPropByValidateTag(),
+		),
+		option.WithDebug(),
 	)
 	r.Post("/api/v1/login",
 		option.OperationID("loginUser"),

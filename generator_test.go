@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -92,10 +93,11 @@ type UserProfile struct {
 
 func TestGenerator(t *testing.T) {
 	tests := []struct {
-		name   string
-		golden string
-		opts   []option.OpenAPIOption
-		setup  func(g *spec.Generator)
+		name        string
+		golden      string
+		opts        []option.OpenAPIOption
+		setup       func(g *spec.Generator)
+		shouldError bool
 	}{
 		{
 			name:   "Basic Data Types",
@@ -165,8 +167,10 @@ func TestGenerator(t *testing.T) {
 			golden: "custom_type_mapping",
 			opts: []option.OpenAPIOption{
 				option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
-				option.WithTypeMapping(NullString{}, new(string)),
-				option.WithTypeMapping(NullTime{}, new(time.Time)),
+				option.WithReflectorConfig(
+					option.TypeMapping(NullString{}, new(string)),
+					option.TypeMapping(NullTime{}, new(time.Time)),
+				),
 			},
 			setup: func(g *spec.Generator) {
 				g.Get("/auth/me",
@@ -221,6 +225,60 @@ func TestGenerator(t *testing.T) {
 				option.WithExternalDocs("https://docs.example.com", "API Documentation"),
 			},
 		},
+		{
+			name:   "All Reflector Options",
+			golden: "all_reflector_options",
+			opts: []option.OpenAPIOption{
+				option.WithReflectorConfig(
+					option.InlineRefs(),
+					option.RootRef(),
+					option.RootNullable(),
+					option.StripDefNamePrefix("Test", "Mock"),
+					option.InterceptDefNameFunc(func(t reflect.Type, defaultDefName string) string {
+						return defaultDefName + "_Custom"
+					}),
+					option.InterceptPropFunc(func(params openapi.InterceptPropParams) error {
+						return nil
+					}),
+					option.RequiredPropByValidateTag(),
+					option.InterceptSchemaFunc(func(params openapi.InterceptSchemaParams) (stop bool, err error) {
+						return false, nil
+					}),
+					option.TypeMapping(NullString{}, new(string)),
+					option.TypeMapping(NullTime{}, new(time.Time)),
+				),
+			},
+			setup: func(g *spec.Generator) {
+				g.Get("/reflector/options",
+					option.OperationID("getReflectorOptions"),
+					option.Summary("Get Reflector Options"),
+					option.Description("This operation retrieves the OpenAPI reflector options."),
+					option.Request(new(LoginRequest)),
+					option.Response(200, new(Response[UserProfile])),
+				)
+			},
+		},
+		{
+			name: "Invalid OpenAPI Version",
+			opts: []option.OpenAPIOption{
+				option.WithOpenAPIVersion("2.0.0"), // Invalid version for OpenAPI 3.x
+			},
+			shouldError: true,
+		},
+		{
+			name: "Invalid URL Path Parameter",
+			setup: func(g *spec.Generator) {
+				g.Get("/user/{id}",
+					option.OperationID("getUserById"),
+					option.Summary("Get User by ID"),
+					option.Description("This operation retrieves a user by ID."),
+					option.Request(new(struct {
+						ID int `params:"id" validate:"required"`
+					})),
+				)
+			},
+			shouldError: true, // Invalid path parameter without a proper tag
+		},
 	}
 
 	versions := map[string]string{
@@ -236,6 +294,7 @@ func TestGenerator(t *testing.T) {
 					option.WithDescription("This is the API documentation for " + tt.name),
 					option.WithOpenAPIVersion(version),
 					option.WithVersion("1.0.0"),
+					option.WithReflectorConfig(option.RequiredPropByValidateTag()),
 				}
 				if len(tt.opts) > 0 {
 					opts = append(opts, tt.opts...)
@@ -246,6 +305,10 @@ func TestGenerator(t *testing.T) {
 					tt.setup(gen)
 				}
 
+				if tt.shouldError {
+					assert.Error(t, gen.Validate(), "Expected generator to fail validation")
+					return
+				}
 				assert.NoError(t, gen.Validate(), "Generator validation failed")
 
 				schema, err := gen.GenerateSchema("yaml")

@@ -5,11 +5,11 @@ on:
     branches:
       - main
   pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
-
   golangci:
-    name: lint
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -20,11 +20,13 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
-          version: latest
+          version: v2.3.0
           github-token: ${{ secrets.GITHUB_TOKEN }}
           args: --timeout=2m --verbose
 
   test:
+    name: Unit Tests
+    needs: golangci
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -37,18 +39,27 @@ jobs:
       uses: actions/setup-go@v5
       with:
         go-version: ${{ matrix.go-version }}
+    - name: Cache Go modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
     - name: Check Tidy
       run: |
           go mod tidy
           git diff --exit-code go.mod go.sum
+    - name: Vet
+      run: go vet ./...
     - name: Test
       run: |
-          go test -v -cover -race ./... -coverprofile=coverage.out
-    - name: Generate coverage report
-      run: |
-          go tool cover -html=coverage.out -o coverage.html
-    - name: Upload coverage
-      uses: actions/upload-artifact@v4
+          go test -v -cover -race ./... -coverprofile=coverage.txt
+          go tool cover -func=coverage.txt | grep total
+    - name: Upload coverage reports to Codecov
+      if: matrix.go-version == '1.21'
+      uses: codecov/codecov-action@v5
       with:
-        name: coverage-${{ matrix.go-version }}
-        path: coverage.html
+        token: ${{ secrets.CODECOV_TOKEN }}
