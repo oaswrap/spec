@@ -16,9 +16,7 @@ type spec interface {
 	MarshalJSON() ([]byte, error)
 }
 
-// operationContext is an interface for managing operation contexts in OpenAPI specifications.
 type operationContext interface {
 	With(opts ...option.OperationOption) operationContext
-	Set(opt option.OperationOption)
 	build() openapi.OperationContext
 }

@@ -7,11 +7,8 @@ import (
 	"github.com/oaswrap/spec/pkg/util"
 )
 
+// OpenAPIOption defines a function that modifies the OpenAPI configuration.
 type OpenAPIOption func(*openapi.Config)
-
-type noopLogger struct{}
-
-func (l noopLogger) Printf(format string, v ...any) {}
 
 // WithOpenAPIConfig creates a new OpenAPI configuration with the provided options.
 // It initializes the configuration with default values and applies the provided options.
@@ -23,6 +20,8 @@ func WithOpenAPIConfig(opts ...OpenAPIOption) *openapi.Config {
 		Description:     nil,
 		SecuritySchemes: make(map[string]*openapi.SecurityScheme),
 		Logger:          &noopLogger{},
+		SwaggerConfig:   &openapi.SwaggerConfig{},
+		ReflectorConfig: &openapi.ReflectorConfig{},
 	}
 
 	for _, opt := range opts {
@@ -159,21 +158,19 @@ func WithSecurity(name string, opts ...SecurityOption) OpenAPIOption {
 	}
 }
 
-// WithTypeMapping adds a type mapping for OpenAPI generation.
-//
-// Example usage:
-//
-//	option.WithTypeMapping(types.NullString{}, new(string))
-func WithTypeMapping(src, dst any) OpenAPIOption {
+// WithReflectorConfig applies custom configurations to the OpenAPI reflector.
+func WithReflectorConfig(opts ...ReflectorOption) OpenAPIOption {
 	return func(c *openapi.Config) {
-		c.TypeMappings = append(c.TypeMappings, openapi.TypeMapping{
-			Src: src,
-			Dst: dst,
-		})
+		for _, opt := range opts {
+			opt(c.ReflectorConfig)
+		}
 	}
 }
 
 // WithDocsPath sets the path for the OpenAPI documentation.
+//
+// This is the path where the OpenAPI documentation will be served.
+// The default path is "/docs".
 func WithDocsPath(path string) OpenAPIOption {
 	return func(c *openapi.Config) {
 		c.DocsPath = path
@@ -181,6 +178,8 @@ func WithDocsPath(path string) OpenAPIOption {
 }
 
 // WithSwagger sets the configuration for Swagger UI.
+//
+// This allows customization of the Swagger UI appearance and behavior.
 func WithSwaggerConfig(cfg ...openapi.SwaggerConfig) OpenAPIOption {
 	return func(c *openapi.Config) {
 		if len(cfg) > 0 {
@@ -199,3 +198,7 @@ func WithDebug(debug ...bool) OpenAPIOption {
 		}
 	}
 }
+
+type noopLogger struct{}
+
+func (l noopLogger) Printf(format string, v ...any) {}

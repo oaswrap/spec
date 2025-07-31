@@ -1,25 +1,58 @@
 package spec
 
 import (
+	"fmt"
+	"strings"
+
+	"github.com/oaswrap/spec/internal/debug"
 	"github.com/oaswrap/spec/internal/mapper"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
-	"github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/openapi-go/openapi31"
 )
 
-func newReflector31(cfg *openapi.Config, jsonSchemaOpts []func(*jsonschema.ReflectContext)) reflector {
+func newReflector31(cfg *openapi.Config) reflector {
+	logger := debug.NewLogger(cfg.Logger)
+
 	reflector := openapi31.NewReflector()
+	logger.LogAction("Using OpenAPI 3.1 reflector for version", cfg.OpenAPIVersion)
 	spec := reflector.Spec
+
 	spec.Info.Title = cfg.Title
+	logger.LogAction("set title", cfg.Title)
+
 	spec.Info.Version = cfg.Version
+	logger.LogAction("set version", cfg.Version)
+
 	spec.Info.Description = cfg.Description
+	if cfg.Description != nil {
+		logger.LogAction("set description", *cfg.Description)
+	}
+
 	spec.Info.Contact = mapper.OAS31Contact(cfg.Contact)
+	if cfg.Contact != nil {
+		logger.LogContact(cfg.Contact)
+	}
+
 	spec.Info.License = mapper.OAS31License(cfg.License)
+	if cfg.License != nil {
+		logger.LogLicense(cfg.License)
+	}
 
 	spec.ExternalDocs = mapper.OAS31ExternalDocs(cfg.ExternalDocs)
+	if cfg.ExternalDocs != nil {
+		logger.LogExternalDocs(cfg.ExternalDocs)
+	}
+
 	spec.Servers = mapper.OAS31Servers(cfg.Servers)
+	for _, server := range cfg.Servers {
+		logger.LogServer(server)
+	}
+
 	spec.Tags = mapper.OAS31Tags(cfg.Tags)
+	for _, tag := range cfg.Tags {
+		logger.LogTag(tag)
+	}
 
 	if len(cfg.SecuritySchemes) > 0 {
 		spec.Components = &openapi31.Components{}
@@ -34,23 +67,30 @@ func newReflector31(cfg *openapi.Config, jsonSchemaOpts []func(*jsonschema.Refle
 			}
 		}
 		spec.Components.SecuritySchemes = securitySchemes
+		for name, scheme := range cfg.SecuritySchemes {
+			logger.LogSecurityScheme(name, scheme)
+		}
 	}
 
 	// Custom options for JSON schema generation
-	reflector.DefaultOptions = append(reflector.DefaultOptions, jsonSchemaOpts...)
+	jsonSchemaOpts := getJSONSchemaOpts(cfg.ReflectorConfig, logger)
+	if len(jsonSchemaOpts) > 0 {
+		reflector.DefaultOptions = append(reflector.DefaultOptions, jsonSchemaOpts...)
+	}
 
-	for _, opt := range cfg.TypeMappings {
+	for _, opt := range cfg.ReflectorConfig.TypeMappings {
 		reflector.AddTypeMapping(opt.Src, opt.Dst)
+		logger.LogAction("add type mapping", fmt.Sprintf("%T -> %T", opt.Src, opt.Dst))
 	}
 
 	errors := &SpecError{}
 
-	return &reflector31{reflector: reflector, logger: cfg.Logger, errors: errors}
+	return &reflector31{reflector: reflector, logger: logger, errors: errors}
 }
 
 type reflector31 struct {
 	reflector *openapi31.Reflector
-	logger    openapi.Logger
+	logger    *debug.Logger
 	errors    *SpecError
 }
 
@@ -63,10 +103,14 @@ func (r *reflector31) Add(method, path string, opts ...option.OperationOption) {
 
 	op.With(opts...)
 
+	method = strings.ToUpper(method)
+
 	if err := r.addOperation(op); err != nil {
+		r.logger.LogOp(method, path, "add operation", "failed")
 		r.errors.add(err)
 		return
 	}
+	r.logger.LogOp(method, path, "add operation", "successfully registered")
 }
 
 func (r *reflector31) Spec() spec {

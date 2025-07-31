@@ -165,8 +165,10 @@ func TestGenerator(t *testing.T) {
 			golden: "custom_type_mapping",
 			opts: []option.OpenAPIOption{
 				option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
-				option.WithTypeMapping(NullString{}, new(string)),
-				option.WithTypeMapping(NullTime{}, new(time.Time)),
+				option.WithReflectorConfig(
+					option.TypeMapping(NullString{}, new(string)),
+					option.TypeMapping(NullTime{}, new(time.Time)),
+				),
 			},
 			setup: func(g *spec.Generator) {
 				g.Get("/auth/me",
@@ -236,6 +238,7 @@ func TestGenerator(t *testing.T) {
 					option.WithDescription("This is the API documentation for " + tt.name),
 					option.WithOpenAPIVersion(version),
 					option.WithVersion("1.0.0"),
+					option.WithReflectorConfig(option.RequiredPropByValidateTag()),
 				}
 				if len(tt.opts) > 0 {
 					opts = append(opts, tt.opts...)
