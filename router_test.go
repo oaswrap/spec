@@ -231,7 +231,7 @@ func TestRouter(t *testing.T) {
 					option.OperationID("hiddenOperation"),
 					option.Summary("Hidden Operation"),
 					option.Description("This operation is hidden and should not appear in the spec."),
-					option.Hide(),
+					option.Hidden(),
 					option.Request(new(LoginRequest)),
 					option.Response(200, new(Response[User])),
 				)
@@ -299,7 +299,7 @@ func TestRouter(t *testing.T) {
 						option.Summary("Get Profile v1"),
 						option.Response(200, new(User)),
 					)
-				}, option.GroupHide())
+				}, option.GroupHidden())
 				v2 := api.Group("/v2")
 				v2.Route("/auth", func(r spec.Router) {
 					r.Post("/login",

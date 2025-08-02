@@ -156,14 +156,15 @@ option.WithSecurity("apiKey", option.SecurityAPIKey("X-API-Key", "header"))
 
 // OAuth2
 option.WithSecurity("oauth2", option.SecurityOAuth2(
-	option.WithAuthorizationCode(
-		"https://auth.example.com/oauth/authorize",
-		"https://auth.example.com/oauth/token",
-		map[string]string{
-			"read":  "Read access",
-			"write": "Write access",
+	openapi.OAuthFlows{
+		Implicit: &openapi.OAuthFlowsImplicit{
+			AuthorizationURL: "https://auth.example.com/authorize",
+			Scopes: map[string]string{
+				"read":  "Read access",
+				"write": "Write access",
+			},
 		},
-	),
+	},
 ))
 ```
 
@@ -175,6 +176,8 @@ option.Tags("User Management", "Authentication")
 option.Request(new(RequestModel))
 option.Response(200, new(ResponseModel))
 option.Security("bearerAuth")
+option.Deprecated() // Mark route as deprecated
+option.Hidden()     // Hide route from OpenAPI spec
 ```
 
 Parameters (path, query, headers) are defined using struct tags in your request models:
@@ -200,7 +203,7 @@ adminGroup := r.Group("/admin",
 
 // Hide internal routes from documentation
 internalGroup := r.Group("/internal",
-	option.GroupHide(), // Exclude from OpenAPI spec
+	option.GroupHidden(), // Exclude from OpenAPI spec
 )
 ```
 

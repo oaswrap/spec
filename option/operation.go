@@ -25,10 +25,10 @@ type OperationSecurityConfig struct {
 // OperationOption applies configuration to an OpenAPI operation.
 type OperationOption func(*OperationConfig)
 
-// Hide marks the operation as hidden in the OpenAPI documentation.
+// Hidden marks the operation as hidden in the OpenAPI documentation.
 //
 // This is useful for internal or non-public endpoints.
-func Hide(hide ...bool) OperationOption {
+func Hidden(hide ...bool) OperationOption {
 	return func(cfg *OperationConfig) {
 		cfg.Hide = util.Optional(true, hide...)
 	}
