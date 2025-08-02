@@ -154,7 +154,7 @@ func TestRouter(t *testing.T) {
 					ID int `path:"id" validate:"required"`
 				}
 				r.Get("/user", option.OperationID("getUser"), option.Summary("Get User"))
-				r.Post("/user", option.OperationID("createUser"), option.Summary("Create User"), option.Response(201, new(string), option.WithContentType("plain/text")))
+				r.Post("/user", option.OperationID("createUser"), option.Summary("Create User"), option.Response(201, new(string), option.ContentType("plain/text")))
 				r.Put("/user/{id}", option.OperationID("updateUser"), option.Summary("Update User"), option.Request(new(UserDetailRequest)))
 				r.Patch("/user/{id}", option.OperationID("patchUser"), option.Summary("Patch User"), option.Request(new(UserDetailRequest)))
 				r.Delete("/user/{id}", option.OperationID("deleteUser"), option.Summary("Delete User"), option.Request(new(UserDetailRequest)))
@@ -219,13 +219,13 @@ func TestRouter(t *testing.T) {
 					option.Tags("Operation Options"),
 					option.Deprecated(),
 					option.Request(new(LoginRequest),
-						option.WithContentType("application/json"),
-						option.WithContentDescription("Request body for operation options"),
+						option.ContentType("application/json"),
+						option.ContentDescription("Request body for operation options"),
 					),
 					option.Response(200, new(Response[User]),
-						option.WithContentType("application/json"),
-						option.WithContentDescription("Response body for operation options"),
-						option.WithContentDefault(true),
+						option.ContentType("application/json"),
+						option.ContentDescription("Response body for operation options"),
+						option.ContentDefault(true),
 					),
 				)
 			},

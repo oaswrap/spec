@@ -27,7 +27,7 @@ func TestContentOption(t *testing.T) {
 			name:       "with content type",
 			httpStatus: 200,
 			opts: []option.ContentOption{
-				option.WithContentType("application/json"),
+				option.ContentType("application/json"),
 			},
 			expected: openapi.ContentUnit{
 				HTTPStatus:  200,
@@ -38,7 +38,7 @@ func TestContentOption(t *testing.T) {
 			name:       "with description",
 			httpStatus: 200,
 			opts: []option.ContentOption{
-				option.WithContentDescription("This is a response"),
+				option.ContentDescription("This is a response"),
 			},
 			expected: openapi.ContentUnit{
 				HTTPStatus:  200,
@@ -49,7 +49,7 @@ func TestContentOption(t *testing.T) {
 			name:       "with default flag",
 			httpStatus: 200,
 			opts: []option.ContentOption{
-				option.WithContentDefault(true),
+				option.ContentDefault(true),
 			},
 			expected: openapi.ContentUnit{
 				HTTPStatus: 200,
@@ -60,9 +60,9 @@ func TestContentOption(t *testing.T) {
 			name:       "with multiple options",
 			httpStatus: 200,
 			opts: []option.ContentOption{
-				option.WithContentType("application/json"),
-				option.WithContentDescription("This is a response"),
-				option.WithContentDefault(true),
+				option.ContentType("application/json"),
+				option.ContentDescription("This is a response"),
+				option.ContentDefault(true),
 			},
 			expected: openapi.ContentUnit{
 				HTTPStatus:  200,

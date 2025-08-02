@@ -116,9 +116,10 @@ The `option` package provides comprehensive OpenAPI configuration:
 
 ### Basic Information
 ```go
+option.WithOpenAPIVersion("3.0.3") // Specify OpenAPI version (default is "3.0.3")
 option.WithTitle("My API")
-option.WithVersion("1.2.3")
 option.WithDescription("API description")
+option.WithVersion("1.2.3")
 option.WithContact(openapi.Contact{
 	Name:  "Support Team",
 	URL:   "https://support.example.com",
@@ -129,6 +130,16 @@ option.WithLicense(openapi.License{
 	URL:  "https://opensource.org/licenses/MIT",
 })
 option.WithExternalDocs("https://docs.example.com", "API Documentation")
+option.Tags(
+	openapi.Tag{
+		Name:        "User Management",
+		Description: "Operations related to user management",
+	},
+	openapi.Tag{
+		Name:        "Authentication",
+		Description: "Authentication related operations",
+	},
+)
 ```
 
 ### Servers
@@ -170,12 +181,17 @@ option.WithSecurity("oauth2", option.SecurityOAuth2(
 
 ### Route Documentation
 ```go
-option.Summary("Short description")
-option.Description("Detailed description with **markdown** support")
-option.Tags("User Management", "Authentication")
-option.Request(new(RequestModel))
-option.Response(200, new(ResponseModel), option.ContentDescription("Successful response"))
-option.Security("bearerAuth")
+option.OperationID("getUserByID") // Specify unique operation ID
+option.Summary("Short description") // Brief summary of the operation
+option.Description("Detailed description") // Full description of the operation
+option.Tags("User Management", "Authentication") // Group operations by tags
+option.Request(new(RequestModel)) // Define request body model
+option.Response(200, new(ResponseModel), // Define response model
+	option.ContentDescription("Successful response"), // Add description for response
+	option.ContentType("application/json"), // Specify content type
+	option.ContentDefault(true), // Mark as default response
+)
+option.Security("bearerAuth") // Apply security scheme to the route
 option.Deprecated() // Mark route as deprecated
 option.Hidden()     // Hide route from OpenAPI spec
 ```
@@ -256,6 +272,7 @@ option.Response(200, new(APIResponse[[]Product]))
 Check out the [`examples/`](examples/) directory for complete working examples:
 
 - **[Basic](examples/basic/)** — Standalone spec generation
+- **[Petstore](examples/petstore/)** — Full Petstore API example with routes and models
 
 For framework-specific examples, visit the individual adapter repositories:
 - **Gin examples** — See [oaswrap/ginopenapi](https://github.com/oaswrap/ginopenapi)
@@ -286,8 +303,10 @@ A: The library is in active development. While the core functionality is solid, 
 
 ## Roadmap
 
-- [ ] Redoc UI support
 - [ ] Chi adapter
+- [ ] HTTP adapter
+- [ ] Stoplight support
+- [ ] Redoc UI support
 
 ## Contributing
 

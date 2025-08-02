@@ -35,6 +35,11 @@ func newReflector3(cfg *openapi.Config, logger *debuglog.Logger) reflector {
 		logger.LogAction("set description", *cfg.Description)
 	}
 
+	spec.Info.TermsOfService = cfg.TermsOfService
+	if cfg.TermsOfService != nil {
+		logger.LogAction("set terms of service", *cfg.TermsOfService)
+	}
+
 	spec.Info.Contact = mapper.OAS3Contact(cfg.Contact)
 	if cfg.Contact != nil {
 		logger.LogContact(cfg.Contact)
