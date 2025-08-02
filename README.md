@@ -6,35 +6,27 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/oaswrap/spec)](https://goreportcard.com/report/github.com/oaswrap/spec)
 [![License](https://img.shields.io/github/license/oaswrap/spec)](LICENSE)
 
-**`oaswrap/spec`** lets you build OpenAPI 3.x specs in pure Go — framework-agnostic and easy to integrate.
+A lightweight, framework-agnostic OpenAPI 3.x specification builder for Go that gives you complete control over your API documentation without vendor lock-in.
 
-Describe your API operations, paths, and schemas once, then plug them into any router.  
-No handlers, no routing — just pure OpenAPI generation.
+## Why oaswrap/spec?
 
-Powered by [`swaggest/openapi-go`](https://github.com/swaggest/openapi-go) for robust schema generation.
+- **🎯 Framework Agnostic** — Works with any Go web framework or as a standalone tool
+- **⚡ Zero Dependencies** — Powered by [`swaggest/openapi-go`](https://github.com/swaggest/openapi-go) with minimal overhead
+- **🔧 Programmatic Control** — Build specs in pure Go code with full type safety
+- **🚀 Adapter Ecosystem** — Seamless integration with popular frameworks via dedicated adapters
+- **📝 CI/CD Ready** — Generate specs at build time for documentation pipelines
 
-## ✨ Features
+## Quick Start
 
-- ✅ Programmatically build OpenAPI 3.x specs in pure Go.
-- ✅ No runtime server — only schema generation logic.
-- ✅ Designed for framework adapters (Gin, Echo, Fiber, etc.).
-- ✅ Supports struct tags for request/response models.
-- ✅ Export specs to JSON or YAML, and validate before publishing.
-
-## 🔗 Related Projects
-
-Need an integration? Check out these official adapters:
-- [`oaswrap/ginopenapi`](https://github.com/oaswrap/ginopenapi) — Gin integration
-- [`oaswrap/echoopenapi`](https://github.com/oaswrap/echoopenapi) — Echo integration
-- [`oaswrap/fiberopenapi`](https://github.com/oaswrap/fiberopenapi) — Fiber integration
-
-## 📦 Installation
+### Installation
 
 ```bash
 go get github.com/oaswrap/spec
 ```
 
-## 🚀 Usage Example
+### Basic Usage (Standalone)
+
+Perfect for generating OpenAPI specs in CI/CD, build scripts, or documentation tools:
 
 ```go
 package main
@@ -47,77 +39,264 @@ import (
 )
 
 func main() {
-	// Create a new OpenAPI router with basic info and security scheme
+	// Create a new OpenAPI router
 	r := spec.NewRouter(
 		option.WithTitle("My API"),
 		option.WithVersion("1.0.0"),
-		option.WithDescription("Example API"),
 		option.WithServer("https://api.example.com"),
-		option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
 	)
 
-	// Versioned API group
+	// Add routes
 	v1 := r.Group("/api/v1")
+	
+	v1.Post("/login",
+		option.Summary("User login"),
+		option.Request(new(LoginRequest)),
+		option.Response(200, new(LoginResponse)),
+	)
 
-	// Auth routes
-	v1.Route("/auth", func(r spec.Router) {
-		r.Post("/login",
-			option.Summary("User Login"),
-			option.Request(new(LoginRequest)),
-			option.Response(200, new(Response[Token])),
-		)
+	v1.Get("/users/{id}",
+		option.Summary("Get user by ID"),
+		option.Request(new(GetUserRequest)),
+		option.Response(200, new(User)),
+	)
 
-		r.Get("/me",
-			option.Summary("Get Profile"),
-			option.Security("bearerAuth"),
-			option.Response(200, new(Response[User])),
-		)
-	}, option.GroupTags("Authentication"))
-
-	// Generate the OpenAPI file
+	// Generate OpenAPI spec
 	if err := r.WriteSchemaTo("openapi.yaml"); err != nil {
 		log.Fatal(err)
 	}
 
-	log.Println("✅ OpenAPI schema generated at openapi.yaml")
+	log.Println("✅ OpenAPI spec generated at openapi.yaml")
 }
-
-// Example request & response structs
 
 type LoginRequest struct {
 	Username string `json:"username" required:"true"`
 	Password string `json:"password" required:"true"`
 }
 
-type Token struct {
-	AccessToken string `json:"access_token"`
+type LoginResponse struct {
+	Token string `json:"token"`
+}
+
+type GetUserRequest struct {
+	ID string `path:"id" required:"true"`
 }
 
 type User struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 }
+```
 
-type Response[T any] struct {
-	Status int `json:"status"`
-	Data   T   `json:"data"`
+📖 **[View the generated spec](https://rest.wiki/?https://raw.githubusercontent.com/oaswrap/spec/main/examples/basic/openapi.yaml)** on Rest.Wiki
+
+## Framework Integration
+
+For seamless HTTP server integration, use one of our framework adapters. Each adapter has its own repository with complete examples and documentation.
+
+### Available Adapters
+
+| Framework | Adapter Package |
+|-----------|-----------------|
+| **Gin** | [oaswrap/ginopenapi](https://github.com/oaswrap/ginopenapi) |
+| **Echo** | [oaswrap/echoopenapi](https://github.com/oaswrap/echoopenapi) |
+| **Fiber** | [oaswrap/fiberopenapi](https://github.com/oaswrap/fiberopenapi) |
+
+Each adapter provides:
+- Automatic spec generation from your routes
+- Built-in Swagger UI documentation
+- JSON/YAML spec endpoints
+- Inline OpenAPI options with route definitions
+
+Visit the individual adapter repositories for framework-specific examples and detailed integration guides.
+
+## Configuration Options
+
+The `option` package provides comprehensive OpenAPI configuration:
+
+### Basic Information
+```go
+option.WithTitle("My API")
+option.WithVersion("1.2.3")
+option.WithDescription("API description")
+option.WithContact(openapi.Contact{
+	Name:  "Support Team",
+	URL:   "https://support.example.com",
+	Email: "support@example.com",
+})
+option.WithLicense(openapi.License{
+	Name: "MIT License",
+	URL:  "https://opensource.org/licenses/MIT",
+})
+option.WithExternalDocs("https://docs.example.com", "API Documentation")
+```
+
+### Servers
+```go
+option.WithServer("https://api.example.com")
+option.WithServer("https://api-example.com/{version}",
+	option.ServerDescription("Production Server"),
+	option.ServerVariables(map[string]openapi.ServerVariable{
+		"version": {
+			Default:     "v1",
+			Enum:        []string{"v1", "v2"},
+			Description: "API version",
+		},
+	}),
+)
+```
+
+### Security Schemes
+```go
+// Bearer token
+option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer"))
+
+// API Key
+option.WithSecurity("apiKey", option.SecurityAPIKey("X-API-Key", "header"))
+
+// OAuth2
+option.WithSecurity("oauth2", option.SecurityOAuth2(
+	option.WithAuthorizationCode(
+		"https://auth.example.com/oauth/authorize",
+		"https://auth.example.com/oauth/token",
+		map[string]string{
+			"read":  "Read access",
+			"write": "Write access",
+		},
+	),
+))
+```
+
+### Route Documentation
+```go
+option.Summary("Short description")
+option.Description("Detailed description with **markdown** support")
+option.Tags("User Management", "Authentication")
+option.Request(new(RequestModel))
+option.Response(200, new(ResponseModel))
+option.Security("bearerAuth")
+```
+
+Parameters (path, query, headers) are defined using struct tags in your request models:
+
+```go
+type GetUserRequest struct {
+	ID     string `path:"id" required:"true" description:"User identifier"`
+	Limit  int    `query:"limit" description:"Maximum number of results"`
+	APIKey string `header:"X-API-Key" description:"API authentication key"`
 }
 ```
 
-✨ **Live example:** View the generated spec on [Rest.Wiki](https://rest.wiki/?https://raw.githubusercontent.com/oaswrap/spec/main/examples/basic/openapi.yaml).
+### Group-Level Configuration
+Apply settings to all routes within a group:
 
-## 📚 Documentation
+```go
+// Apply tags, security, and other settings to all routes in the group
+adminGroup := r.Group("/admin",
+	option.GroupTags("Administration"),
+	option.GroupSecurity("bearerAuth"),
+	option.GroupDeprecated(), // Mark all routes as deprecated
+)
 
-- All core configuration, router, server, and security options are defined in the [`option`](https://pkg.go.dev/github.com/oaswrap/spec/option) package.
-- See the [full API reference on pkg.go.dev](https://pkg.go.dev/github.com/oaswrap/spec) for detailed usage, examples, and type definitions.
-- This library uses [`swaggest/openapi-go`](https://github.com/swaggest/openapi-go) under the hood — see its docs for advanced struct tagging and schema reflection tips.
+// Hide internal routes from documentation
+internalGroup := r.Group("/internal",
+	option.GroupHide(), // Exclude from OpenAPI spec
+)
+```
 
+## Use Cases
 
-## 📄 License
+### ✅ Use `spec` standalone when you:
+- Generate OpenAPI files at **build time**
+- Integrate with **CI/CD pipelines**
+- Build **custom documentation tools**
+- Need **static spec generation**
+- Want **framework independence**
 
-This project is licensed under the [MIT License](LICENSE).
+### ✅ Use framework adapters when you:
+- Want **automatic spec generation** from routes
+- Need **built-in documentation UI**
+- Prefer **inline OpenAPI configuration**
+- Want **live spec endpoints**
 
-## 🤝 Contributing
+## Advanced Features
 
-PRs and issues are welcome! ❤️  
-Made with care by [Ahmad Faiz](https://github.com/afkdevs)
+### Rich Schema Documentation
+```go
+// Use struct tags to generate detailed OpenAPI schemas
+type CreateUserRequest struct {
+	Name     string   `json:"name" required:"true" minLength:"2" maxLength:"50"`
+	Email    string   `json:"email" required:"true" format:"email"`
+	Age      int      `json:"age" minimum:"18" maximum:"120"`
+	Tags     []string `json:"tags" maxItems:"10"`
+}
+```
+
+For comprehensive struct tag documentation and advanced schema features, see the [swaggest/openapi-go features guide](https://github.com/swaggest/openapi-go?tab=readme-ov-file#features) and [swaggest/jsonschema-go field tags](https://github.com/swaggest/jsonschema-go?tab=readme-ov-file#field-tags).
+
+### Generic Response Types
+```go
+type APIResponse[T any] struct {
+	Success   bool   `json:"success"`
+	Data      T      `json:"data,omitempty"`
+	Error     string `json:"error,omitempty"`
+	Timestamp string `json:"timestamp"`
+}
+
+// Usage
+option.Response(200, new(APIResponse[User]), "User created successfully")
+option.Response(200, new(APIResponse[[]Product]), "Product list")
+```
+
+## Examples
+
+Check out the [`examples/`](examples/) directory for complete working examples:
+
+- **[Basic](examples/basic/)** — Standalone spec generation
+
+For framework-specific examples, visit the individual adapter repositories:
+- **Gin examples** — See [oaswrap/ginopenapi](https://github.com/oaswrap/ginopenapi)
+- **Echo examples** — See [oaswrap/echoopenapi](https://github.com/oaswrap/echoopenapi)  
+- **Fiber examples** — See [oaswrap/fiberopenapi](https://github.com/oaswrap/fiberopenapi)
+
+## API Reference
+
+For complete API documentation, visit [pkg.go.dev/github.com/oaswrap/spec](https://pkg.go.dev/github.com/oaswrap/spec).
+
+Key packages:
+- [`spec`](https://pkg.go.dev/github.com/oaswrap/spec) — Core router and spec builder
+- [`option`](https://pkg.go.dev/github.com/oaswrap/spec/option) — All configuration options
+
+## FAQ
+
+**Q: Can I use this with my existing API?**  
+A: Yes! You can either use the standalone version to document existing APIs, or gradually migrate to framework adapters.
+
+**Q: How does this compare to swag/swaggo?**  
+A: While swag uses code comments, oaswrap uses pure Go code for type safety and better IDE support. Both approaches have their merits.
+
+**Q: Can I customize the generated documentation UI?**  
+A: Framework adapters provide built-in UIs, but you can also serve the spec with any OpenAPI-compatible documentation tool.
+
+**Q: Is this production ready?**  
+A: The library is in active development. While the core functionality is solid, consider it beta software. We recommend thorough testing before production use.
+
+## Roadmap
+
+- [ ] Redoc UI support
+- [ ] Chi adapter
+
+## Contributing
+
+We welcome contributions! Here's how you can help:
+
+1. **🐛 Report bugs** — Open an issue with reproduction steps
+2. **💡 Suggest features** — Share your ideas for improvements
+3. **📝 Improve docs** — Help make our documentation clearer
+4. **🔧 Submit PRs** — Fix bugs or add features
+
+Please check our issues and discussions before starting work on new features.
+
+## License
+
+[MIT License](LICENSE) — Created with ❤️ by [Ahmad Faiz](https://github.com/afkdevs).
