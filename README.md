@@ -174,7 +174,7 @@ option.Summary("Short description")
 option.Description("Detailed description with **markdown** support")
 option.Tags("User Management", "Authentication")
 option.Request(new(RequestModel))
-option.Response(200, new(ResponseModel))
+option.Response(200, new(ResponseModel), option.ContentDescription("Successful response"))
 option.Security("bearerAuth")
 option.Deprecated() // Mark route as deprecated
 option.Hidden()     // Hide route from OpenAPI spec
@@ -247,8 +247,8 @@ type APIResponse[T any] struct {
 }
 
 // Usage
-option.Response(200, new(APIResponse[User]), "User created successfully")
-option.Response(200, new(APIResponse[[]Product]), "Product list")
+option.Response(200, new(APIResponse[User]))
+option.Response(200, new(APIResponse[[]Product]))
 ```
 
 ## Examples

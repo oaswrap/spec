@@ -1,6 +1,9 @@
 package option
 
-import "github.com/oaswrap/spec/pkg/util"
+import (
+	"github.com/oaswrap/spec/openapi"
+	"github.com/oaswrap/spec/pkg/util"
+)
 
 // OperationConfig holds configuration for an OpenAPI operation.
 type OperationConfig struct {
@@ -12,8 +15,8 @@ type OperationConfig struct {
 	Tags        []string
 	Security    []OperationSecurityConfig
 
-	Requests  []*ContentUnit
-	Responses []*ContentUnit
+	Requests  []*openapi.ContentUnit
+	Responses []*openapi.ContentUnit
 }
 
 // OperationSecurityConfig defines a security requirement for an operation.
@@ -97,7 +100,7 @@ func Security(securityName string, scopes ...string) OperationOption {
 // Request adds a request body or parameter structure to the OpenAPI operation.
 func Request(structure any, options ...ContentOption) OperationOption {
 	return func(cfg *OperationConfig) {
-		cu := &ContentUnit{
+		cu := &openapi.ContentUnit{
 			Structure: structure,
 		}
 		for _, opt := range options {
@@ -112,7 +115,7 @@ func Request(structure any, options ...ContentOption) OperationOption {
 // The HTTP status code defines which response is described.
 func Response(httpStatus int, structure any, options ...ContentOption) OperationOption {
 	return func(cfg *OperationConfig) {
-		cu := &ContentUnit{
+		cu := &openapi.ContentUnit{
 			HTTPStatus: httpStatus,
 			Structure:  structure,
 		}

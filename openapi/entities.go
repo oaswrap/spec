@@ -1,5 +1,17 @@
 package openapi
 
+// ContentUnit defines the structure for OpenAPI content configuration.
+type ContentUnit struct {
+	Structure  any
+	HTTPStatus int
+
+	ContentType string // ContentType specifies the MIME type of the content.
+
+	IsDefault bool // IsDefault indicates if this content unit is the default response.
+
+	Description string // Description provides a description for the content unit.
+}
+
 // Contact represents contact information for the API.
 // Generated from "#/$defs/contact".
 type Contact struct {
