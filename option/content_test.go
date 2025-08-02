@@ -37,7 +37,7 @@ func TestWithContentType(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			config := &option.ContentConfig{}
+			config := &option.ContentUnit{}
 			opt := option.WithContentType(tt.contentType)
 			opt(config)
 
@@ -48,7 +48,7 @@ func TestWithContentType(t *testing.T) {
 
 func TestContentOption(t *testing.T) {
 	t.Run("multiple options can be applied", func(t *testing.T) {
-		config := &option.ContentConfig{
+		config := &option.ContentUnit{
 			HTTPStatus: 200,
 		}
 

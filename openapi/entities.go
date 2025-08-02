@@ -1,142 +1,159 @@
 package openapi
 
-// Contact structure is generated from "#/$defs/contact".
+// Contact represents contact information for the API.
+// Generated from "#/$defs/contact".
 type Contact struct {
-	Name          string
-	URL           string         // Format: uri.
-	Email         string         // Format: email.
-	MapOfAnything map[string]any // Key must match pattern: `^x-`.
+	Name  string // Contact name.
+	URL   string // Contact URL. Format: uri.
+	Email string // Contact email. Format: email.
+
+	// MapOfAnything holds vendor extensions. Keys must match `^x-`.
+	MapOfAnything map[string]any
 }
 
-// License structure is generated from "#/$defs/license".
+// License provides license information for the API.
+// Generated from "#/$defs/license".
 type License struct {
-	Name          string // Required.
-	Identifier    string
-	URL           string         // Format: uri.
-	MapOfAnything map[string]any // Key must match pattern: `^x-`.
+	Name string // License name (required).
+
+	Identifier string // SPDX identifier.
+	URL        string // License URL. Format: uri.
+
+	// MapOfAnything holds vendor extensions. Keys must match `^x-`.
+	MapOfAnything map[string]any
 }
 
-// Tag structure is generated from "#/definitions/Tag".
+// Tag adds metadata to an API operation.
+// Generated from "#/definitions/Tag".
 type Tag struct {
-	Name          string // Required.
-	Description   string
-	ExternalDocs  *ExternalDocs
-	MapOfAnything map[string]any // Key must match pattern: `^x-`.
+	Name          string         // Tag name (required).
+	Description   string         // Tag description.
+	ExternalDocs  *ExternalDocs  // Additional external documentation.
+	MapOfAnything map[string]any // Vendor extensions. Keys must match `^x-`.
 }
 
-// ExternalDocs structure is generated from "#/$defs/external-documentation".
+// ExternalDocs describes external documentation for a tag or operation.
+// Generated from "#/$defs/external-documentation".
 type ExternalDocs struct {
-	Description string
-	// Format: uri.
-	// Required.
-	URL           string
-	MapOfAnything map[string]any // Key must match pattern: `^x-`.
+	Description string // Description of the documentation.
+
+	URL string // Required. Documentation URL. Format: uri.
+
+	MapOfAnything map[string]any // Vendor extensions. Keys must match `^x-`.
 }
 
-// Server structure is generated from "#/$defs/server".
+// Server describes an API server.
+// Generated from "#/$defs/server".
 type Server struct {
-	// Format: uri-reference.
-	// Required.
-	URL           string
-	Description   *string
-	Variables     map[string]ServerVariable
-	MapOfAnything map[string]any // Key must match pattern: `^x-`.
+	URL string // Required. Server URL. Format: uri-reference.
+
+	Description *string                   // Optional server description.
+	Variables   map[string]ServerVariable // Server variables for URL templates.
+
+	MapOfAnything map[string]any // Vendor extensions. Keys must match `^x-`.
 }
 
-// ServerVariable structure is generated from "#/$defs/server-variable".
+// ServerVariable describes a variable for server URL template substitution.
+// Generated from "#/$defs/server-variable".
 type ServerVariable struct {
-	Enum          []string
-	Default       string // Required.
-	Description   string
-	MapOfAnything map[string]any // Key must match pattern: `^x-`.
+	Enum    []string // Allowed values.
+	Default string   // Required. Default value.
+
+	Description   string         // Variable description.
+	MapOfAnything map[string]any // Vendor extensions. Keys must match `^x-`.
 }
 
-// SecurityScheme structure is generated from "#/$defs/security-scheme".
+// SecurityScheme describes a security scheme that can be used by operations.
+// Generated from "#/$defs/security-scheme".
 type SecurityScheme struct {
-	Description   *string
-	APIKey        *SecuritySchemeAPIKey
-	HTTPBearer    *SecuritySchemeHTTPBearer
-	OAuth2        *SecuritySchemeOAuth2
-	MapOfAnything map[string]any // Key must match pattern: `^x-`.
+	Description *string                   // Optional description.
+	APIKey      *SecuritySchemeAPIKey     // API key authentication scheme.
+	HTTPBearer  *SecuritySchemeHTTPBearer // HTTP Bearer authentication scheme.
+	OAuth2      *SecuritySchemeOAuth2     // OAuth2 authentication scheme.
+
+	MapOfAnything map[string]any // Vendor extensions. Keys must match `^x-`.
 }
 
-// SecuritySchemeAPIKey structure is generated from "#/$defs/security-scheme/$defs/type-apikey".
+// SecuritySchemeAPIKey defines an API key authentication scheme.
+// Generated from "#/$defs/security-scheme/$defs/type-apikey".
 type SecuritySchemeAPIKey struct {
-	Name string                 // Required.
-	In   SecuritySchemeAPIKeyIn // Required.
+	Name string                 // Required. Name of the header, query, or cookie parameter.
+	In   SecuritySchemeAPIKeyIn // Required. Location of the API key.
 }
 
-// SecuritySchemeAPIKeyIn is an enum type.
+// SecuritySchemeAPIKeyIn specifies where the API key is passed.
 type SecuritySchemeAPIKeyIn string
 
-// SecuritySchemeAPIKeyIn values enumeration.
 const (
-	SecuritySchemeAPIKeyInQuery  = SecuritySchemeAPIKeyIn("query")
+	// SecuritySchemeAPIKeyInQuery specifies the key is passed in the query string.
+	SecuritySchemeAPIKeyInQuery = SecuritySchemeAPIKeyIn("query")
+	// SecuritySchemeAPIKeyInHeader specifies the key is passed in a header.
 	SecuritySchemeAPIKeyInHeader = SecuritySchemeAPIKeyIn("header")
+	// SecuritySchemeAPIKeyInCookie specifies the key is passed in a cookie.
 	SecuritySchemeAPIKeyInCookie = SecuritySchemeAPIKeyIn("cookie")
 )
 
-// SecuritySchemeHTTPBearer structure is generated from "#/$defs/security-scheme/$defs/type-http-bearer".
+// SecuritySchemeHTTPBearer defines HTTP Bearer authentication.
+// Generated from "#/$defs/security-scheme/$defs/type-http-bearer".
 type SecuritySchemeHTTPBearer struct {
-	// Value must match pattern: `^[Bb][Ee][Aa][Rr][Ee][Rr]$`.
-	// Required.
-	Scheme       string
-	BearerFormat *string
+	Scheme       string  // Required. Must match pattern `^[Bb][Ee][Aa][Rr][Ee][Rr]$`.
+	BearerFormat *string // Optional bearer format hint.
 }
 
-// SecuritySchemeOAuth2 structure is generated from "#/$defs/security-scheme/$defs/type-oauth2".
+// SecuritySchemeOAuth2 defines OAuth2 flows.
+// Generated from "#/$defs/security-scheme/$defs/type-oauth2".
 type SecuritySchemeOAuth2 struct {
-	Flows OAuthFlows // Required.
+	Flows OAuthFlows // Required. Supported OAuth2 flows.
 }
 
-// OAuthFlows structure is generated from "#/$defs/oauth-flows".
+// OAuthFlows groups supported OAuth2 flows.
+// Generated from "#/$defs/oauth-flows".
 type OAuthFlows struct {
 	Implicit          *OAuthFlowsDefsImplicit
 	Password          *OAuthFlowsDefsPassword
 	ClientCredentials *OAuthFlowsDefsClientCredentials
 	AuthorizationCode *OAuthFlowsDefsAuthorizationCode
-	MapOfAnything     map[string]any // Key must match pattern: `^x-`.
+
+	MapOfAnything map[string]any // Vendor extensions. Keys must match `^x-`.
 }
 
-// OAuthFlowsDefsImplicit structure is generated from "#/$defs/oauth-flows/$defs/implicit".
+// OAuthFlowsDefsImplicit defines an OAuth2 implicit flow.
+// Generated from "#/$defs/oauth-flows/$defs/implicit".
 type OAuthFlowsDefsImplicit struct {
-	// Format: uri.
-	// Required.
-	AuthorizationURL string
-	RefreshURL       *string           // Format: uri.
-	Scopes           map[string]string // Required.
-	MapOfAnything    map[string]any    // Key must match pattern: `^x-`.
+	AuthorizationURL string            // Required. Format: uri.
+	RefreshURL       *string           // Optional refresh URL. Format: uri.
+	Scopes           map[string]string // Required. Available scopes.
+
+	MapOfAnything map[string]any // Vendor extensions. Keys must match `^x-`.
 }
 
-// OAuthFlowsDefsPassword structure is generated from "#/$defs/oauth-flows/$defs/password".
+// OAuthFlowsDefsPassword defines an OAuth2 password flow.
+// Generated from "#/$defs/oauth-flows/$defs/password".
 type OAuthFlowsDefsPassword struct {
-	// Format: uri.
-	// Required.
-	TokenURL      string
-	RefreshURL    *string           // Format: uri.
-	Scopes        map[string]string // Required.
-	MapOfAnything map[string]any    // Key must match pattern: `^x-`.
+	TokenURL   string            // Required. Token URL. Format: uri.
+	RefreshURL *string           // Optional refresh URL. Format: uri.
+	Scopes     map[string]string // Required. Available scopes.
+
+	MapOfAnything map[string]any // Vendor extensions. Keys must match `^x-`.
 }
 
-// OAuthFlowsDefsClientCredentials structure is generated from "#/$defs/oauth-flows/$defs/client-credentials".
+// OAuthFlowsDefsClientCredentials defines an OAuth2 client credentials flow.
+// Generated from "#/$defs/oauth-flows/$defs/client-credentials".
 type OAuthFlowsDefsClientCredentials struct {
-	// Format: uri.
-	// Required.
-	TokenURL      string
-	RefreshURL    *string           // Format: uri.
-	Scopes        map[string]string // Required.
-	MapOfAnything map[string]any    // Key must match pattern: `^x-`.
+	TokenURL   string            // Required. Token URL. Format: uri.
+	RefreshURL *string           // Optional refresh URL. Format: uri.
+	Scopes     map[string]string // Required. Available scopes.
+
+	MapOfAnything map[string]any // Vendor extensions. Keys must match `^x-`.
 }
 
-// OAuthFlowsDefsAuthorizationCode structure is generated from "#/$defs/oauth-flows/$defs/authorization-code".
+// OAuthFlowsDefsAuthorizationCode defines an OAuth2 authorization code flow.
+// Generated from "#/$defs/oauth-flows/$defs/authorization-code".
 type OAuthFlowsDefsAuthorizationCode struct {
-	// Format: uri.
-	// Required.
-	AuthorizationURL string
-	// Format: uri.
-	// Required.
-	TokenURL      string
-	RefreshURL    *string           // Format: uri.
-	Scopes        map[string]string // Required.
-	MapOfAnything map[string]any    // Key must match pattern: `^x-`.
+	AuthorizationURL string            // Required. Format: uri.
+	TokenURL         string            // Required. Token URL. Format: uri.
+	RefreshURL       *string           // Optional refresh URL. Format: uri.
+	Scopes           map[string]string // Required. Available scopes.
+
+	MapOfAnything map[string]any // Vendor extensions. Keys must match `^x-`.
 }

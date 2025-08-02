@@ -1,29 +1,30 @@
 package option
 
-import "github.com/oaswrap/spec/internal/util"
+import "github.com/oaswrap/spec/pkg/util"
 
-// GroupConfig holds the configuration for a group of routes in an OpenAPI specification.
+// GroupConfig defines configuration options for a group of routes in an OpenAPI specification.
 type GroupConfig struct {
-	Tags     []string
-	Security []OperationSecurityConfig
-	Hide     bool
+	Tags       []string
+	Security   []OperationSecurityConfig
+	Deprecated bool
+	Hide       bool
 }
 
-// GroupOption is a function that applies configuration to a GroupConfig.
+// GroupOption applies a configuration option to a GroupConfig.
 type GroupOption func(*GroupConfig)
 
-// GroupTags adds tags to the group.
+// GroupTags sets one or more tags for the group.
 //
-// It will add tags to all routes in the sub-router.
+// These tags will be added to all routes in the sub-router.
 func GroupTags(tags ...string) GroupOption {
 	return func(cfg *GroupConfig) {
 		cfg.Tags = append(cfg.Tags, tags...)
 	}
 }
 
-// GroupSecurity adds security schemes to the group.
+// GroupSecurity adds a security scheme to the group.
 //
-// It will add security schemes to all routes in the sub-router.
+// The security scheme will apply to all routes in the sub-router.
 func GroupSecurity(securityName string, scopes ...string) GroupOption {
 	return func(cfg *GroupConfig) {
 		cfg.Security = append(cfg.Security, OperationSecurityConfig{
@@ -33,11 +34,20 @@ func GroupSecurity(securityName string, scopes ...string) GroupOption {
 	}
 }
 
-// GroupHide sets the hide option for the group.
+// GroupHide sets whether the group should be hidden.
 //
-// If hide is true, the group will not be included in the OpenAPI specification.
+// If true, the group and its routes will be excluded from the OpenAPI output.
 func GroupHide(hide ...bool) GroupOption {
 	return func(cfg *GroupConfig) {
 		cfg.Hide = util.Optional(true, hide...)
+	}
+}
+
+// GroupDeprecated sets whether the group is deprecated.
+//
+// If true, all routes in the group will be marked as deprecated in the OpenAPI output.
+func GroupDeprecated(deprecated ...bool) GroupOption {
+	return func(cfg *GroupConfig) {
+		cfg.Deprecated = util.Optional(true, deprecated...)
 	}
 }

@@ -53,6 +53,9 @@ func OAS31ExternalDocs(externalDocs *openapi.ExternalDocs) *openapi31.ExternalDo
 }
 
 func OAS31Tags(tags []openapi.Tag) []openapi31.Tag {
+	if len(tags) == 0 {
+		return nil
+	}
 	result := make([]openapi31.Tag, 0, len(tags))
 	for _, tag := range tags {
 		result = append(result, OAS31Tag(tag))
@@ -75,6 +78,9 @@ func OAS31Tag(tag openapi.Tag) openapi31.Tag {
 }
 
 func OAS31Servers(servers []openapi.Server) []openapi31.Server {
+	if len(servers) == 0 {
+		return nil
+	}
 	result := make([]openapi31.Server, 0, len(servers))
 	for _, server := range servers {
 		result = append(result, OAS31Server(server))

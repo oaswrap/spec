@@ -119,8 +119,8 @@ func OAS3SecurityScheme(scheme *openapi.SecurityScheme) *openapi3.SecurityScheme
 	}
 	oasSecurityScheme := &openapi3.SecurityScheme{
 		APIKeySecurityScheme: OAS3APIKey(scheme, scheme.APIKey),
-		HTTPSecurityScheme:   OAS3HTTPBearer(scheme, scheme.HTTPBearer),
-		OAuth2SecurityScheme: OAS3OAuth2SecurityScheme(scheme, scheme.OAuth2),
+		HTTPSecurityScheme:   OAS3HTTPBearer(scheme.HTTPBearer, scheme.Description),
+		OAuth2SecurityScheme: OAS3OAuth2SecurityScheme(scheme.OAuth2, scheme.Description),
 	}
 	if oasSecurityScheme.APIKeySecurityScheme == nil &&
 		oasSecurityScheme.HTTPSecurityScheme == nil &&
@@ -141,23 +141,23 @@ func OAS3APIKey(scheme *openapi.SecurityScheme, apiKey *openapi.SecuritySchemeAP
 	}
 }
 
-func OAS3HTTPBearer(scheme *openapi.SecurityScheme, securityScheme *openapi.SecuritySchemeHTTPBearer) *openapi3.HTTPSecurityScheme {
+func OAS3HTTPBearer(securityScheme *openapi.SecuritySchemeHTTPBearer, description *string) *openapi3.HTTPSecurityScheme {
 	if securityScheme == nil {
 		return nil
 	}
 	return &openapi3.HTTPSecurityScheme{
-		Description:  scheme.Description,
+		Description:  description,
 		Scheme:       securityScheme.Scheme,
 		BearerFormat: securityScheme.BearerFormat,
 	}
 }
 
-func OAS3OAuth2SecurityScheme(scheme *openapi.SecurityScheme, oauth2 *openapi.SecuritySchemeOAuth2) *openapi3.OAuth2SecurityScheme {
+func OAS3OAuth2SecurityScheme(oauth2 *openapi.SecuritySchemeOAuth2, description *string) *openapi3.OAuth2SecurityScheme {
 	if oauth2 == nil {
 		return nil
 	}
 	return &openapi3.OAuth2SecurityScheme{
-		Description: scheme.Description,
+		Description: description,
 		Flows:       OAS3Oauth2Flows(oauth2.Flows),
 	}
 }

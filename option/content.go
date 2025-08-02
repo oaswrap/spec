@@ -1,7 +1,7 @@
 package option
 
-// ContentConfig defines the structure for OpenAPI content configuration.
-type ContentConfig struct {
+// ContentUnit defines the structure for OpenAPI content configuration.
+type ContentUnit struct {
 	Structure   any
 	ContentType string
 
@@ -9,12 +9,12 @@ type ContentConfig struct {
 	HTTPStatus int
 }
 
-// ContentOption is a function that modifies the ContentConfig.
-type ContentOption func(cu *ContentConfig)
+// ContentOption is a function that modifies the ContentUnit.
+type ContentOption func(cu *ContentUnit)
 
 // WithContentType sets the content type for the OpenAPI content.
 func WithContentType(contentType string) ContentOption {
-	return func(cu *ContentConfig) {
+	return func(cu *ContentUnit) {
 		cu.ContentType = contentType
 	}
 }

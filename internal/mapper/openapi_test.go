@@ -1,15 +1,14 @@
 package mapper_test
 
 import (
-	"github.com/oaswrap/spec/internal/util"
 	"testing"
 
+	"github.com/oaswrap/spec/internal/mapper"
 	"github.com/oaswrap/spec/openapi"
+	"github.com/oaswrap/spec/pkg/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/openapi-go/openapi31"
-
-	"github.com/oaswrap/spec/internal/mapper"
 )
 
 func TestOASContact(t *testing.T) {
@@ -254,6 +253,12 @@ func TestOASTags(t *testing.T) {
 		expected31 []openapi31.Tag
 	}{
 		{
+			name:       "empty tags",
+			tags:       []openapi.Tag{},
+			expected3:  nil,
+			expected31: nil,
+		},
+		{
 			name: "single tag",
 			tags: []openapi.Tag{
 				{Name: "example"},
@@ -443,6 +448,12 @@ func TestOASServers(t *testing.T) {
 		expected31 []openapi31.Server
 	}{
 		{
+			name:       "empty servers",
+			servers:    []openapi.Server{},
+			expected3:  nil,
+			expected31: nil,
+		},
+		{
 			name: "single server",
 			servers: []openapi.Server{
 				{URL: "https://api.example.com"},
@@ -544,8 +555,12 @@ func TestOASServer(t *testing.T) {
 				Description: util.PtrOf("API server"),
 				Variables: map[string]openapi.ServerVariable{
 					"port": {
-						Enum:    []string{"8080", "8443"},
-						Default: "8080",
+						Enum:        []string{"8080", "8443"},
+						Default:     "8080",
+						Description: "Server port",
+						MapOfAnything: map[string]any{
+							"x-custom": "value",
+						},
 					},
 				},
 			},
@@ -555,8 +570,12 @@ func TestOASServer(t *testing.T) {
 				MapOfAnything: nil,
 				Variables: map[string]openapi3.ServerVariable{
 					"port": {
-						Enum:    []string{"8080", "8443"},
-						Default: "8080",
+						Enum:        []string{"8080", "8443"},
+						Default:     "8080",
+						Description: util.PtrOf("Server port"),
+						MapOfAnything: map[string]any{
+							"x-custom": "value",
+						},
 					},
 				},
 			},
@@ -566,8 +585,12 @@ func TestOASServer(t *testing.T) {
 				MapOfAnything: nil,
 				Variables: map[string]openapi31.ServerVariable{
 					"port": {
-						Enum:    []string{"8080", "8443"},
-						Default: "8080",
+						Enum:        []string{"8080", "8443"},
+						Default:     "8080",
+						Description: util.PtrOf("Server port"),
+						MapOfAnything: map[string]any{
+							"x-custom": "value",
+						},
 					},
 				},
 			},
@@ -804,8 +827,10 @@ func TestOASHTTPBearer(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := mapper.OAS31HTTPBearer(tt.scheme)
-			assert.Equal(t, tt.expected31, result)
+			result3 := mapper.OAS3HTTPBearer(tt.scheme, nil)
+			assert.Equal(t, tt.expected3, result3)
+			result31 := mapper.OAS31HTTPBearer(tt.scheme)
+			assert.Equal(t, tt.expected31, result31)
 		})
 	}
 }

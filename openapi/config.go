@@ -6,98 +6,105 @@ import (
 	"github.com/swaggest/jsonschema-go"
 )
 
-// Config holds the configuration for OpenAPI documentation generation.
+// Config defines the root configuration for OpenAPI documentation generation.
 type Config struct {
-	OpenAPIVersion  string                     // OpenAPI version, e.g., "3.1.0"
-	Title           string                     // Title of the API
-	Version         string                     // Version of the API
-	Description     *string                    // Optional description of the API
-	Contact         *Contact                   // Contact information for the API
-	License         *License                   // License information for the API
-	Servers         []Server                   // List of servers for the API
-	SecuritySchemes map[string]*SecurityScheme // Security schemes for the API
-	Tags            []Tag                      // Tags for the API
-	ExternalDocs    *ExternalDocs              // External documentation for the API
+	OpenAPIVersion  string                     // OpenAPI version, e.g., "3.1.0".
+	Title           string                     // Title of the API.
+	Version         string                     // Version of the API.
+	Description     *string                    // Optional description of the API.
+	Contact         *Contact                   // Contact information for the API.
+	License         *License                   // License information for the API.
+	Servers         []Server                   // List of API servers.
+	SecuritySchemes map[string]*SecurityScheme // Security schemes available for the API.
+	Tags            []Tag                      // Tags used to organize operations.
+	ExternalDocs    *ExternalDocs              // Additional external documentation.
 
-	ReflectorConfig *ReflectorConfig // Configuration for the OpenAPI reflector
+	ReflectorConfig *ReflectorConfig // Configuration for schema reflection.
 
-	BaseURL       string
-	DocsPath      string
-	DisableDocs   bool
-	Logger        Logger
-	SwaggerConfig *SwaggerConfig
-	PathParser    PathParser
+	BaseURL       string         // Base URL of the API.
+	DocsPath      string         // Path where the documentation will be served.
+	DisableDocs   bool           // If true, disables serving OpenAPI docs.
+	Logger        Logger         // Logger for diagnostic output.
+	SwaggerConfig *SwaggerConfig // Configuration for embedded Swagger UI.
+	PathParser    PathParser     // Path parser for framework-specific path conversions.
 }
 
-// ReflectorConfig holds the configuration for the OpenAPI reflector.
+// ReflectorConfig holds advanced options for schema reflection.
 type ReflectorConfig struct {
-	InlineRefs           bool                 // Whether to inline references in schemas
-	RootRef              bool                 // Whether to use a root reference
-	RootNullable         bool                 // Whether to allow root schemas to be nullable
-	StripDefNamePrefix   []string             // Prefixes to strip from definition names
-	InterceptDefNameFunc InterceptDefNameFunc // Function to customize schema definition names
-	InterceptPropFunc    InterceptPropFunc    // Function to intercept property schema generation
-	InterceptSchemaFunc  InterceptSchemaFunc  // Function to intercept schema generation
-	TypeMappings         []TypeMapping        // Custom type mappings for OpenAPI generation
+	InlineRefs           bool                 // If true, inline schema references instead of using components.
+	RootRef              bool                 // If true, use a root reference for top-level schemas.
+	RootNullable         bool                 // If true, allow root schemas to be nullable.
+	StripDefNamePrefix   []string             // Prefixes to strip from generated definition names.
+	InterceptDefNameFunc InterceptDefNameFunc // Function to customize definition names.
+	InterceptPropFunc    InterceptPropFunc    // Function to intercept property schema generation.
+	InterceptSchemaFunc  InterceptSchemaFunc  // Function to intercept full schema generation.
+	TypeMappings         []TypeMapping        // Custom type mappings for schema generation.
 }
 
-// TypeMapping holds a mapping between source and destination types.
+// TypeMapping maps a source type to a target type in schema generation.
 type TypeMapping struct {
-	Src any // Source type
-	Dst any // Destination type
+	Src any // Source type.
+	Dst any // Destination type.
 }
 
-// SwaggerConfig holds the configuration for Swagger UI.
+// SwaggerConfig defines settings for embedding Swagger UI.
 type SwaggerConfig struct {
-	ShowTopBar         bool
-	HideCurl           bool
-	JsonEditor         bool
+	ShowTopBar bool // If true, shows the top bar in Swagger UI.
+	HideCurl   bool // If true, hides curl command snippets.
+	JsonEditor bool // If true, enables the JSON editor mode.
+
+	// PreAuthorizeApiKey sets initial API key values for authorization.
 	PreAuthorizeApiKey map[string]string
 
-	// SettingsUI contains keys and plain javascript values of SwaggerUIBundle configuration.
-	// Overrides default values.
-	// See https://swagger.io/docs/open-source-tools/swagger-ui/usage/configuration/ for available options.
+	// SettingsUI overrides Swagger UI configuration options.
+	// See: https://swagger.io/docs/open-source-tools/swagger-ui/usage/configuration/
 	SettingsUI map[string]string
 
-	// Proxy enables proxying requests through swgui handler.
-	// Can be useful if API is not directly available due to CORS policy.
+	// Proxy enables proxying requests through the Swagger UI handler.
+	// Useful for avoiding CORS issues when the API server is not directly accessible.
 	Proxy bool
 }
 
-// InterceptDefNameFunc is a function type for intercepting schema definition names.
+// InterceptDefNameFunc allows customizing schema definition names.
 type InterceptDefNameFunc func(t reflect.Type, defaultDefName string) string
 
-// InterceptPropFunc is a function type for intercepting property schema generation.
+// InterceptPropFunc allows customizing property schemas during generation.
 type InterceptPropFunc func(params InterceptPropParams) error
 
-// InterceptPropParams holds parameters for intercepting property schema generation.
+// InterceptPropParams holds information for intercepting property generation.
 type InterceptPropParams struct {
-	Context        *jsonschema.ReflectContext
-	Path           []string
-	Name           string
-	Field          reflect.StructField
-	PropertySchema *jsonschema.Schema
-	ParentSchema   *jsonschema.Schema
-	Processed      bool
+	Context        *jsonschema.ReflectContext // Reflection context.
+	Path           []string                   // Path to the property.
+	Name           string                     // Property name.
+	Field          reflect.StructField        // Struct field being processed.
+	PropertySchema *jsonschema.Schema         // Generated property schema.
+	ParentSchema   *jsonschema.Schema         // Parent object schema.
+	Processed      bool                       // True if the property was already processed.
 }
 
-// InterceptSchemaFunc is a function type for intercepting schema generation.
+// InterceptSchemaFunc allows intercepting schema generation for entire types.
 type InterceptSchemaFunc func(params InterceptSchemaParams) (stop bool, err error)
 
-// InterceptSchemaParams holds parameters for intercepting schema generation.
+// InterceptSchemaParams holds information for intercepting full schema generation.
 type InterceptSchemaParams struct {
-	Context   *jsonschema.ReflectContext
-	Value     reflect.Value
-	Schema    *jsonschema.Schema
-	Processed bool
+	Context   *jsonschema.ReflectContext // Reflection context.
+	Value     reflect.Value              // Value being reflected.
+	Schema    *jsonschema.Schema         // Generated schema.
+	Processed bool                       // True if the schema was already processed.
 }
 
-// Logger is an interface for logging.
+// Logger defines an interface for logging diagnostic messages.
 type Logger interface {
 	Printf(format string, v ...any)
 }
 
-// PathParser is an interface for parsing paths in OpenAPI documentation.
+// PathParser defines an interface for converting router paths to OpenAPI paths.
+//
+// Example:
+//
+//	Input: "/users/:id"
+//	Output: "/users/{id}"
 type PathParser interface {
+	// Parse converts a framework-style path to OpenAPI path syntax.
 	Parse(path string) (string, error)
 }

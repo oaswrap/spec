@@ -6,25 +6,27 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/oaswrap/spec)](https://goreportcard.com/report/github.com/oaswrap/spec)
 [![License](https://img.shields.io/github/license/oaswrap/spec)](LICENSE)
 
-**`oaswrap/spec`** is a lightweight, framework-agnostic OpenAPI 3.x specification builder for Go.  
-It provides the core logic to describe your API operations, paths, parameters, and schemas — without locking you into any specific web framework.
+**`oaswrap/spec`** lets you build OpenAPI 3.x specs in pure Go — framework-agnostic and easy to integrate.
 
-This makes it easy to use with any router — directly or through adapters for frameworks like Fiber, Gin, Echo, and more.
+Describe your API operations, paths, and schemas once, then plug them into any router.  
+No handlers, no routing — just pure OpenAPI generation.
 
-Under the hood, `oaswrap/spec` uses [`swaggest/openapi-go`](https://github.com/swaggest/openapi-go) for robust OpenAPI schema generation.
-
-> ✅ Looking for a ready-to-use Gin integration? Check out [`oaswrap/ginopenapi`](https://github.com/oaswrap/ginopenapi).
-
-> ✅ Looking for a ready-to-use Fiber integration? Check out [`oaswrap/fiberopenapi`](https://github.com/oaswrap/fiberopenapi).
+Powered by [`swaggest/openapi-go`](https://github.com/swaggest/openapi-go) for robust schema generation.
 
 ## ✨ Features
 
 - ✅ Programmatically build OpenAPI 3.x specs in pure Go.
-- ✅ Powered by [`swaggest/openapi-go`](https://github.com/swaggest/openapi-go).
-- ✅ No runtime web server logic — focused purely on schema generation.
-- ✅ Designed to be wrapped by adapters for popular frameworks.
+- ✅ No runtime server — only schema generation logic.
+- ✅ DesignedDesigned for framework adapters (Gin, Echo, Fiber, etc.).
 - ✅ Supports struct tags for request/response models.
-- ✅ Write specs to JSON or YAML, validate before serving or publishing.
+- ✅ Export specs to JSON or YAML, and validate before publishing.
+
+## 🔗 Related Projects
+
+Need an integration? Check out these official adapters:
+- [`oaswrap/ginopenapi`](https://github.com/oaswrap/ginopenapi) — Gin integration
+- [`oaswrap/echoopenapi`](https://github.com/oaswrap/echoopenapi) — Echo integration
+- [`oaswrap/fiberopenapi`](https://github.com/oaswrap/fiberopenapi) — Fiber integration
 
 ## 📦 Installation
 
@@ -32,7 +34,7 @@ Under the hood, `oaswrap/spec` uses [`swaggest/openapi-go`](https://github.com/s
 go get github.com/oaswrap/spec
 ```
 
-## ⚡️ Quick Example
+## 🚀 Usage Example
 
 ```go
 package main
@@ -101,14 +103,21 @@ type Response[T any] struct {
 	Data   T   `json:"data"`
 }
 ```
-✨ See it live: You can view the generated OpenAPI documentation for this example online at [Rest.Wiki Viewer](https://rest.wiki/?https://raw.githubusercontent.com/oaswrap/spec/main/examples/basic/openapi.yaml).
+
+✨ **Live example:** View the generated spec on [Rest.Wiki](https://rest.wiki/?https://raw.githubusercontent.com/oaswrap/spec/main/examples/basic/openapi.yaml).
 
 ## 📚 Documentation
 
-For detailed usage instructions, see the [pkg.go.dev documentation](https://pkg.go.dev/github.com/oaswrap/spec).
+- All core configuration, router, server, and security options are defined in the [`option`](https://pkg.go.dev/github.com/oaswrap/spec/option) package.
+- See the [full API reference on pkg.go.dev](https://pkg.go.dev/github.com/oaswrap/spec) for detailed usage, examples, and type definitions.
+- This library uses [`swaggest/openapi-go`](https://github.com/swaggest/openapi-go) under the hood — see its docs for advanced struct tagging and schema reflection tips.
+
 
 ## 📄 License
 
 This project is licensed under the [MIT License](LICENSE).
 
-**Made with ❤️ by [oaswrap](https://github.com/oaswrap)**
+## 🤝 Contributing
+
+PRs and issues are welcome! ❤️  
+Made with care by [Ahmad Faiz](https://github.com/afkdevs)
