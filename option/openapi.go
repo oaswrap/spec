@@ -79,6 +79,13 @@ func WithLicense(license openapi.License) OpenAPIOption {
 	}
 }
 
+// WithTermsOfService sets the terms of service URL for the OpenAPI documentation.
+func WithTermsOfService(terms string) OpenAPIOption {
+	return func(c *openapi.Config) {
+		c.TermsOfService = &terms
+	}
+}
+
 // WithTags adds tags to the OpenAPI documentation.
 func WithTags(tags ...openapi.Tag) OpenAPIOption {
 	return func(c *openapi.Config) {

@@ -14,6 +14,7 @@ type Config struct {
 	Description     *string                    // Optional description of the API.
 	Contact         *Contact                   // Contact information for the API.
 	License         *License                   // License information for the API.
+	TermsOfService  *string                    // Terms of service URL.
 	Servers         []Server                   // List of API servers.
 	SecuritySchemes map[string]*SecurityScheme // Security schemes available for the API.
 	Tags            []Tag                      // Tags used to organize operations.
