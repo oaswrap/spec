@@ -1,14 +1,17 @@
-package spec
+package errors
 
-import "sync"
+import (
+	"strings"
+	"sync"
+)
 
-// SpecError is a thread-safe error collector for OpenAPI specifications.
+// SpecError is a thread-safe error collector for OpenAPI specification errors.
 type SpecError struct {
 	mu     sync.Mutex
 	errors []error
 }
 
-func (se *SpecError) add(err error) {
+func (se *SpecError) Add(err error) {
 	se.mu.Lock()
 	defer se.mu.Unlock()
 	if err != nil {
@@ -30,11 +33,12 @@ func (se *SpecError) Error() string {
 	if len(se.errors) == 0 {
 		return ""
 	}
-	result := "Spec errors:\n"
+	var sb strings.Builder
+	sb.WriteString("Spec errors:\n")
 	for _, err := range se.errors {
-		result += "- " + err.Error() + "\n"
+		sb.WriteString("- " + err.Error() + "\n")
 	}
-	return result
+	return sb.String()
 }
 
 // HasErrors checks if there are any collected errors.

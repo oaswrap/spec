@@ -3,10 +3,9 @@ package option_test
 import (
 	"testing"
 
-	"github.com/oaswrap/spec/internal/util"
-
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
+	"github.com/oaswrap/spec/pkg/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

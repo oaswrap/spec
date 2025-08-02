@@ -2,6 +2,7 @@ package option
 
 import "github.com/oaswrap/spec/openapi"
 
+// securityConfig holds configuration for defining a security scheme.
 type securityConfig struct {
 	Description *string
 	APIKey      *openapi.SecuritySchemeAPIKey
@@ -9,25 +10,29 @@ type securityConfig struct {
 	Oauth2      *openapi.SecuritySchemeOAuth2
 }
 
-// SecurityOption is a function that applies configuration to a securityConfig.
+// SecurityOption applies configuration to a securityConfig.
 type SecurityOption func(*securityConfig)
 
 // SecurityDescription sets the description for the security scheme.
+//
+// If the description is empty, it clears any existing description.
 func SecurityDescription(description string) SecurityOption {
 	return func(cfg *securityConfig) {
 		if description != "" {
 			cfg.Description = &description
 		} else {
-			cfg.Description = nil // Clear description if empty
+			cfg.Description = nil
 		}
 	}
 }
 
-// SecurityAPIKey creates a security scheme for API key authentication.
+// SecurityAPIKey defines an API key security scheme.
 //
-// Example usage:
+// Example:
 //
-//	option.WithSecurity("apiKey", option.SecurityAPIKey("x-api-key", openapi.SecuritySchemeAPIKeyInHeader))
+//	option.WithSecurity("apiKey",
+//	    option.SecurityAPIKey("x-api-key", openapi.SecuritySchemeAPIKeyInHeader),
+//	)
 func SecurityAPIKey(name string, in openapi.SecuritySchemeAPIKeyIn) SecurityOption {
 	return func(cfg *securityConfig) {
 		cfg.APIKey = &openapi.SecuritySchemeAPIKey{
@@ -37,7 +42,9 @@ func SecurityAPIKey(name string, in openapi.SecuritySchemeAPIKeyIn) SecurityOpti
 	}
 }
 
-// SecurityHTTPBearer creates a security scheme for HTTP Bearer authentication.
+// SecurityHTTPBearer defines an HTTP Bearer security scheme.
+//
+// Optionally, you can provide a bearer format.
 func SecurityHTTPBearer(scheme string, bearerFormat ...string) SecurityOption {
 	return func(cfg *securityConfig) {
 		httpBearer := &openapi.SecuritySchemeHTTPBearer{
@@ -50,7 +57,7 @@ func SecurityHTTPBearer(scheme string, bearerFormat ...string) SecurityOption {
 	}
 }
 
-// SecurityOAuth2 creates a security scheme for OAuth 2.0 authentication.
+// SecurityOAuth2 defines an OAuth 2.0 security scheme.
 func SecurityOAuth2(flows openapi.OAuthFlows) SecurityOption {
 	return func(cfg *securityConfig) {
 		cfg.Oauth2 = &openapi.SecuritySchemeOAuth2{

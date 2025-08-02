@@ -3,11 +3,11 @@ package option
 import (
 	"log"
 
-	"github.com/oaswrap/spec/internal/util"
 	"github.com/oaswrap/spec/openapi"
+	"github.com/oaswrap/spec/pkg/util"
 )
 
-// OpenAPIOption defines a function that modifies the OpenAPI configuration.
+// OpenAPIOption defines a function that applies configuration to an OpenAPI Config.
 type OpenAPIOption func(*openapi.Config)
 
 // WithOpenAPIConfig creates a new OpenAPI configuration with the provided options.

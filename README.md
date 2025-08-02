@@ -108,11 +108,10 @@ type Response[T any] struct {
 
 ## 📚 Documentation
 
-For detailed usage instructions, see the [pkg.go.dev documentation](https://pkg.go.dev/github.com/oaswrap/spec).
+- All core configuration, router, server, and security options are defined in the [`option`](https://pkg.go.dev/github.com/oaswrap/spec/option) package.
+- See the [full API reference on pkg.go.dev](https://pkg.go.dev/github.com/oaswrap/spec) for detailed usage, examples, and type definitions.
+- This library uses [`swaggest/openapi-go`](https://github.com/swaggest/openapi-go) under the hood — see its docs for advanced struct tagging and schema reflection tips.
 
-**Struct tags:**  
-`oaswrap/spec` uses [`swaggest/openapi-go`](https://github.com/swaggest/openapi-go) under the hood.  
-You can refer to its [struct tag reference](https://github.com/swaggest/openapi-go?tab=readme-ov-file#features) to see how to annotate your request and response models with OpenAPI-specific metadata.
 
 ## 📄 License
 

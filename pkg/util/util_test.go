@@ -1,9 +1,9 @@
 package util_test
 
 import (
-	"github.com/oaswrap/spec/internal/util"
 	"testing"
 
+	"github.com/oaswrap/spec/pkg/util"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -68,4 +68,75 @@ func TestPtrOf(t *testing.T) {
 		assert.NotNil(t, result)
 		assert.Equal(t, value, *result)
 	})
+}
+
+func TestJoinURL(t *testing.T) {
+	tests := []struct {
+		name     string
+		base     string
+		segments []string
+		expected string
+	}{
+		{
+			name:     "base without trailing slash",
+			base:     "https://example.com",
+			segments: []string{"api", "v1", "users"},
+			expected: "https://example.com/api/v1/users",
+		},
+		{
+			name:     "base with trailing slash",
+			base:     "https://example.com/",
+			segments: []string{"api", "v1", "users"},
+			expected: "https://example.com/api/v1/users",
+		},
+		{
+			name:     "base with multiple trailing slashes",
+			base:     "https://example.com///",
+			segments: []string{"api", "v1", "users"},
+			expected: "https://example.com/api/v1/users",
+		},
+		{
+			name:     "empty segments",
+			base:     "https://example.com",
+			segments: []string{},
+			expected: "https://example.com",
+		},
+		{
+			name:     "single segment",
+			base:     "https://example.com",
+			segments: []string{"api"},
+			expected: "https://example.com/api",
+		},
+		{
+			name:     "segments with slashes",
+			base:     "https://example.com",
+			segments: []string{"api/v1", "users"},
+			expected: "https://example.com/api/v1/users",
+		},
+		{
+			name:     "segments with leading slashes",
+			base:     "https://example.com",
+			segments: []string{"/api/v1", "/users"},
+			expected: "https://example.com/api/v1/users",
+		},
+		{
+			name:     "empty base",
+			base:     "",
+			segments: []string{"api", "v1"},
+			expected: "/api/v1",
+		},
+		{
+			name:     "base with only slashes",
+			base:     "///",
+			segments: []string{"api", "v1"},
+			expected: "/api/v1",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := util.JoinURL(tt.base, tt.segments...)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
 }

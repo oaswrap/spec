@@ -5,6 +5,7 @@ import (
 	"regexp"
 
 	"github.com/oaswrap/spec/internal/debuglog"
+	"github.com/oaswrap/spec/internal/errors"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 	"github.com/swaggest/jsonschema-go"
@@ -30,7 +31,7 @@ func newReflector(cfg *openapi.Config) reflector {
 
 type noopReflector struct {
 	spec   *noopSpec
-	errors *SpecError
+	errors *errors.SpecError
 }
 
 var _ reflector = (*noopReflector)(nil)
@@ -42,18 +43,19 @@ func (r *noopReflector) Spec() spec {
 func (r *noopReflector) Add(method, path string, opts ...option.OperationOption) {}
 
 func (r *noopReflector) Validate() error {
-	if len(r.errors.errors) > 0 {
+	if r.errors.HasErrors() {
 		return r.errors
 	}
 	return nil
 }
 
 func newNoopReflector(err error) reflector {
+	errors := &errors.SpecError{}
+	errors.Add(err)
+
 	return &noopReflector{
-		errors: &SpecError{
-			errors: []error{err},
-		},
-		spec: &noopSpec{},
+		errors: errors,
+		spec:   &noopSpec{},
 	}
 }
 
