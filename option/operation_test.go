@@ -146,7 +146,7 @@ func TestRequest(t *testing.T) {
 
 	t.Run("request with content options", func(t *testing.T) {
 		cfg := &option.OperationConfig{}
-		option.Request(TestStruct{}, option.WithContentType("application/json"))(cfg)
+		option.Request(TestStruct{}, option.ContentType("application/json"))(cfg)
 		assert.Len(t, cfg.Requests, 1)
 		assert.Equal(t, "application/json", cfg.Requests[0].ContentType)
 		assert.Equal(t, TestStruct{}, cfg.Requests[0].Structure)
@@ -178,7 +178,7 @@ func TestResponse(t *testing.T) {
 
 	t.Run("response with content options", func(t *testing.T) {
 		cfg := &option.OperationConfig{}
-		option.Response(200, TestStruct{}, option.WithContentType("application/json"))(cfg)
+		option.Response(200, TestStruct{}, option.ContentType("application/json"))(cfg)
 		assert.Len(t, cfg.Responses, 1)
 		assert.Equal(t, 200, cfg.Responses[0].HTTPStatus)
 		assert.Equal(t, "application/json", cfg.Responses[0].ContentType)
