@@ -73,10 +73,10 @@ func TestGroupSecurity(t *testing.T) {
 	})
 }
 
-func TestGroupHide(t *testing.T) {
+func TestGroupHidden(t *testing.T) {
 	t.Run("hides route by default", func(t *testing.T) {
 		cfg := &option.GroupConfig{}
-		opt := option.GroupHide()
+		opt := option.GroupHidden()
 		opt(cfg)
 
 		assert.True(t, cfg.Hide)
@@ -84,7 +84,7 @@ func TestGroupHide(t *testing.T) {
 
 	t.Run("hides route when true", func(t *testing.T) {
 		cfg := &option.GroupConfig{}
-		opt := option.GroupHide(true)
+		opt := option.GroupHidden(true)
 		opt(cfg)
 
 		assert.True(t, cfg.Hide)
@@ -92,7 +92,7 @@ func TestGroupHide(t *testing.T) {
 
 	t.Run("shows route when false", func(t *testing.T) {
 		cfg := &option.GroupConfig{}
-		opt := option.GroupHide(false)
+		opt := option.GroupHidden(false)
 		opt(cfg)
 
 		assert.False(t, cfg.Hide)
@@ -100,7 +100,7 @@ func TestGroupHide(t *testing.T) {
 
 	t.Run("uses first value when multiple provided", func(t *testing.T) {
 		cfg := &option.GroupConfig{}
-		opt := option.GroupHide(false, true, false)
+		opt := option.GroupHidden(false, true, false)
 		opt(cfg)
 
 		assert.False(t, cfg.Hide)
@@ -118,25 +118,25 @@ func TestGroupDeprecated(t *testing.T) {
 
 	t.Run("deprecated route when true", func(t *testing.T) {
 		cfg := &option.GroupConfig{}
-		opt := option.GroupHide(true)
+		opt := option.GroupDeprecated(true)
 		opt(cfg)
 
-		assert.True(t, cfg.Hide)
+		assert.True(t, cfg.Deprecated)
 	})
 
 	t.Run("not deprecated route when false", func(t *testing.T) {
 		cfg := &option.GroupConfig{}
-		opt := option.GroupHide(false)
+		opt := option.GroupDeprecated(false)
 		opt(cfg)
 
-		assert.False(t, cfg.Hide)
+		assert.False(t, cfg.Deprecated)
 	})
 
 	t.Run("uses first value when multiple provided", func(t *testing.T) {
 		cfg := &option.GroupConfig{}
-		opt := option.GroupHide(false, true, false)
+		opt := option.GroupDeprecated(false, true, false)
 		opt(cfg)
 
-		assert.False(t, cfg.Hide)
+		assert.False(t, cfg.Deprecated)
 	})
 }

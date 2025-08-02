@@ -164,14 +164,14 @@ func OAS3OAuth2SecurityScheme(oauth2 *openapi.SecuritySchemeOAuth2, description 
 
 func OAS3Oauth2Flows(flows openapi.OAuthFlows) openapi3.OAuthFlows {
 	return openapi3.OAuthFlows{
-		Implicit:          OAS3OauthFlowsDefsImplicit(flows.Implicit),
-		Password:          OAS3OauthFlowsDefsPassword(flows.Password),
-		ClientCredentials: OAS3OauthFlowsDefsClientCredentials(flows.ClientCredentials),
-		AuthorizationCode: OAS3OauthFlowsDefsAuthorizationCode(flows.AuthorizationCode),
+		Implicit:          OAS3OauthFlowsImplicit(flows.Implicit),
+		Password:          OAS3OauthFlowsPassword(flows.Password),
+		ClientCredentials: OAS3OauthFlowsClientCredentials(flows.ClientCredentials),
+		AuthorizationCode: OAS3OauthFlowsAuthorizationCode(flows.AuthorizationCode),
 	}
 }
 
-func OAS3OauthFlowsDefsImplicit(flows *openapi.OAuthFlowsDefsImplicit) *openapi3.ImplicitOAuthFlow {
+func OAS3OauthFlowsImplicit(flows *openapi.OAuthFlowsImplicit) *openapi3.ImplicitOAuthFlow {
 	if flows == nil {
 		return nil
 	}
@@ -183,7 +183,7 @@ func OAS3OauthFlowsDefsImplicit(flows *openapi.OAuthFlowsDefsImplicit) *openapi3
 	}
 }
 
-func OAS3OauthFlowsDefsPassword(flows *openapi.OAuthFlowsDefsPassword) *openapi3.PasswordOAuthFlow {
+func OAS3OauthFlowsPassword(flows *openapi.OAuthFlowsPassword) *openapi3.PasswordOAuthFlow {
 	if flows == nil {
 		return nil
 	}
@@ -195,7 +195,7 @@ func OAS3OauthFlowsDefsPassword(flows *openapi.OAuthFlowsDefsPassword) *openapi3
 	}
 }
 
-func OAS3OauthFlowsDefsClientCredentials(flows *openapi.OAuthFlowsDefsClientCredentials) *openapi3.ClientCredentialsFlow {
+func OAS3OauthFlowsClientCredentials(flows *openapi.OAuthFlowsClientCredentials) *openapi3.ClientCredentialsFlow {
 	if flows == nil {
 		return nil
 	}
@@ -206,7 +206,7 @@ func OAS3OauthFlowsDefsClientCredentials(flows *openapi.OAuthFlowsDefsClientCred
 	}
 }
 
-func OAS3OauthFlowsDefsAuthorizationCode(flows *openapi.OAuthFlowsDefsAuthorizationCode) *openapi3.AuthorizationCodeOAuthFlow {
+func OAS3OauthFlowsAuthorizationCode(flows *openapi.OAuthFlowsAuthorizationCode) *openapi3.AuthorizationCodeOAuthFlow {
 	if flows == nil {
 		return nil
 	}

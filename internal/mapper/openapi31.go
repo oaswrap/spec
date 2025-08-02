@@ -161,14 +161,14 @@ func OAS31SecuritySchemeOauth2(oauth2 *openapi.SecuritySchemeOAuth2) *openapi31.
 
 func OAS31Oauth2Flows(flows openapi.OAuthFlows) openapi31.OauthFlows {
 	return openapi31.OauthFlows{
-		Implicit:          OAS31OauthFlowsDefsImplicit(flows.Implicit),
-		Password:          OAS31OauthFlowsDefsPassword(flows.Password),
-		ClientCredentials: OAS31OauthFlowsDefsClientCredentials(flows.ClientCredentials),
-		AuthorizationCode: OAS31OauthFlowsDefsAuthorizationCode(flows.AuthorizationCode),
+		Implicit:          OAS31OauthFlowsImplicit(flows.Implicit),
+		Password:          OAS31OauthFlowsPassword(flows.Password),
+		ClientCredentials: OAS31OauthFlowsClientCredentials(flows.ClientCredentials),
+		AuthorizationCode: OAS31OauthFlowsAuthorizationCode(flows.AuthorizationCode),
 	}
 }
 
-func OAS31OauthFlowsDefsImplicit(flows *openapi.OAuthFlowsDefsImplicit) *openapi31.OauthFlowsDefsImplicit {
+func OAS31OauthFlowsImplicit(flows *openapi.OAuthFlowsImplicit) *openapi31.OauthFlowsDefsImplicit {
 	if flows == nil {
 		return nil
 	}
@@ -180,7 +180,7 @@ func OAS31OauthFlowsDefsImplicit(flows *openapi.OAuthFlowsDefsImplicit) *openapi
 	}
 }
 
-func OAS31OauthFlowsDefsPassword(flows *openapi.OAuthFlowsDefsPassword) *openapi31.OauthFlowsDefsPassword {
+func OAS31OauthFlowsPassword(flows *openapi.OAuthFlowsPassword) *openapi31.OauthFlowsDefsPassword {
 	if flows == nil {
 		return nil
 	}
@@ -192,7 +192,7 @@ func OAS31OauthFlowsDefsPassword(flows *openapi.OAuthFlowsDefsPassword) *openapi
 	}
 }
 
-func OAS31OauthFlowsDefsClientCredentials(flows *openapi.OAuthFlowsDefsClientCredentials) *openapi31.OauthFlowsDefsClientCredentials {
+func OAS31OauthFlowsClientCredentials(flows *openapi.OAuthFlowsClientCredentials) *openapi31.OauthFlowsDefsClientCredentials {
 	if flows == nil {
 		return nil
 	}
@@ -203,7 +203,7 @@ func OAS31OauthFlowsDefsClientCredentials(flows *openapi.OAuthFlowsDefsClientCre
 	}
 }
 
-func OAS31OauthFlowsDefsAuthorizationCode(flows *openapi.OAuthFlowsDefsAuthorizationCode) *openapi31.OauthFlowsDefsAuthorizationCode {
+func OAS31OauthFlowsAuthorizationCode(flows *openapi.OAuthFlowsAuthorizationCode) *openapi31.OauthFlowsDefsAuthorizationCode {
 	if flows == nil {
 		return nil
 	}

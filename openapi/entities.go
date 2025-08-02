@@ -1,5 +1,17 @@
 package openapi
 
+// ContentUnit defines the structure for OpenAPI content configuration.
+type ContentUnit struct {
+	Structure  any
+	HTTPStatus int
+
+	ContentType string // ContentType specifies the MIME type of the content.
+
+	IsDefault bool // IsDefault indicates if this content unit is the default response.
+
+	Description string // Description provides a description for the content unit.
+}
+
 // Contact represents contact information for the API.
 // Generated from "#/$defs/contact".
 type Contact struct {
@@ -109,17 +121,17 @@ type SecuritySchemeOAuth2 struct {
 // OAuthFlows groups supported OAuth2 flows.
 // Generated from "#/$defs/oauth-flows".
 type OAuthFlows struct {
-	Implicit          *OAuthFlowsDefsImplicit
-	Password          *OAuthFlowsDefsPassword
-	ClientCredentials *OAuthFlowsDefsClientCredentials
-	AuthorizationCode *OAuthFlowsDefsAuthorizationCode
+	Implicit          *OAuthFlowsImplicit
+	Password          *OAuthFlowsPassword
+	ClientCredentials *OAuthFlowsClientCredentials
+	AuthorizationCode *OAuthFlowsAuthorizationCode
 
 	MapOfAnything map[string]any // Vendor extensions. Keys must match `^x-`.
 }
 
-// OAuthFlowsDefsImplicit defines an OAuth2 implicit flow.
+// OAuthFlowsImplicit defines an OAuth2 implicit flow.
 // Generated from "#/$defs/oauth-flows/$defs/implicit".
-type OAuthFlowsDefsImplicit struct {
+type OAuthFlowsImplicit struct {
 	AuthorizationURL string            // Required. Format: uri.
 	RefreshURL       *string           // Optional refresh URL. Format: uri.
 	Scopes           map[string]string // Required. Available scopes.
@@ -127,9 +139,9 @@ type OAuthFlowsDefsImplicit struct {
 	MapOfAnything map[string]any // Vendor extensions. Keys must match `^x-`.
 }
 
-// OAuthFlowsDefsPassword defines an OAuth2 password flow.
+// OAuthFlowsPassword defines an OAuth2 password flow.
 // Generated from "#/$defs/oauth-flows/$defs/password".
-type OAuthFlowsDefsPassword struct {
+type OAuthFlowsPassword struct {
 	TokenURL   string            // Required. Token URL. Format: uri.
 	RefreshURL *string           // Optional refresh URL. Format: uri.
 	Scopes     map[string]string // Required. Available scopes.
@@ -137,9 +149,9 @@ type OAuthFlowsDefsPassword struct {
 	MapOfAnything map[string]any // Vendor extensions. Keys must match `^x-`.
 }
 
-// OAuthFlowsDefsClientCredentials defines an OAuth2 client credentials flow.
+// OAuthFlowsClientCredentials defines an OAuth2 client credentials flow.
 // Generated from "#/$defs/oauth-flows/$defs/client-credentials".
-type OAuthFlowsDefsClientCredentials struct {
+type OAuthFlowsClientCredentials struct {
 	TokenURL   string            // Required. Token URL. Format: uri.
 	RefreshURL *string           // Optional refresh URL. Format: uri.
 	Scopes     map[string]string // Required. Available scopes.
@@ -147,9 +159,9 @@ type OAuthFlowsDefsClientCredentials struct {
 	MapOfAnything map[string]any // Vendor extensions. Keys must match `^x-`.
 }
 
-// OAuthFlowsDefsAuthorizationCode defines an OAuth2 authorization code flow.
+// OAuthFlowsAuthorizationCode defines an OAuth2 authorization code flow.
 // Generated from "#/$defs/oauth-flows/$defs/authorization-code".
-type OAuthFlowsDefsAuthorizationCode struct {
+type OAuthFlowsAuthorizationCode struct {
 	AuthorizationURL string            // Required. Format: uri.
 	TokenURL         string            // Required. Token URL. Format: uri.
 	RefreshURL       *string           // Optional refresh URL. Format: uri.

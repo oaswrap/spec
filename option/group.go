@@ -34,12 +34,12 @@ func GroupSecurity(securityName string, scopes ...string) GroupOption {
 	}
 }
 
-// GroupHide sets whether the group should be hidden.
+// GroupHidden sets whether the group should be hidden.
 //
 // If true, the group and its routes will be excluded from the OpenAPI output.
-func GroupHide(hide ...bool) GroupOption {
+func GroupHidden(hidden ...bool) GroupOption {
 	return func(cfg *GroupConfig) {
-		cfg.Hide = util.Optional(true, hide...)
+		cfg.Hide = util.Optional(true, hidden...)
 	}
 }
 

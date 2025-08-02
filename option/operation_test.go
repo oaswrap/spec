@@ -7,22 +7,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHide(t *testing.T) {
-	t.Run("default hide true", func(t *testing.T) {
+func TestHidden(t *testing.T) {
+	t.Run("default hidden true", func(t *testing.T) {
 		cfg := &option.OperationConfig{}
-		option.Hide()(cfg)
+		option.Hidden()(cfg)
 		assert.True(t, cfg.Hide)
 	})
 
-	t.Run("explicit hide true", func(t *testing.T) {
+	t.Run("explicit hidden true", func(t *testing.T) {
 		cfg := &option.OperationConfig{}
-		option.Hide(true)(cfg)
+		option.Hidden(true)(cfg)
 		assert.True(t, cfg.Hide)
 	})
 
-	t.Run("explicit hide false", func(t *testing.T) {
+	t.Run("explicit hidden false", func(t *testing.T) {
 		cfg := &option.OperationConfig{}
-		option.Hide(false)(cfg)
+		option.Hidden(false)(cfg)
 		assert.False(t, cfg.Hide)
 	})
 }

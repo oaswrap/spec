@@ -211,15 +211,22 @@ func TestRouter(t *testing.T) {
 				option.WithSecurity("apiKey", option.SecurityAPIKey("x-api-key", "header")),
 			},
 			setup: func(r spec.Router) {
-				r.Get("/operation/options",
-					option.OperationID("getOperationOptions"),
-					option.Summary("Get Operation Options"),
+				r.Post("/operation/options",
+					option.OperationID("postOperationOptions"),
+					option.Summary("Post Operation Options"),
 					option.Description("This operation retrieves all operation options."),
 					option.Security("apiKey"),
 					option.Tags("Operation Options"),
 					option.Deprecated(),
-					option.Request(new(LoginRequest), option.WithContentType("application/json")),
-					option.Response(200, new(Response[User]), option.WithContentType("application/json")),
+					option.Request(new(LoginRequest),
+						option.WithContentType("application/json"),
+						option.WithContentDescription("Request body for operation options"),
+					),
+					option.Response(200, new(Response[User]),
+						option.WithContentType("application/json"),
+						option.WithContentDescription("Response body for operation options"),
+						option.WithContentDefault(true),
+					),
 				)
 			},
 		},
@@ -231,7 +238,7 @@ func TestRouter(t *testing.T) {
 					option.OperationID("hiddenOperation"),
 					option.Summary("Hidden Operation"),
 					option.Description("This operation is hidden and should not appear in the spec."),
-					option.Hide(),
+					option.Hidden(),
 					option.Request(new(LoginRequest)),
 					option.Response(200, new(Response[User])),
 				)
@@ -299,7 +306,7 @@ func TestRouter(t *testing.T) {
 						option.Summary("Get Profile v1"),
 						option.Response(200, new(User)),
 					)
-				}, option.GroupHide())
+				}, option.GroupHidden())
 				v2 := api.Group("/v2")
 				v2.Route("/auth", func(r spec.Router) {
 					r.Post("/login",

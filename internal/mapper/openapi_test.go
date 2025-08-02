@@ -861,7 +861,7 @@ func TestOASOauth2Flows(t *testing.T) {
 		{
 			name: "flows with implicit only",
 			flows: openapi.OAuthFlows{
-				Implicit: &openapi.OAuthFlowsDefsImplicit{
+				Implicit: &openapi.OAuthFlowsImplicit{
 					AuthorizationURL: "https://example.com/auth",
 					RefreshURL:       util.PtrOf("https://example.com/refresh"),
 					Scopes: map[string]string{
@@ -903,7 +903,7 @@ func TestOASOauth2Flows(t *testing.T) {
 		{
 			name: "flows with password only",
 			flows: openapi.OAuthFlows{
-				Password: &openapi.OAuthFlowsDefsPassword{
+				Password: &openapi.OAuthFlowsPassword{
 					TokenURL:   "https://example.com/token",
 					RefreshURL: util.PtrOf("https://example.com/refresh"),
 					Scopes: map[string]string{
@@ -942,7 +942,7 @@ func TestOASOauth2Flows(t *testing.T) {
 		{
 			name: "flows with client credentials only",
 			flows: openapi.OAuthFlows{
-				ClientCredentials: &openapi.OAuthFlowsDefsClientCredentials{
+				ClientCredentials: &openapi.OAuthFlowsClientCredentials{
 					TokenURL: "https://example.com/token",
 					Scopes: map[string]string{
 						"service": "Service access",
@@ -978,7 +978,7 @@ func TestOASOauth2Flows(t *testing.T) {
 		{
 			name: "flows with authorization code only",
 			flows: openapi.OAuthFlows{
-				AuthorizationCode: &openapi.OAuthFlowsDefsAuthorizationCode{
+				AuthorizationCode: &openapi.OAuthFlowsAuthorizationCode{
 					AuthorizationURL: "https://example.com/auth",
 					TokenURL:         "https://example.com/token",
 					RefreshURL:       util.PtrOf("https://example.com/refresh"),
@@ -1026,25 +1026,25 @@ func TestOASOauth2Flows(t *testing.T) {
 		{
 			name: "flows with all flow types",
 			flows: openapi.OAuthFlows{
-				Implicit: &openapi.OAuthFlowsDefsImplicit{
+				Implicit: &openapi.OAuthFlowsImplicit{
 					AuthorizationURL: "https://example.com/implicit/auth",
 					Scopes: map[string]string{
 						"read": "Read access",
 					},
 				},
-				Password: &openapi.OAuthFlowsDefsPassword{
+				Password: &openapi.OAuthFlowsPassword{
 					TokenURL: "https://example.com/password/token",
 					Scopes: map[string]string{
 						"write": "Write access",
 					},
 				},
-				ClientCredentials: &openapi.OAuthFlowsDefsClientCredentials{
+				ClientCredentials: &openapi.OAuthFlowsClientCredentials{
 					TokenURL: "https://example.com/client/token",
 					Scopes: map[string]string{
 						"admin": "Admin access",
 					},
 				},
-				AuthorizationCode: &openapi.OAuthFlowsDefsAuthorizationCode{
+				AuthorizationCode: &openapi.OAuthFlowsAuthorizationCode{
 					AuthorizationURL: "https://example.com/code/auth",
 					TokenURL:         "https://example.com/code/token",
 					Scopes: map[string]string{

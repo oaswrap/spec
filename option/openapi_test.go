@@ -315,7 +315,7 @@ func TestWithSecurity(t *testing.T) {
 			scheme: "oauth2",
 			opts: []option.SecurityOption{
 				option.SecurityOAuth2(openapi.OAuthFlows{
-					Implicit: &openapi.OAuthFlowsDefsImplicit{
+					Implicit: &openapi.OAuthFlowsImplicit{
 						AuthorizationURL: "https://auth.example.com/authorize",
 						Scopes: map[string]string{
 							"read":  "Read access",
@@ -327,7 +327,7 @@ func TestWithSecurity(t *testing.T) {
 			expected: &openapi.SecurityScheme{
 				OAuth2: &openapi.SecuritySchemeOAuth2{
 					Flows: openapi.OAuthFlows{
-						Implicit: &openapi.OAuthFlowsDefsImplicit{
+						Implicit: &openapi.OAuthFlowsImplicit{
 							AuthorizationURL: "https://auth.example.com/authorize",
 							Scopes: map[string]string{
 								"read":  "Read access",

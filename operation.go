@@ -68,6 +68,12 @@ func (oc *operationContextImpl) build() openapi.OperationContext {
 	for _, req := range cfg.Requests {
 		value := fmt.Sprintf("%T", req.Structure)
 		opts := []openapi.ContentOption{}
+		if req.Description != "" {
+			value += fmt.Sprintf(" (%s)", req.Description)
+			opts = append(opts, func(cu *openapi.ContentUnit) {
+				cu.Description = req.Description
+			})
+		}
 		if req.ContentType != "" {
 			value += fmt.Sprintf(" (Content-Type: %s)", req.ContentType)
 			opts = append(opts, openapi.WithContentType(req.ContentType))
@@ -80,6 +86,18 @@ func (oc *operationContextImpl) build() openapi.OperationContext {
 		value := fmt.Sprintf("%T (HTTP %d)", resp.Structure, resp.HTTPStatus)
 		opts := []openapi.ContentOption{
 			openapi.WithHTTPStatus(resp.HTTPStatus),
+		}
+		if resp.IsDefault {
+			opts = append(opts, func(cu *openapi.ContentUnit) {
+				cu.IsDefault = true
+			})
+			value += " (default)"
+		}
+		if resp.Description != "" {
+			value += fmt.Sprintf(" (%s)", resp.Description)
+			opts = append(opts, func(cu *openapi.ContentUnit) {
+				cu.Description = resp.Description
+			})
 		}
 		if resp.ContentType != "" {
 			value += fmt.Sprintf(" (Content-Type: %s)", resp.ContentType)

@@ -5,24 +5,44 @@ info:
   version: 1.0.0
 paths:
   /operation/options:
-    get:
+    post:
       deprecated: true
       description: This operation retrieves all operation options.
-      operationId: getOperationOptions
+      operationId: postOperationOptions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpecTestLoginRequest'
+        description: Request body for operation options
       responses:
-        "200":
+        default:
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SpecTestResponseGithubComOaswrapSpecTestUser'
-          description: OK
+          description: Response body for operation options
       security:
       - apiKey: []
-      summary: Get Operation Options
+      summary: Post Operation Options
       tags:
       - Operation Options
 components:
   schemas:
+    SpecTestLoginRequest:
+      properties:
+        password:
+          examples:
+          - password123
+          type: string
+        username:
+          examples:
+          - john_doe
+          type: string
+      required:
+      - username
+      - password
+      type: object
     SpecTestNullString:
       type: object
     SpecTestNullTime:

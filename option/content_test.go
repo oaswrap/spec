@@ -3,64 +3,84 @@ package option_test
 import (
 	"testing"
 
+	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestWithContentType(t *testing.T) {
+func TestContentOption(t *testing.T) {
 	tests := []struct {
-		name        string
-		contentType string
-		want        string
+		name       string
+		httpStatus int
+		opts       []option.ContentOption
+		expected   openapi.ContentUnit
 	}{
 		{
-			name:        "sets application/json content type",
-			contentType: "application/json",
-			want:        "application/json",
+			name:       "empty options",
+			httpStatus: 0,
+			opts:       []option.ContentOption{},
+			expected: openapi.ContentUnit{
+				HTTPStatus: 0,
+			},
 		},
 		{
-			name:        "sets text/plain content type",
-			contentType: "text/plain",
-			want:        "text/plain",
+			name:       "with content type",
+			httpStatus: 200,
+			opts: []option.ContentOption{
+				option.WithContentType("application/json"),
+			},
+			expected: openapi.ContentUnit{
+				HTTPStatus:  200,
+				ContentType: "application/json",
+			},
 		},
 		{
-			name:        "sets empty content type",
-			contentType: "",
-			want:        "",
+			name:       "with description",
+			httpStatus: 200,
+			opts: []option.ContentOption{
+				option.WithContentDescription("This is a response"),
+			},
+			expected: openapi.ContentUnit{
+				HTTPStatus:  200,
+				Description: "This is a response",
+			},
 		},
 		{
-			name:        "sets application/xml content type",
-			contentType: "application/xml",
-			want:        "application/xml",
+			name:       "with default flag",
+			httpStatus: 200,
+			opts: []option.ContentOption{
+				option.WithContentDefault(true),
+			},
+			expected: openapi.ContentUnit{
+				HTTPStatus: 200,
+				IsDefault:  true,
+			},
+		},
+		{
+			name:       "with multiple options",
+			httpStatus: 200,
+			opts: []option.ContentOption{
+				option.WithContentType("application/json"),
+				option.WithContentDescription("This is a response"),
+				option.WithContentDefault(true),
+			},
+			expected: openapi.ContentUnit{
+				HTTPStatus:  200,
+				ContentType: "application/json",
+				Description: "This is a response",
+				IsDefault:   true,
+			},
 		},
 	}
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			config := &option.ContentUnit{}
-			opt := option.WithContentType(tt.contentType)
-			opt(config)
-
-			assert.Equal(t, tt.want, config.ContentType)
+			config := &openapi.ContentUnit{
+				HTTPStatus: tt.httpStatus,
+			}
+			for _, opt := range tt.opts {
+				opt(config)
+			}
+			assert.Equal(t, tt.expected, *config)
 		})
 	}
-}
-
-func TestContentOption(t *testing.T) {
-	t.Run("multiple options can be applied", func(t *testing.T) {
-		config := &option.ContentUnit{
-			HTTPStatus: 200,
-		}
-
-		opt1 := option.WithContentType("application/json")
-		opt2 := option.WithContentType("text/plain")
-
-		opt1(config)
-		assert.Equal(t, "application/json", config.ContentType)
-
-		opt2(config)
-		assert.Equal(t, "text/plain", config.ContentType)
-
-		assert.Equal(t, 200, config.HTTPStatus)
-	})
 }
