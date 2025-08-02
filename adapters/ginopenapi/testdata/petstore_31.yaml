@@ -1,0 +1,280 @@
+openapi: 3.1.0
+info:
+  description: This is a test API for Pet Store API
+  title: Test API Pet Store API
+  version: 1.0.0
+paths:
+  /pets:
+    get:
+      description: Returns a list of all pets in the store
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Pet'
+                type:
+                - "null"
+                - array
+          description: OK
+      summary: Get all pets
+      tags:
+      - Pets
+    post:
+      description: Creates a new pet in the store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePetRequest'
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pet'
+          description: Created
+      summary: Create a new pet
+      tags:
+      - Pets
+    put:
+      description: Updates an existing pet in the store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePetRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pet'
+          description: OK
+      summary: Update an existing pet
+      tags:
+      - Pets
+  /pets/{petId}:
+    delete:
+      description: Deletes a pet from the store
+      parameters:
+      - in: path
+        name: petId
+        required: true
+        schema:
+          format: int64
+          type: integer
+      responses:
+        "204":
+          description: No Content
+      summary: Delete a pet
+      tags:
+      - Pets
+    get:
+      description: Returns a single pet by its ID
+      parameters:
+      - in: path
+        name: petId
+        required: true
+        schema:
+          format: int64
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pet'
+          description: OK
+      summary: Get pet by ID
+      tags:
+      - Pets
+    post:
+      description: Updates a pet using form data
+      parameters:
+      - in: query
+        name: name
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+      - in: path
+        name: petId
+        required: true
+        schema:
+          format: int64
+          type: integer
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FormDataUpdatePetFormData'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pet'
+          description: OK
+      summary: Update pet by form data
+      tags:
+      - Pets
+  /pets/findByStatus:
+    get:
+      description: Returns a list of pets based on their status
+      parameters:
+      - in: query
+        name: status
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Pet'
+                type:
+                - "null"
+                - array
+          description: OK
+      summary: Find pets by status
+      tags:
+      - Pets
+  /pets/findByTags:
+    get:
+      description: Returns a list of pets based on their tags
+      parameters:
+      - in: query
+        name: tags
+        schema:
+          items:
+            type: string
+          type:
+          - array
+          - "null"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Pet'
+                type:
+                - "null"
+                - array
+          description: OK
+      summary: Find pets by tags
+      tags:
+      - Pets
+components:
+  schemas:
+    Category:
+      properties:
+        id:
+          examples:
+          - 1
+          format: int64
+          type: integer
+        name:
+          examples:
+          - Dogs
+          type: string
+      type: object
+    CreatePetRequest:
+      properties:
+        category:
+          $ref: '#/components/schemas/Category'
+        name:
+          type: string
+        photoUrls:
+          items:
+            type: string
+          type:
+          - array
+          - "null"
+        status:
+          type: string
+        tags:
+          items:
+            $ref: '#/components/schemas/Tag'
+          type:
+          - array
+          - "null"
+      type: object
+    FormDataUpdatePetFormData:
+      properties:
+        name:
+          type: string
+        status:
+          type: string
+      type: object
+    Pet:
+      properties:
+        category:
+          $ref: '#/components/schemas/Category'
+        id:
+          examples:
+          - 1
+          format: int64
+          type: integer
+        name:
+          examples:
+          - doggie
+          type: string
+        photoUrls:
+          items:
+            type: string
+          type:
+          - array
+          - "null"
+        status:
+          examples:
+          - available
+          type: string
+        tags:
+          items:
+            $ref: '#/components/schemas/Tag'
+          type:
+          - array
+          - "null"
+      type: object
+    Tag:
+      properties:
+        id:
+          examples:
+          - 1
+          format: int64
+          type: integer
+        name:
+          examples:
+          - friendly
+          type: string
+      type: object
+    UpdatePetRequest:
+      properties:
+        category:
+          $ref: '#/components/schemas/Category'
+        id:
+          format: int64
+          type: integer
+        name:
+          type: string
+        photoUrls:
+          items:
+            type: string
+          type:
+          - array
+          - "null"
+        status:
+          type: string
+        tags:
+          items:
+            $ref: '#/components/schemas/Tag'
+          type:
+          - array
+          - "null"
+      type: object

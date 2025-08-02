@@ -98,9 +98,9 @@ For seamless HTTP server integration, use one of our framework adapters. Each ad
 
 | Framework | Adapter Package |
 |-----------|-----------------|
-| **Gin** | [oaswrap/ginopenapi](https://github.com/oaswrap/ginopenapi) |
-| **Echo** | [oaswrap/echoopenapi](https://github.com/oaswrap/echoopenapi) |
-| **Fiber** | [oaswrap/fiberopenapi](https://github.com/oaswrap/fiberopenapi) |
+| **Gin** | [ginopenapi](/adapters/ginopenapi) |
+| **Echo** | [echoopenapi](/adapters/echoopenapi) |
+| **Fiber** | [fiberopenapi](/adapters/fiberopenapi) |
 
 Each adapter provides:
 - Automatic spec generation from your routes
@@ -273,11 +273,6 @@ Check out the [`examples/`](examples/) directory for complete working examples:
 
 - **[Basic](examples/basic/)** — Standalone spec generation
 - **[Petstore](examples/petstore/)** — Full Petstore API example with routes and models
-
-For framework-specific examples, visit the individual adapter repositories:
-- **Gin examples** — See [oaswrap/ginopenapi](https://github.com/oaswrap/ginopenapi)
-- **Echo examples** — See [oaswrap/echoopenapi](https://github.com/oaswrap/echoopenapi)  
-- **Fiber examples** — See [oaswrap/fiberopenapi](https://github.com/oaswrap/fiberopenapi)
 
 ## API Reference
 

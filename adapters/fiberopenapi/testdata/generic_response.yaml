@@ -1,0 +1,98 @@
+openapi: 3.0.3
+info:
+  description: This is a test API for Generic Response
+  title: Test API Generic Response
+  version: 1.0.0
+paths:
+  /auth/login:
+    post:
+      description: Endpoint for user login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FiberopenapiTestLoginRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiberopenapiTestResponseGithubComOaswrapSpecAdaptersFiberopenapiTestToken'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiberopenapiTestErrorResponse'
+          description: Bad Request
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiberopenapiTestValidationResponse'
+          description: Unprocessable Entity
+      summary: User Login
+components:
+  schemas:
+    FiberopenapiTestErrorResponse:
+      properties:
+        detail:
+          example: Invalid input provided
+          type: string
+        status:
+          example: 400
+          type: integer
+        title:
+          example: Bad Request
+          type: string
+      type: object
+    FiberopenapiTestFieldError:
+      properties:
+        field:
+          example: username
+          type: string
+        message:
+          example: Username is required
+          type: string
+      type: object
+    FiberopenapiTestLoginRequest:
+      properties:
+        password:
+          type: string
+        username:
+          type: string
+      required:
+      - username
+      - password
+      type: object
+    FiberopenapiTestResponseGithubComOaswrapSpecAdaptersFiberopenapiTestToken:
+      properties:
+        data:
+          $ref: '#/components/schemas/FiberopenapiTestToken'
+        status:
+          example: 200
+          type: integer
+      type: object
+    FiberopenapiTestToken:
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+      type: object
+    FiberopenapiTestValidationResponse:
+      properties:
+        detail:
+          example: Input validation failed
+          type: string
+        errors:
+          items:
+            $ref: '#/components/schemas/FiberopenapiTestFieldError'
+          type: array
+        status:
+          example: 422
+          type: integer
+        title:
+          example: Validation Error
+          type: string
+      type: object
