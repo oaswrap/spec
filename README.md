@@ -272,6 +272,7 @@ option.Response(200, new(APIResponse[[]Product]))
 Check out the [`examples/`](examples/) directory for complete working examples:
 
 - **[Basic](examples/basic/)** — Standalone spec generation
+- **[Petstore](examples/petstore/)** — Full Petstore API example with routes and models
 
 For framework-specific examples, visit the individual adapter repositories:
 - **Gin examples** — See [oaswrap/ginopenapi](https://github.com/oaswrap/ginopenapi)
