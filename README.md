@@ -17,7 +17,7 @@ Powered by [`swaggest/openapi-go`](https://github.com/swaggest/openapi-go) for r
 
 - ✅ Programmatically build OpenAPI 3.x specs in pure Go.
 - ✅ No runtime server — only schema generation logic.
-- ✅ DesignedDesigned for framework adapters (Gin, Echo, Fiber, etc.).
+- ✅ Designed for framework adapters (Gin, Echo, Fiber, etc.).
 - ✅ Supports struct tags for request/response models.
 - ✅ Export specs to JSON or YAML, and validate before publishing.
 
