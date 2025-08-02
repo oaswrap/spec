@@ -1,11 +1,12 @@
 openapi: 3.1.0
 info:
-  description: This is the API documentation for Sub Router
-  title: 'API Doc: Sub Router'
+  description: This is the API documentation for Group Routes
+  title: 'API Doc: Group Routes'
   version: 1.0.0
 paths:
   /api/v1/auth/login:
     post:
+      deprecated: true
       description: User Login v1
       requestBody:
         content:
@@ -24,6 +25,7 @@ paths:
       - Authentication
   /api/v1/auth/me:
     get:
+      deprecated: true
       description: Get Profile v1
       responses:
         "200":
@@ -36,11 +38,44 @@ paths:
       - bearerAuth: []
       summary: Get Profile v1
       tags:
+      - Authentication
+  /api/v2/auth/login:
+    post:
+      description: User Login v2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpecTestLoginRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecTestToken'
+          description: OK
+      summary: User Login v2
+      tags:
+      - Authentication
+  /api/v2/auth/me:
+    get:
+      description: Get Profile v2
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecTestUser'
+          description: OK
+      security:
+      - bearerAuth: []
+      summary: Get Profile v2
+      tags:
       - Profile
       - Authentication
-  /api/v1/profile:
+  /api/v2/profile:
     put:
-      description: Update Profile v1
+      description: Update Profile v2
       requestBody:
         content:
           application/json:
@@ -55,7 +90,7 @@ paths:
           description: OK
       security:
       - bearerAuth: []
-      summary: Update Profile v1
+      summary: Update Profile v2
       tags:
       - Profile
 components:

@@ -271,8 +271,8 @@ func TestRouter(t *testing.T) {
 			},
 		},
 		{
-			name:   "Sub Router",
-			golden: "sub_router",
+			name:   "Group Routes",
+			golden: "group_routes",
 			opts: []option.OpenAPIOption{
 				option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
 				option.WithReflectorConfig(
@@ -289,15 +289,33 @@ func TestRouter(t *testing.T) {
 						option.Request(new(LoginRequest)),
 						option.Response(200, new(Token)),
 					)
+					r.Get("/me",
+						option.Summary("Get Profile v1"),
+						option.Response(200, new(User)),
+					).With(option.Security("bearerAuth"))
+				}, option.GroupDeprecated(), option.GroupTags("Authentication"))
+				v1.Route("/profile", func(r spec.Router) {
+					r.Get("/",
+						option.Summary("Get Profile v1"),
+						option.Response(200, new(User)),
+					)
+				}, option.GroupHide())
+				v2 := api.Group("/v2")
+				v2.Route("/auth", func(r spec.Router) {
+					r.Post("/login",
+						option.Summary("User Login v2"),
+						option.Request(new(LoginRequest)),
+						option.Response(200, new(Token)),
+					)
 					auth := r.Group("/", option.GroupSecurity("bearerAuth"))
 					auth.Get("/me",
-						option.Summary("Get Profile v1"),
+						option.Summary("Get Profile v2"),
 						option.Response(200, new(User)),
 					).With(option.Tags("Profile"))
 				}, option.GroupTags("Authentication"))
-				v1.Route("/profile", func(r spec.Router) {
+				v2.Route("/profile", func(r spec.Router) {
 					r.Put("/",
-						option.Summary("Update Profile v1"),
+						option.Summary("Update Profile v2"),
 						option.Request(new(User)),
 						option.Response(200, new(User)),
 					)
