@@ -1,0 +1,105 @@
+# .github/workflows/release.yml
+name: 🚀 Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  # ========================================
+  # Release Validation
+  # ========================================
+  validate:
+    name: 🔍 Validate Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      is_prerelease: ${{ steps.version.outputs.prerelease }}
+
+    steps:
+    - name: 📥 Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: 🐹 Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+        cache: true
+
+    - name: 🔧 Install Tools
+      run: make install-tools
+
+    - name: 🏷️ Extract Version
+      id: version
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/}
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        if [[ $VERSION == *"-"* ]]; then
+          echo "prerelease=true" >> $GITHUB_OUTPUT
+        else
+          echo "prerelease=false" >> $GITHUB_OUTPUT
+        fi
+        echo "📋 Version: $VERSION"
+        echo "🔖 Pre-release: $([[ $VERSION == *"-"* ]] && echo "true" || echo "false")"
+        
+    - name: ✅ Run Release Quality Gate
+      run: make check-release
+      
+    - name: 🔍 Final Replace Statement Check
+      run: make check-replace-strict
+
+  # ========================================
+  # Create GitHub Release
+  # ========================================
+  release:
+    name: 🎉 Create Release
+    runs-on: ubuntu-latest
+    needs: validate
+    timeout-minutes: 5
+    
+    steps:
+    - name: 📥 Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: 📝 Generate Changelog
+      id: changelog
+      run: |
+        if git tag --list | grep -q "v"; then
+          PREVIOUS_TAG=$(git tag --list "v*" --sort=-version:refname | grep -v "${{ needs.validate.outputs.version }}" | head -n1)
+          if [ -n "$PREVIOUS_TAG" ]; then
+            echo "## What's Changed" > changelog.md
+            echo "" >> changelog.md
+            git log --pretty=format:"- %s (%h)" "$PREVIOUS_TAG..${{ needs.validate.outputs.version }}" >> changelog.md
+          else
+            echo "## Initial Release" > changelog.md
+            echo "" >> changelog.md
+            echo "🎉 First release of the project!" >> changelog.md
+          fi
+        else
+          echo "## Initial Release" > changelog.md
+          echo "" >> changelog.md  
+          echo "🎉 First release of the project!" >> changelog.md
+        fi
+
+    - name: 🚀 Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ needs.validate.outputs.version }}
+        name: Release ${{ needs.validate.outputs.version }}
+        body_path: changelog.md
+        draft: false
+        prerelease: ${{ needs.validate.outputs.is_prerelease }}
+        generate_release_notes: true
