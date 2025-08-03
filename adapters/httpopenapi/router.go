@@ -67,7 +67,7 @@ func (r *router) HandleFunc(pattern string, handler func(http.ResponseWriter, *h
 
 	route := &route{}
 	routePattern, err := parser.ParseRoutePattern(pattern)
-	if err != nil || routePattern.Method == "" {
+	if err != nil || routePattern.Method == "" || routePattern.Method == http.MethodConnect {
 		return route
 	}
 	route.specRoute = r.specRouter.Add(routePattern.Method, routePattern.Path)
@@ -82,7 +82,7 @@ func (r *router) Handle(pattern string, handler http.Handler) Route {
 
 	route := &route{}
 	routePattern, err := parser.ParseRoutePattern(pattern)
-	if err != nil || routePattern.Method == "" {
+	if err != nil || routePattern.Method == "" || routePattern.Method == http.MethodConnect {
 		return route
 	}
 	route.specRoute = r.specRouter.Add(routePattern.Method, routePattern.Path)

@@ -2,7 +2,6 @@ package ginopenapi
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/oaswrap/spec"
@@ -68,7 +67,7 @@ func (r *router) Handle(method string, path string, handlers ...gin.HandlerFunc)
 	gr := r.ginRouter.Handle(method, path, handlers...)
 	route := &route{ginRoute: gr}
 
-	if strings.EqualFold(method, http.MethodConnect) {
+	if method == http.MethodConnect {
 		// CONNECT method is not supported by OpenAPI, so we skip it
 		return route
 	}
