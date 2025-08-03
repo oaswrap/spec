@@ -2,7 +2,7 @@
 # Vars
 PKG := ./...
 COVERAGE_FILE := coverage.out
-ADAPTERS := chiopenapi echoopenapi fiberopenapi ginopenapi
+ADAPTERS := chiopenapi echoopenapi fiberopenapi ginopenapi httpopenapi
 
 # -------------------------------
 # Core + Adapters: Tests

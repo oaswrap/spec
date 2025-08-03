@@ -101,6 +101,7 @@ For seamless HTTP server integration, use one of our framework adapters. Each ad
 | **Echo** | [echoopenapi](/adapters/echoopenapi) |
 | **Gin** | [ginopenapi](/adapters/ginopenapi) |
 | **Fiber** | [fiberopenapi](/adapters/fiberopenapi) |
+| **HTTP** | [httpopenapi](/adapters/httpopenapi) |
 
 Each adapter provides:
 - Automatic spec generation from your routes
@@ -299,7 +300,6 @@ A: The library is in active development. While the core functionality is solid, 
 ## Roadmap
 
 - [ ] Mux adapter
-- [ ] HTTP adapter
 - [ ] Stoplight support
 - [ ] Redoc UI support
 
