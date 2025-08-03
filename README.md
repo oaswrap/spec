@@ -130,7 +130,7 @@ option.WithLicense(openapi.License{
 	URL:  "https://opensource.org/licenses/MIT",
 })
 option.WithExternalDocs("https://docs.example.com", "API Documentation")
-option.Tags(
+option.WithTags(
 	openapi.Tag{
 		Name:        "User Management",
 		Description: "Operations related to user management",

@@ -2,7 +2,6 @@ package ginopenapi
 
 import (
 	"net/http"
-	"path"
 
 	"github.com/gin-gonic/gin"
 	"github.com/oaswrap/spec"
@@ -11,6 +10,7 @@ import (
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 	"github.com/oaswrap/spec/pkg/parser"
+	"github.com/oaswrap/spec/pkg/util"
 )
 
 // NewGenerator returns a new OpenAPI generator for Gin.
@@ -47,7 +47,7 @@ func NewRouter(ginRouter gin.IRouter, opts ...option.OpenAPIOption) Generator {
 		return rr
 	}
 
-	openapiPath := path.Join(cfg.DocsPath, constant.OpenAPIFileName)
+	openapiPath := util.JoinPath(cfg.DocsPath, constant.OpenAPIFileName)
 	ginRouter.GET(cfg.DocsPath, handler.Docs)
 	ginRouter.GET(openapiPath, handler.OpenAPIYaml)
 

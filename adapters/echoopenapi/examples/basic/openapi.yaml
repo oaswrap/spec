@@ -1,0 +1,63 @@
+openapi: 3.0.3
+info:
+  description: OpenAPI documentation for Echo applications
+  title: My API
+  version: 1.0.0
+paths:
+  /api/v1/login:
+    post:
+      description: User login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+          description: OK
+      summary: User login
+  /api/v1/users/{id}:
+    get:
+      description: Get user by ID
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: OK
+      summary: Get user by ID
+components:
+  schemas:
+    LoginRequest:
+      properties:
+        password:
+          type: string
+        username:
+          type: string
+      required:
+      - username
+      - password
+      type: object
+    LoginResponse:
+      properties:
+        token:
+          type: string
+      type: object
+    User:
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+      type: object

@@ -1,14 +1,14 @@
 package handler
 
 import (
-	"path"
 	"sync"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
-	"github.com/oaswrap/spec/adapters/fiberopenapi/internal/constant"
 	"github.com/oaswrap/spec"
+	"github.com/oaswrap/spec/adapters/fiberopenapi/internal/constant"
 	"github.com/oaswrap/spec/openapi"
+	"github.com/oaswrap/spec/pkg/util"
 	"github.com/swaggest/swgui"
 	"github.com/swaggest/swgui/v5cdn"
 )
@@ -59,12 +59,9 @@ func (h *OpenAPIHandler) Docs(c *fiber.Ctx) error {
 
 func (h *OpenAPIHandler) swguiConfig() swgui.Config {
 	cfg := h.cfg
-	openapiPath := path.Join(cfg.DocsPath, constant.OpenAPIFileName)
+	openapiPath := util.JoinPath(cfg.DocsPath, constant.OpenAPIFileName)
 	if cfg.BaseURL != "" {
-		if cfg.BaseURL[len(cfg.BaseURL)-1] != '/' {
-			openapiPath = "/" + openapiPath
-		}
-		openapiPath = cfg.BaseURL + openapiPath
+		openapiPath = util.JoinURL(cfg.BaseURL, openapiPath)
 	}
 
 	return swgui.Config{

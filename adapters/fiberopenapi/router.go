@@ -1,15 +1,14 @@
 package fiberopenapi
 
 import (
-	stdpath "path"
-
 	"github.com/gofiber/fiber/v2"
+	"github.com/oaswrap/spec"
 	"github.com/oaswrap/spec/adapters/fiberopenapi/internal/constant"
 	"github.com/oaswrap/spec/adapters/fiberopenapi/internal/handler"
-	"github.com/oaswrap/spec/adapters/fiberopenapi/internal/util"
-	"github.com/oaswrap/spec"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
+	"github.com/oaswrap/spec/pkg/parser"
+	"github.com/oaswrap/spec/pkg/util"
 )
 
 // NewGenerator creates a new OpenAPI generator with the specified Fiber router and options.
@@ -29,6 +28,7 @@ func NewRouter(r fiber.Router, opts ...option.OpenAPIOption) Generator {
 		option.WithVersion(constant.DefaultVersion),
 		option.WithDocsPath(constant.DefaultDocsPath),
 		option.WithSwaggerConfig(openapi.SwaggerConfig{}),
+		option.WithPathParser(parser.NewColonParamParser()),
 	}
 	opts = append(defaultOpts, opts...)
 	gen := spec.NewGenerator(opts...)
@@ -46,7 +46,7 @@ func NewRouter(r fiber.Router, opts ...option.OpenAPIOption) Generator {
 	}
 
 	handler := handler.NewOpenAPIHandler(cfg, gen)
-	openapiPath := stdpath.Join(cfg.DocsPath, constant.OpenAPIFileName)
+	openapiPath := util.JoinPath(cfg.DocsPath, constant.OpenAPIFileName)
 
 	r.Get(cfg.DocsPath, handler.Docs)
 	r.Get(openapiPath, handler.OpenAPIYaml)
@@ -105,7 +105,7 @@ func (r *router) Trace(path string, handler ...fiber.Handler) Route {
 
 func (r *router) Add(method, path string, handler ...fiber.Handler) Route {
 	fr := r.fiberRouter.Add(method, path, handler...)
-	sr := r.specRouter.Add(method, util.ConvertPath(path))
+	sr := r.specRouter.Add(method, path)
 
 	route := &route{
 		fr: fr,

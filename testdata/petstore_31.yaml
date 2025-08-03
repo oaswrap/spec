@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   contact:
     email: apiteam@swagger.io
@@ -7,26 +7,10 @@ info:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: https://swagger.io/terms/
-  title: Test API Pet Store API
+  title: Petstore API
   version: 1.0.0
-externalDocs:
-  description: Find more info here about swagger
-  url: https://swagger.io
 servers:
 - url: https://petstore3.swagger.io/api/v3
-tags:
-- description: Everything about your Pets
-  externalDocs:
-    description: Find out more about our Pets
-    url: https://swagger.io
-  name: pet
-- description: Access to Petstore orders
-  externalDocs:
-    description: Find out more about our Store
-    url: https://swagger.io
-  name: store
-- description: Operations about user
-  name: user
 paths:
   /pet:
     post:
@@ -157,6 +141,7 @@ paths:
         name: petId
         required: true
         schema:
+          format: int64
           type: integer
       requestBody:
         content:
@@ -198,7 +183,9 @@ paths:
               schema:
                 items:
                   $ref: '#/components/schemas/DtoPet'
-                type: array
+                type:
+                - "null"
+                - array
           description: OK
       security:
       - petstore_auth:
@@ -218,7 +205,9 @@ paths:
         schema:
           items:
             type: string
-          type: array
+          type:
+          - array
+          - "null"
       responses:
         "200":
           content:
@@ -226,7 +215,9 @@ paths:
               schema:
                 items:
                   $ref: '#/components/schemas/DtoPet'
-                type: array
+                type:
+                - "null"
+                - array
           description: OK
       security:
       - petstore_auth:
@@ -404,8 +395,9 @@ paths:
             schema:
               items:
                 $ref: '#/components/schemas/DtoPetUser'
-              nullable: true
-              type: array
+              type:
+              - "null"
+              - array
       responses:
         "201":
           description: Created
@@ -461,8 +453,9 @@ components:
         photoUrls:
           items:
             type: string
-          nullable: true
-          type: array
+          type:
+          - array
+          - "null"
         status:
           enum:
           - available
@@ -472,8 +465,9 @@ components:
         tags:
           items:
             $ref: '#/components/schemas/DtoTag'
-          nullable: true
-          type: array
+          type:
+          - array
+          - "null"
         type:
           type: string
       type: object
@@ -533,3 +527,19 @@ components:
             read:pets: read your pets
             write:pets: modify pets in your account
       type: oauth2
+tags:
+- description: Everything about your Pets
+  externalDocs:
+    description: Find out more about our Pets
+    url: https://swagger.io
+  name: pet
+- description: Access to Petstore orders
+  externalDocs:
+    description: Find out more about our Store
+    url: https://swagger.io
+  name: store
+- description: Operations about user
+  name: user
+externalDocs:
+  description: Find more info here about swagger
+  url: https://swagger.io

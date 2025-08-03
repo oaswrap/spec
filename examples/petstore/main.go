@@ -32,15 +32,26 @@ func main() {
 		option.OperationID("findPetsByStatus"),
 		option.Summary("Find pets by status"),
 		option.Description("Finds Pets by status. Multiple status values can be provided with comma separated strings."),
-		option.Request(new(FindPetsByStatusRequest)),
+		option.Request(new(struct {
+			Status string `query:"status" enum:"available,pending,sold"` // Enum values for pet status
+		})),
 		option.Response(200, new([]Pet)),
 	)
 	pet.Get("/findByTags",
 		option.OperationID("findPetsByTags"),
 		option.Summary("Find pets by tags"),
 		option.Description("Finds Pets by tags. Multiple tags can be provided with comma separated strings."),
-		option.Request(new(FindPetsByTagsRequest)),
+		option.Request(new(struct {
+			Tags []string `query:"tags"` // Tags to filter pets
+		})),
 		option.Response(200, new([]Pet)),
+	)
+	pet.Post("/{petId}/uploadImage",
+		option.OperationID("uploadFile"),
+		option.Summary("Upload an image for a pet"),
+		option.Description("Uploads an image for a pet."),
+		option.Request(new(UploadImageRequest)),
+		option.Response(200, new(ApiResponse)),
 	)
 	pet.Get("/{petId}",
 		option.OperationID("getPetById"),

@@ -3,18 +3,17 @@ package fiberopenapi_test
 import (
 	"flag"
 	"io"
-	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/oaswrap/spec/adapters/fiberopenapi"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
+	"github.com/oaswrap/spec/pkg/dto"
 	"github.com/oaswrap/spec/pkg/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -26,146 +25,6 @@ func PingHandler(c *fiber.Ctx) error {
 	return c.SendString("pong")
 }
 
-type AllBasicDataTypes struct {
-	Int     int     `json:"int"`
-	Int8    int8    `json:"int8"`
-	Int16   int16   `json:"int16"`
-	Int32   int32   `json:"int32"`
-	Int64   int64   `json:"int64"`
-	Uint    uint    `json:"uint"`
-	Uint8   uint8   `json:"uint8"`
-	Uint16  uint16  `json:"uint16"`
-	Uint32  uint32  `json:"uint32"`
-	Uint64  uint64  `json:"uint64"`
-	Float32 float32 `json:"float32"`
-	Float64 float64 `json:"float64"`
-	Byte    byte    `json:"byte"`
-	Rune    rune    `json:"rune"`
-	String  string  `json:"string"`
-	Bool    bool    `json:"bool"`
-}
-
-type AllBasicDataTypesPointers struct {
-	Int     *int     `json:"int"`
-	Int8    *int8    `json:"int8"`
-	Int16   *int16   `json:"int16"`
-	Int32   *int32   `json:"int32"`
-	Int64   *int64   `json:"int64"`
-	Uint    *uint    `json:"uint"`
-	Uint8   *uint8   `json:"uint8"`
-	Uint16  *uint16  `json:"uint16"`
-	Uint32  *uint32  `json:"uint32"`
-	Uint64  *uint64  `json:"uint64"`
-	Float32 *float32 `json:"float32"`
-	Float64 *float64 `json:"float64"`
-	Byte    *byte    `json:"byte"`
-	Rune    *rune    `json:"rune"`
-	String  *string  `json:"string"`
-	Bool    *bool    `json:"bool"`
-}
-
-type LoginRequest struct {
-	Username string `json:"username" validate:"required"`
-	Password string `json:"password" validate:"required"`
-}
-
-type ErrorResponse struct {
-	Status int    `json:"status" example:"400"`
-	Title  string `json:"title" example:"Bad Request"`
-	Detail string `json:"detail,omitempty" example:"Invalid input provided"`
-}
-
-type ValidationResponse struct {
-	Status int          `json:"status" example:"422"`
-	Title  string       `json:"title" example:"Validation Error"`
-	Detail string       `json:"detail,omitempty" example:"Input validation failed"`
-	Errors []FieldError `json:"errors,omitempty"`
-}
-
-type FieldError struct {
-	Field   string `json:"field" example:"username"`
-	Message string `json:"message" example:"Username is required"`
-}
-
-type Response[T any] struct {
-	Status int `json:"status" example:"200"`
-	Data   T   `json:"data"`
-}
-
-type Token struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-}
-
-type UserProfile struct {
-	ID              string    `json:"id"`
-	Username        string    `json:"username"`
-	Email           string    `json:"email"`
-	EmailVerifiedAt NullTime  `json:"email_verified_at"`
-	FullName        string    `json:"full_name"`
-	CreatedAt       time.Time `json:"created_at"`
-	UpdatedAt       time.Time `json:"updated_at"`
-}
-
-type NullTime struct {
-	Time  time.Time `json:"time"`
-	Valid bool      `json:"valid"`
-}
-
-type Category struct {
-	ID   int64  `json:"id"`
-	Name string `json:"name"`
-}
-
-type Tag struct {
-	ID   int64  `json:"id"`
-	Name string `json:"name"`
-}
-
-type Pet struct {
-	ID        int64     `json:"id"`
-	Category  *Category `json:"category,omitempty"`
-	Name      string    `json:"name" validate:"required"`
-	PhotoURLs []string  `json:"photoUrls" validate:"required"`
-	Tags      []Tag     `json:"tags,omitempty"`
-	Status    string    `json:"status,omitempty" enum:"available,pending,sold"`
-}
-
-type ApiResponse struct {
-	Code    int32  `json:"code"`
-	Type    string `json:"type"`
-	Message string `json:"message"`
-}
-
-type FindPetByIdRequest struct {
-	ID int64 `params:"petId" path:"petId"`
-}
-
-type FindPetsByStatusRequest struct {
-	Status string `query:"status" validate:"required" enum:"available,pending,sold"`
-}
-
-type FindPetsByTagsRequest struct {
-	Tags []string `query:"tags" required:"false"`
-}
-
-type DeletePetRequest struct {
-	ApiKey string `header:"api_key"`
-	ID     int64  `params:"petId" path:"petId"`
-}
-
-type UpdatePetFormDataRequest struct {
-	ID     int64  `params:"petId" path:"petId"`
-	Name   string `formData:"name" validate:"required"`
-	Status string `formData:"status" enum:"available,pending,sold"`
-}
-
-type UploadImageRequest struct {
-	ID                 int64           `params:"petId" path:"petId"`
-	AdditionalMetaData string          `query:"additionalMetadata"`
-	_                  *multipart.File `contentType:"application/octet-stream"`
-}
-
 func TestRouter_Spec(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -175,71 +34,43 @@ func TestRouter_Spec(t *testing.T) {
 		shouldErr bool
 	}{
 		{
-			name:   "Basic Data Types",
-			golden: "basic_data_types.yaml",
-			setup: func(r fiberopenapi.Router) {
-				r.Post("/data-types", PingHandler).With(
-					option.Summary("All Basic Data Types"),
-					option.Description("Endpoint to test all basic data types"),
-					option.Request(new(AllBasicDataTypes)),
-					option.Response(200, new(AllBasicDataTypes)),
-				)
-			},
-		},
-		{
-			name:   "Basic Data Types Pointers",
-			golden: "basic_data_types_pointers.yaml",
-			setup: func(r fiberopenapi.Router) {
-				r.Put("/data-types-pointers", PingHandler).With(
-					option.Summary("All Basic Data Types Pointers"),
-					option.Description("Endpoint to test all basic data types with pointers"),
-					option.Request(new(AllBasicDataTypesPointers)),
-					option.Response(200, new(AllBasicDataTypesPointers)),
-				)
-			},
-		},
-		{
-			name:   "Generic Response",
-			golden: "generic_response.yaml",
-			setup: func(r fiberopenapi.Router) {
-				r.Post("/auth/login", PingHandler).With(
-					option.Summary("User Login"),
-					option.Description("Endpoint for user login"),
-					option.Request(new(LoginRequest)),
-					option.Response(200, new(Response[Token])),
-					option.Response(400, new(ErrorResponse)),
-					option.Response(422, new(ValidationResponse)),
-				)
-			},
-		},
-		{
-			name:   "Custom Type Mapping",
-			golden: "type_mapping.yaml",
-			options: []option.OpenAPIOption{
-				option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
-				option.WithReflectorConfig(
-					option.TypeMapping(NullTime{}, new(time.Time)),
-				),
-			},
-			setup: func(r fiberopenapi.Router) {
-				r.Get("/auth/me", PingHandler).With(
-					option.Summary("Get User Profile"),
-					option.Description("Endpoint to get the authenticated user's profile"),
-					option.Security("bearerAuth"),
-					option.Response(200, new(Response[UserProfile])),
-					option.Response(401, new(ErrorResponse)),
-				)
-			},
-		},
-		{
 			name:   "Pet Store API",
 			golden: "petstore.yaml",
 			options: []option.OpenAPIOption{
-				option.WithTitle("Pet Store API - OpenAPI 3.1"),
+				option.WithDescription("This is a sample Petstore server."),
 				option.WithVersion("1.0.0"),
-				option.WithDescription("This is a sample Pet Store API using OpenAPI 3.1"),
-				option.WithDocsPath("/docs"),
-				option.WithServer("https://petstore3.swagger.io", option.ServerDescription("Pet Store Server")),
+				option.WithTermsOfService("https://swagger.io/terms/"),
+				option.WithContact(openapi.Contact{
+					Email: "apiteam@swagger.io",
+				}),
+				option.WithLicense(openapi.License{
+					Name: "Apache 2.0",
+					URL:  "https://www.apache.org/licenses/LICENSE-2.0.html",
+				}),
+				option.WithExternalDocs("https://swagger.io", "Find more info here about swagger"),
+				option.WithServer("https://petstore3.swagger.io/api/v3"),
+				option.WithTags(
+					openapi.Tag{
+						Name:        "pet",
+						Description: "Everything about your Pets",
+						ExternalDocs: &openapi.ExternalDocs{
+							Description: "Find out more about our Pets",
+							URL:         "https://swagger.io",
+						},
+					},
+					openapi.Tag{
+						Name:        "store",
+						Description: "Access to Petstore orders",
+						ExternalDocs: &openapi.ExternalDocs{
+							Description: "Find out more about our Store",
+							URL:         "https://swagger.io",
+						},
+					},
+					openapi.Tag{
+						Name:        "user",
+						Description: "Operations about user",
+					},
+				),
 				option.WithSecurity("petstore_auth", option.SecurityOAuth2(
 					openapi.OAuthFlows{
 						Implicit: &openapi.OAuthFlowsImplicit{
@@ -249,59 +80,154 @@ func TestRouter_Spec(t *testing.T) {
 								"read:pets":  "read your pets",
 							},
 						},
-					},
-				)),
+					}),
+				),
+				option.WithSecurity("apiKey", option.SecurityAPIKey("api_key", openapi.SecuritySchemeAPIKeyInHeader)),
 			},
 			setup: func(r fiberopenapi.Router) {
-				api := r.Group("/api")
-				v3 := api.Group("/v3")
-				v3.Route("/pet", func(r fiberopenapi.Router) {
-					r.Get("/findByStatus", nil).With(
-						option.Summary("Finds Pets by status."),
-						option.Description("Multiple status values can be provided with comma separated strings"),
-						option.Request(new(FindPetsByStatusRequest)),
-						option.Response(200, new([]Pet)),
-					)
-					r.Get("/findByTags", nil).With(
-						option.Summary("Finds Pets by tags."),
-						option.Description("Multiple tags can be provided with comma separated strings. Use tag1, tag2, tag3 for testing."),
-						option.Request(new(FindPetsByTagsRequest)),
-						option.Response(200, new([]Pet)),
-					)
-					r.Get("/:petId", nil).With(
-						option.Summary("Find a pet by ID."),
-						option.Description("Returns a single pet."),
-						option.Request(new(FindPetByIdRequest)),
-						option.Response(200, new(Pet)),
-					)
-					r.Post("/:petId", nil).With(
-						option.Summary("Updates a pet in the store with form data."),
-						option.Description("Update a pet resource based on form data."),
-						option.Request(new(UpdatePetFormDataRequest)),
-						option.Response(200, new(Pet)),
-					)
-					r.Delete("/:petId", nil).With(
-						option.Summary("Deletes a pet."),
-						option.Request(new(DeletePetRequest)),
-					)
-					r.Post("/:petId/uploadImage", nil).With(
-						option.Summary("Uploads an image."),
-						option.Description("Uploads image of the pet."),
-						option.Request(new(UploadImageRequest)),
-						option.Response(200, new(ApiResponse)),
-					)
-					r.Post("/", nil).With(
-						option.Summary("Add a new pet to the store."),
-						option.Request(new(Pet)),
-						option.Response(200, new(Pet)),
-					)
-					r.Put("/", nil).With(
-						option.Summary("Update an existing pet."),
-						option.Description("Update an existing pet by Id."),
-						option.Request(new(Pet)),
-						option.Response(200, new(Pet)),
-					)
-				}).With(option.GroupTags("pet"), option.GroupSecurity("petstore_auth", "write:pets", "read:pets"))
+				pet := r.Group("/pet").With(
+					option.GroupTags("pet"),
+					option.GroupSecurity("petstore_auth", "write:pets", "read:pets"),
+				)
+				pet.Put("/", nil).With(
+					option.OperationID("updatePet"),
+					option.Summary("Update an existing pet"),
+					option.Description("Update the details of an existing pet in the store."),
+					option.Request(new(dto.Pet)),
+					option.Response(200, new(dto.Pet)),
+				)
+				pet.Post("/", nil).With(
+					option.OperationID("addPet"),
+					option.Summary("Add a new pet"),
+					option.Description("Add a new pet to the store."),
+					option.Request(new(dto.Pet)),
+					option.Response(201, new(dto.Pet)),
+				)
+				pet.Get("/findByStatus", nil).With(
+					option.OperationID("findPetsByStatus"),
+					option.Summary("Find pets by status"),
+					option.Description("Finds Pets by status. Multiple status values can be provided with comma separated strings."),
+					option.Request(new(struct {
+						Status string `query:"status" enum:"available,pending,sold"`
+					})),
+					option.Response(200, new([]dto.Pet)),
+				)
+				pet.Get("/findByTags", nil).With(
+					option.OperationID("findPetsByTags"),
+					option.Summary("Find pets by tags"),
+					option.Description("Finds Pets by tags. Multiple tags can be provided with comma separated strings."),
+					option.Request(new(struct {
+						Tags []string `query:"tags"`
+					})),
+					option.Response(200, new([]dto.Pet)),
+				)
+				pet.Post("/{petId}/uploadImage", nil).With(
+					option.OperationID("uploadFile"),
+					option.Summary("Upload an image for a pet"),
+					option.Description("Uploads an image for a pet."),
+					option.Request(new(dto.UploadImageRequest)),
+					option.Response(200, new(dto.ApiResponse)),
+				)
+				pet.Get("/{petId}", nil).With(
+					option.OperationID("getPetById"),
+					option.Summary("Get pet by ID"),
+					option.Description("Retrieve a pet by its ID."),
+					option.Request(new(struct {
+						ID int `path:"petId" required:"true"`
+					})),
+					option.Response(200, new(dto.Pet)),
+				)
+				pet.Post("/{petId}", nil).With(
+					option.OperationID("updatePetWithForm"),
+					option.Summary("Update pet with form"),
+					option.Description("Updates a pet in the store with form data."),
+					option.Request(new(dto.UpdatePetWithFormRequest)),
+					option.Response(200, nil),
+				)
+				pet.Delete("/{petId}", nil).With(
+					option.OperationID("deletePet"),
+					option.Summary("Delete a pet"),
+					option.Description("Delete a pet from the store by its ID."),
+					option.Request(new(dto.DeletePetRequest)),
+					option.Response(204, nil),
+				)
+				store := r.Group("/store").With(
+					option.GroupTags("store"),
+				)
+				store.Post("/order", nil).With(
+					option.OperationID("placeOrder"),
+					option.Summary("Place an order"),
+					option.Description("Place a new order for a pet."),
+					option.Request(new(dto.Order)),
+					option.Response(201, new(dto.Order)),
+				)
+				store.Get("/order/{orderId}", nil).With(
+					option.OperationID("getOrderById"),
+					option.Summary("Get order by ID"),
+					option.Description("Retrieve an order by its ID."),
+					option.Request(new(struct {
+						ID int `path:"orderId" required:"true"`
+					})),
+					option.Response(200, new(dto.Order)),
+					option.Response(404, nil),
+				)
+				store.Delete("/order/{orderId}", nil).With(
+					option.OperationID("deleteOrder"),
+					option.Summary("Delete an order"),
+					option.Description("Delete an order by its ID."),
+					option.Request(new(struct {
+						ID int `path:"orderId" required:"true"`
+					})),
+					option.Response(204, nil),
+				)
+
+				user := r.Group("/user").With(
+					option.GroupTags("user"),
+				)
+				user.Post("/createWithList", nil).With(
+					option.OperationID("createUsersWithList"),
+					option.Summary("Create users with list"),
+					option.Description("Create multiple users in the store with a list."),
+					option.Request(new([]dto.PetUser)),
+					option.Response(201, nil),
+				)
+				user.Post("/", nil).With(
+					option.OperationID("createUser"),
+					option.Summary("Create a new user"),
+					option.Description("Create a new user in the store."),
+					option.Request(new(dto.PetUser)),
+					option.Response(201, new(dto.PetUser)),
+				)
+				user.Get("/{username}", nil).With(
+					option.OperationID("getUserByName"),
+					option.Summary("Get user by username"),
+					option.Description("Retrieve a user by their username."),
+					option.Request(new(struct {
+						Username string `path:"username" required:"true"`
+					})),
+					option.Response(200, new(dto.PetUser)),
+					option.Response(404, nil),
+				)
+				user.Put("/{username}", nil).With(
+					option.OperationID("updateUser"),
+					option.Summary("Update an existing user"),
+					option.Description("Update the details of an existing user."),
+					option.Request(new(struct {
+						Username string `path:"username" required:"true"`
+						dto.PetUser
+					})),
+					option.Response(200, new(dto.PetUser)),
+					option.Response(404, nil),
+				)
+				user.Delete("/{username}", nil).With(
+					option.OperationID("deleteUser"),
+					option.Summary("Delete a user"),
+					option.Description("Delete a user from the store by their username."),
+					option.Request(new(struct {
+						Username string `path:"username" required:"true"`
+					})),
+					option.Response(204, nil),
+				)
 			},
 		},
 		{
