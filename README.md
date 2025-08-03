@@ -298,7 +298,7 @@ A: The library is in active development. While the core functionality is solid, 
 
 ## Roadmap
 
-- [ ] Chi adapter
+- [ ] Mux adapter
 - [ ] HTTP adapter
 - [ ] Stoplight support
 - [ ] Redoc UI support
