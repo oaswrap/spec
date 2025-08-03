@@ -90,35 +90,34 @@ func (r *router) Handle(pattern string, handler http.Handler) Route {
 	return route
 }
 
-func (r *router) Group(prefix string, mux *http.ServeMux, middlewares ...func(http.Handler) http.Handler) Router {
+func (r *router) Group(prefix string, middlewares ...func(http.Handler) http.Handler) Router {
 	// Normalize prefix
 	if !strings.HasPrefix(prefix, "/") {
 		prefix = "/" + prefix
 	}
 	prefix = strings.TrimSuffix(prefix, "/")
 
-	if mux != nil && r.mux != nil {
-		// Mount with proper pattern
-		pattern := prefix + "/"
-		if prefix == "/" {
-			pattern = "/"
-		}
-
-		handler := http.Handler(mux)
-		if len(middlewares) > 0 {
-			// Apply middlewares in reverse order
-			slices.Reverse(middlewares)
-
-			for _, mw := range middlewares {
-				handler = mw(handler)
-			}
-			handler = http.StripPrefix(prefix, handler)
-		} else {
-			handler = http.StripPrefix(prefix, mux)
-		}
-
-		r.mux.Handle(pattern, handler)
+	// Mount with proper pattern
+	pattern := prefix + "/"
+	if prefix == "/" {
+		pattern = "/"
 	}
+
+	mux := http.NewServeMux()
+	handler := http.Handler(mux)
+	if len(middlewares) > 0 {
+		// Apply middlewares in reverse order
+		slices.Reverse(middlewares)
+
+		for _, mw := range middlewares {
+			handler = mw(handler)
+		}
+		handler = http.StripPrefix(prefix, handler)
+	} else {
+		handler = http.StripPrefix(prefix, mux)
+	}
+
+	r.mux.Handle(pattern, handler)
 
 	subRouter := r.specRouter.Group(prefix)
 
@@ -127,6 +126,19 @@ func (r *router) Group(prefix string, mux *http.ServeMux, middlewares ...func(ht
 		specRouter: subRouter,
 		gen:        r.gen,
 	}
+}
+
+func (r *router) Route(prefix string, fn func(r Router), middlewares ...func(http.Handler) http.Handler) Router {
+	// Normalize prefix
+	if !strings.HasPrefix(prefix, "/") {
+		prefix = "/" + prefix
+	}
+	prefix = strings.TrimSuffix(prefix, "/")
+
+	subRouter := r.Group(prefix, middlewares...)
+	fn(subRouter)
+
+	return subRouter
 }
 
 func (r *router) With(opts ...option.GroupOption) Router {

@@ -70,7 +70,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Simulate login logic
-	json.NewEncoder(w).Encode(LoginResponse{Token: "example-token"})
+	_ = json.NewEncoder(w).Encode(LoginResponse{Token: "example-token"})
 }
 
 func GetUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -83,5 +83,5 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	req.ID = id
 	// Simulate fetching user by ID
 	user := User{ID: req.ID, Name: "John Doe"}
-	json.NewEncoder(w).Encode(user)
+	_ = json.NewEncoder(w).Encode(user)
 }

@@ -78,7 +78,7 @@ func TestRouter_Spec(t *testing.T) {
 				option.WithSecurity("apiKey", option.SecurityAPIKey("api_key", openapi.SecuritySchemeAPIKeyInHeader)),
 			},
 			setup: func(r httpopenapi.Router) {
-				pet := r.Group("/pet", http.NewServeMux()).With(
+				pet := r.Group("/pet").With(
 					option.GroupTags("pet"),
 					option.GroupSecurity("petstore_auth", "write:pets", "read:pets"),
 				)
@@ -145,7 +145,7 @@ func TestRouter_Spec(t *testing.T) {
 					option.Response(204, nil),
 				)
 
-				store := r.Group("/store", http.NewServeMux()).With(
+				store := r.Group("/store").With(
 					option.GroupTags("store"),
 				)
 				store.HandleFunc("POST /order", nil).With(
@@ -174,7 +174,7 @@ func TestRouter_Spec(t *testing.T) {
 					})),
 					option.Response(204, nil),
 				)
-				user := r.Group("/user", http.NewServeMux()).With(
+				user := r.Group("/user").With(
 					option.GroupTags("user"),
 				)
 				user.HandleFunc("POST /createWithList", nil).With(

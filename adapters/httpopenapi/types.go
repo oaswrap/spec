@@ -39,7 +39,10 @@ type Router interface {
 	Handle(pattern string, handler http.Handler) Route
 
 	// Group creates a new sub-router with the specified options.
-	Group(prefix string, mux *http.ServeMux, middlewares ...func(http.Handler) http.Handler) Router
+	Group(prefix string, middlewares ...func(http.Handler) http.Handler) Router
+
+	// Route creates a new route with the specified pattern and handler function.
+	Route(prefix string, fn func(r Router), middlewares ...func(http.Handler) http.Handler) Router
 
 	// With applies group level options to the router.
 	With(opts ...option.GroupOption) Router

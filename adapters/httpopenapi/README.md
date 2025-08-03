@@ -40,20 +40,21 @@ func main() {
 		option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
 	)
 
-	v1 := r.Group("/api/v1", http.NewServeMux())
-	v1.HandleFunc("POST /login", LoginHandler).With(
-		option.Summary("User login"),
-		option.Request(new(LoginRequest)),
-		option.Response(200, new(LoginResponse)),
-	)
-	auth := v1.Group("/", http.NewServeMux(), AuthMiddleware).With(
-		option.GroupSecurity("bearerAuth"),
-	)
-	auth.HandleFunc("GET /users/{id}", GetUserHandler).With(
-		option.Summary("Get user by ID"),
-		option.Request(new(GetUserRequest)),
-		option.Response(200, new(User)),
-	)
+	r.Route("/api/v1", func(r httpopenapi.Router) {
+		r.HandleFunc("POST /login", LoginHandler).With(
+			option.Summary("User login"),
+			option.Request(new(LoginRequest)),
+			option.Response(200, new(LoginResponse)),
+		)
+		auth := r.Group("/", AuthMiddleware).With(
+			option.GroupSecurity("bearerAuth"),
+		)
+		auth.HandleFunc("GET /users/{id}", GetUserHandler).With(
+			option.Summary("Get user by ID"),
+			option.Request(new(GetUserRequest)),
+			option.Response(200, new(User)),
+		)
+	})
 
 	// Generate OpenAPI spec
 	if err := r.WriteSchemaTo("openapi.yaml"); err != nil {
@@ -105,7 +106,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Simulate login logic
-	json.NewEncoder(w).Encode(LoginResponse{Token: "example-token"})
+	_ = json.NewEncoder(w).Encode(LoginResponse{Token: "example-token"})
 }
 
 func GetUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -118,7 +119,7 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	req.ID = id
 	// Simulate fetching user by ID
 	user := User{ID: req.ID, Name: "John Doe"}
-	json.NewEncoder(w).Encode(user)
+	_ = json.NewEncoder(w).Encode(user)
 }
 ```
 
