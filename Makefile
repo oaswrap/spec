@@ -138,14 +138,29 @@ endif
 
 # -------------------------------
 # Release & Dev Tag
+.PHONY: release
+release: release-check
+ifndef VERSION
+	$(error Usage: make release VERSION=v1.2.3)
+endif
+	@echo "🚀 Running release quality gate..."
+	@make check-release
+	@echo "🏷️  Tagging release $(VERSION)..."
+	@git tag $(VERSION)
+	@git push origin $(VERSION)
+	@echo "🎉 Production release $(VERSION) created and pushed!"
+
 .PHONY: release-dev
 release-dev: release-check
 ifndef VERSION
-	$(error Usage: make release-dev VERSION=v0.2.0-dev.1)
+	$(error Usage: make release-dev VERSION=v1.2.3-dev.1)
 endif
-	@make sync tidy fix-replace test
+	@echo "🚀 Running dev release checks..."
+	@make check-release
+	@echo "🏷️  Tagging dev release $(VERSION)..."
 	@git tag $(VERSION)
 	@git push origin $(VERSION)
+	@echo "🎉 Dev release $(VERSION) created and pushed!"
 
 # -------------------------------
 # Help
@@ -160,7 +175,8 @@ help:
 	@echo "make lint                # Run linters"
 	@echo "make fix-replace         # Drop local replaces"
 	@echo "make check               # Local dev check"
-	@echo "make check-release       # Release check with strict replace"
+	@echo "make check-release       # Full release check"
 	@echo "make release-check       # Ensure clean git state"
 	@echo "make bump-dev NEXT=...   # Bump adapters version"
+	@echo "make release VERSION=... # Tag production release"
 	@echo "make release-dev VERSION=...  # Tag dev version"
