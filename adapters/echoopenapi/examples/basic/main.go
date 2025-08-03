@@ -39,7 +39,9 @@ func main() {
 
 	log.Printf("🚀 OpenAPI docs available at: %s", "http://localhost:3000/docs")
 
-	e.Start(":3000")
+	if err := e.Start(":3000"); err != nil {
+		log.Fatal(err)
+	}
 }
 
 type LoginRequest struct {

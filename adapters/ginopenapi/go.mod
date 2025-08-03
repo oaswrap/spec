@@ -4,8 +4,8 @@ go 1.21
 
 require (
 	github.com/gin-gonic/gin v1.10.1
-	github.com/oaswrap/spec v0.1.5
-	github.com/stretchr/testify v1.9.0
+	github.com/oaswrap/spec v0.0.0
+	github.com/stretchr/testify v1.10.0
 	github.com/swaggest/swgui v1.8.4
 )
 
@@ -44,3 +44,5 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/oaswrap/spec => ../..

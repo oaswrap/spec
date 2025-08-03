@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	github.com/labstack/echo/v4 v4.13.4
-	github.com/oaswrap/spec v0.1.5
+	github.com/oaswrap/spec v0.0.0
 	github.com/stretchr/testify v1.10.0
 	github.com/swaggest/swgui v1.8.4
 )
@@ -28,3 +28,5 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/oaswrap/spec => ../..
