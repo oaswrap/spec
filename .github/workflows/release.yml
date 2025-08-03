@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   # ========================================
-  # Release Validation
+  # Validate Release
   # ========================================
   validate:
     name: 🔍 Validate Release
@@ -21,7 +21,7 @@ jobs:
 
     outputs:
       version: ${{ steps.version.outputs.version }}
-      is_prerelease: ${{ steps.version.outputs.prerelease }}
+      is_prerelease: ${{ steps.version.outputs.is_prerelease }}
 
     steps:
     - name: 📥 Checkout
@@ -44,15 +44,18 @@ jobs:
         VERSION=${GITHUB_REF#refs/tags/}
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         if [[ $VERSION == *"-"* ]]; then
-          echo "prerelease=true" >> $GITHUB_OUTPUT
+          echo "is_prerelease=true" >> $GITHUB_OUTPUT
         else
-          echo "prerelease=false" >> $GITHUB_OUTPUT
+          echo "is_prerelease=false" >> $GITHUB_OUTPUT
         fi
         echo "📋 Version: $VERSION"
         echo "🔖 Pre-release: $([[ $VERSION == *"-"* ]] && echo "true" || echo "false")"
 
     - name: ✅ Run Release Quality Gate
       run: make check-release
+
+    - name: 🔍 Final Replace Check
+      run: make check-replace-strict
 
   # ========================================
   # Create GitHub Release
@@ -72,23 +75,18 @@ jobs:
     - name: 📝 Generate Changelog
       id: changelog
       run: |
-        if git tag --list | grep -q "v"; then
-          PREVIOUS_TAG=$(git tag --list "v*" --sort=-version:refname | grep -v "${{ needs.validate.outputs.version }}" | head -n1)
-          if [ -n "$PREVIOUS_TAG" ]; then
-            echo "## What's Changed" > changelog.md
-            echo "" >> changelog.md
-            git log --pretty=format:"- %s (%h)" "$PREVIOUS_TAG..${{ needs.validate.outputs.version }}" >> changelog.md
-          else
-            echo "## Initial Release" > changelog.md
-            echo "" >> changelog.md
-            echo "🎉 First release of the project!" >> changelog.md
-          fi
+        PREVIOUS=$(git tag --sort=-v:refname | grep '^v' | grep -v "${{ needs.validate.outputs.version }}" | head -n1)
+        if [ -n "$PREVIOUS" ]; then
+          echo "## What's Changed" > changelog.md
+          echo "" >> changelog.md
+          git log --pretty=format:"- %s (%h)" "$PREVIOUS..${{ needs.validate.outputs.version }}" >> changelog.md
         else
           echo "## Initial Release" > changelog.md
           echo "" >> changelog.md
-          echo "🎉 First release of the project!" >> changelog.md
+          echo "🎉 First official release!" >> changelog.md
+        fi
 
-    - name: 🚀 Publish GitHub Release
+    - name: 🚀 Create GitHub Release
       uses: softprops/action-gh-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
