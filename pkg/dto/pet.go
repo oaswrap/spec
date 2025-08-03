@@ -1,4 +1,4 @@
-package main
+package dto
 
 import (
 	"mime/multipart"
@@ -51,7 +51,7 @@ type Order struct {
 	Complete bool      `json:"complete"`
 }
 
-type User struct {
+type PetUser struct {
 	ID         int    `json:"id"`
 	Username   string `json:"username"`
 	FirstName  string `json:"firstName"`

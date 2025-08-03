@@ -1,7 +1,6 @@
 # oaswrap/spec
 
 [![CI](https://github.com/oaswrap/spec/actions/workflows/ci.yml/badge.svg)](https://github.com/oaswrap/spec/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/oaswrap/spec/branch/main/graph/badge.svg)](https://codecov.io/gh/oaswrap/spec)
 [![Go Reference](https://pkg.go.dev/badge/github.com/oaswrap/spec.svg)](https://pkg.go.dev/github.com/oaswrap/spec)
 [![Go Report Card](https://goreportcard.com/badge/github.com/oaswrap/spec)](https://goreportcard.com/report/github.com/oaswrap/spec)
 [![License](https://img.shields.io/github/license/oaswrap/spec)](LICENSE)
@@ -98,9 +97,9 @@ For seamless HTTP server integration, use one of our framework adapters. Each ad
 
 | Framework | Adapter Package |
 |-----------|-----------------|
-| **Gin** | [oaswrap/ginopenapi](https://github.com/oaswrap/ginopenapi) |
-| **Echo** | [oaswrap/echoopenapi](https://github.com/oaswrap/echoopenapi) |
-| **Fiber** | [oaswrap/fiberopenapi](https://github.com/oaswrap/fiberopenapi) |
+| **Gin** | [ginopenapi](/adapters/ginopenapi) |
+| **Echo** | [echoopenapi](/adapters/echoopenapi) |
+| **Fiber** | [fiberopenapi](/adapters/fiberopenapi) |
 
 Each adapter provides:
 - Automatic spec generation from your routes
@@ -130,7 +129,7 @@ option.WithLicense(openapi.License{
 	URL:  "https://opensource.org/licenses/MIT",
 })
 option.WithExternalDocs("https://docs.example.com", "API Documentation")
-option.Tags(
+option.WithTags(
 	openapi.Tag{
 		Name:        "User Management",
 		Description: "Operations related to user management",
@@ -273,11 +272,6 @@ Check out the [`examples/`](examples/) directory for complete working examples:
 
 - **[Basic](examples/basic/)** — Standalone spec generation
 - **[Petstore](examples/petstore/)** — Full Petstore API example with routes and models
-
-For framework-specific examples, visit the individual adapter repositories:
-- **Gin examples** — See [oaswrap/ginopenapi](https://github.com/oaswrap/ginopenapi)
-- **Echo examples** — See [oaswrap/echoopenapi](https://github.com/oaswrap/echoopenapi)  
-- **Fiber examples** — See [oaswrap/fiberopenapi](https://github.com/oaswrap/fiberopenapi)
 
 ## API Reference
 

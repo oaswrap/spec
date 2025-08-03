@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   contact:
     email: apiteam@swagger.io
@@ -9,24 +9,8 @@ info:
   termsOfService: https://swagger.io/terms/
   title: Petstore API
   version: 1.0.0
-externalDocs:
-  description: Find more info here about swagger
-  url: https://swagger.io
 servers:
 - url: https://petstore3.swagger.io/api/v3
-tags:
-- description: Everything about your Pets
-  externalDocs:
-    description: Find out more about our Pets
-    url: https://swagger.io
-  name: pet
-- description: Access to Petstore orders
-  externalDocs:
-    description: Find out more about our Store
-    url: https://swagger.io
-  name: store
-- description: Operations about user
-  name: user
 paths:
   /pet:
     post:
@@ -36,13 +20,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Pet'
+              $ref: '#/components/schemas/DtoPet'
       responses:
         "201":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Pet'
+                $ref: '#/components/schemas/DtoPet'
           description: Created
       security:
       - petstore_auth:
@@ -58,13 +42,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Pet'
+              $ref: '#/components/schemas/DtoPet'
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Pet'
+                $ref: '#/components/schemas/DtoPet'
           description: OK
       security:
       - petstore_auth:
@@ -111,7 +95,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Pet'
+                $ref: '#/components/schemas/DtoPet'
           description: OK
       security:
       - petstore_auth:
@@ -133,7 +117,7 @@ paths:
         content:
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/FormDataUpdatePetWithFormRequest'
+              $ref: '#/components/schemas/FormDataDtoUpdatePetWithFormRequest'
       responses:
         "200":
           description: OK
@@ -157,6 +141,7 @@ paths:
         name: petId
         required: true
         schema:
+          format: int64
           type: integer
       requestBody:
         content:
@@ -168,7 +153,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiResponse'
+                $ref: '#/components/schemas/DtoApiResponse'
           description: OK
       security:
       - petstore_auth:
@@ -197,8 +182,10 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/Pet'
-                type: array
+                  $ref: '#/components/schemas/DtoPet'
+                type:
+                - "null"
+                - array
           description: OK
       security:
       - petstore_auth:
@@ -218,15 +205,19 @@ paths:
         schema:
           items:
             type: string
-          type: array
+          type:
+          - array
+          - "null"
       responses:
         "200":
           content:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/Pet'
-                type: array
+                  $ref: '#/components/schemas/DtoPet'
+                type:
+                - "null"
+                - array
           description: OK
       security:
       - petstore_auth:
@@ -243,13 +234,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Order'
+              $ref: '#/components/schemas/DtoOrder'
       responses:
         "201":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Order'
+                $ref: '#/components/schemas/DtoOrder'
           description: Created
       summary: Place an order
       tags:
@@ -284,7 +275,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Order'
+                $ref: '#/components/schemas/DtoOrder'
           description: OK
         "404":
           description: Not Found
@@ -299,13 +290,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/DtoPetUser'
       responses:
         "201":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/DtoPetUser'
           description: Created
       summary: Create a new user
       tags:
@@ -340,7 +331,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/DtoPetUser'
           description: OK
         "404":
           description: Not Found
@@ -387,7 +378,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/DtoPetUser'
           description: OK
         "404":
           description: Not Found
@@ -403,9 +394,10 @@ paths:
           application/json:
             schema:
               items:
-                $ref: '#/components/schemas/User'
-              nullable: true
-              type: array
+                $ref: '#/components/schemas/DtoPetUser'
+              type:
+              - "null"
+              - array
       responses:
         "201":
           description: Created
@@ -414,7 +406,7 @@ paths:
       - user
 components:
   schemas:
-    ApiResponse:
+    DtoApiResponse:
       properties:
         code:
           type: integer
@@ -423,27 +415,14 @@ components:
         type:
           type: string
       type: object
-    Category:
+    DtoCategory:
       properties:
         id:
           type: integer
         name:
           type: string
       type: object
-    FormDataUpdatePetWithFormRequest:
-      properties:
-        name:
-          type: string
-        status:
-          enum:
-          - available
-          - pending
-          - sold
-          type: string
-      required:
-      - name
-      type: object
-    Order:
+    DtoOrder:
       properties:
         complete:
           type: boolean
@@ -463,10 +442,10 @@ components:
           - delivered
           type: string
       type: object
-    Pet:
+    DtoPet:
       properties:
         category:
-          $ref: '#/components/schemas/Category'
+          $ref: '#/components/schemas/DtoCategory'
         id:
           type: integer
         name:
@@ -474,8 +453,9 @@ components:
         photoUrls:
           items:
             type: string
-          nullable: true
-          type: array
+          type:
+          - array
+          - "null"
         status:
           enum:
           - available
@@ -484,20 +464,14 @@ components:
           type: string
         tags:
           items:
-            $ref: '#/components/schemas/Tag'
-          nullable: true
-          type: array
+            $ref: '#/components/schemas/DtoTag'
+          type:
+          - array
+          - "null"
         type:
           type: string
       type: object
-    Tag:
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-      type: object
-    User:
+    DtoPetUser:
       properties:
         email:
           type: string
@@ -520,6 +494,26 @@ components:
         username:
           type: string
       type: object
+    DtoTag:
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      type: object
+    FormDataDtoUpdatePetWithFormRequest:
+      properties:
+        name:
+          type: string
+        status:
+          enum:
+          - available
+          - pending
+          - sold
+          type: string
+      required:
+      - name
+      type: object
   securitySchemes:
     apiKey:
       in: header
@@ -533,3 +527,19 @@ components:
             read:pets: read your pets
             write:pets: modify pets in your account
       type: oauth2
+tags:
+- description: Everything about your Pets
+  externalDocs:
+    description: Find out more about our Pets
+    url: https://swagger.io
+  name: pet
+- description: Access to Petstore orders
+  externalDocs:
+    description: Find out more about our Store
+    url: https://swagger.io
+  name: store
+- description: Operations about user
+  name: user
+externalDocs:
+  description: Find more info here about swagger
+  url: https://swagger.io

@@ -7,7 +7,7 @@ info:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: https://swagger.io/terms/
-  title: Petstore API
+  title: Echo OpenAPI
   version: 1.0.0
 externalDocs:
   description: Find more info here about swagger
@@ -36,13 +36,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Pet'
+              $ref: '#/components/schemas/DtoPet'
       responses:
         "201":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Pet'
+                $ref: '#/components/schemas/DtoPet'
           description: Created
       security:
       - petstore_auth:
@@ -58,13 +58,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Pet'
+              $ref: '#/components/schemas/DtoPet'
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Pet'
+                $ref: '#/components/schemas/DtoPet'
           description: OK
       security:
       - petstore_auth:
@@ -111,7 +111,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Pet'
+                $ref: '#/components/schemas/DtoPet'
           description: OK
       security:
       - petstore_auth:
@@ -133,7 +133,7 @@ paths:
         content:
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/FormDataUpdatePetWithFormRequest'
+              $ref: '#/components/schemas/FormDataDtoUpdatePetWithFormRequest'
       responses:
         "200":
           description: OK
@@ -168,7 +168,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiResponse'
+                $ref: '#/components/schemas/DtoApiResponse'
           description: OK
       security:
       - petstore_auth:
@@ -197,7 +197,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/Pet'
+                  $ref: '#/components/schemas/DtoPet'
                 type: array
           description: OK
       security:
@@ -225,7 +225,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/Pet'
+                  $ref: '#/components/schemas/DtoPet'
                 type: array
           description: OK
       security:
@@ -243,13 +243,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Order'
+              $ref: '#/components/schemas/DtoOrder'
       responses:
         "201":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Order'
+                $ref: '#/components/schemas/DtoOrder'
           description: Created
       summary: Place an order
       tags:
@@ -284,7 +284,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Order'
+                $ref: '#/components/schemas/DtoOrder'
           description: OK
         "404":
           description: Not Found
@@ -299,13 +299,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/DtoPetUser'
       responses:
         "201":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/DtoPetUser'
           description: Created
       summary: Create a new user
       tags:
@@ -340,7 +340,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/DtoPetUser'
           description: OK
         "404":
           description: Not Found
@@ -387,7 +387,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/DtoPetUser'
           description: OK
         "404":
           description: Not Found
@@ -403,7 +403,7 @@ paths:
           application/json:
             schema:
               items:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/DtoPetUser'
               nullable: true
               type: array
       responses:
@@ -414,7 +414,7 @@ paths:
       - user
 components:
   schemas:
-    ApiResponse:
+    DtoApiResponse:
       properties:
         code:
           type: integer
@@ -423,27 +423,14 @@ components:
         type:
           type: string
       type: object
-    Category:
+    DtoCategory:
       properties:
         id:
           type: integer
         name:
           type: string
       type: object
-    FormDataUpdatePetWithFormRequest:
-      properties:
-        name:
-          type: string
-        status:
-          enum:
-          - available
-          - pending
-          - sold
-          type: string
-      required:
-      - name
-      type: object
-    Order:
+    DtoOrder:
       properties:
         complete:
           type: boolean
@@ -463,10 +450,10 @@ components:
           - delivered
           type: string
       type: object
-    Pet:
+    DtoPet:
       properties:
         category:
-          $ref: '#/components/schemas/Category'
+          $ref: '#/components/schemas/DtoCategory'
         id:
           type: integer
         name:
@@ -484,20 +471,13 @@ components:
           type: string
         tags:
           items:
-            $ref: '#/components/schemas/Tag'
+            $ref: '#/components/schemas/DtoTag'
           nullable: true
           type: array
         type:
           type: string
       type: object
-    Tag:
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-      type: object
-    User:
+    DtoPetUser:
       properties:
         email:
           type: string
@@ -519,6 +499,26 @@ components:
           type: integer
         username:
           type: string
+      type: object
+    DtoTag:
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      type: object
+    FormDataDtoUpdatePetWithFormRequest:
+      properties:
+        name:
+          type: string
+        status:
+          enum:
+          - available
+          - pending
+          - sold
+          type: string
+      required:
+      - name
       type: object
   securitySchemes:
     apiKey:
