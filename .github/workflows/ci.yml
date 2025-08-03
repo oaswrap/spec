@@ -64,5 +64,5 @@ jobs:
     - name: 🔧 Install Tools
       run: make install-tools
 
-    - name: 🧪 Run Tests
+    - name: 🧪 Run Tests in Parallel
       run: make test-parallel

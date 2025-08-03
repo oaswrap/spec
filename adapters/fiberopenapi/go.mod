@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/gofiber/fiber/v2 v2.52.9
-	github.com/oaswrap/spec v0.2.0-dev.1
+	github.com/oaswrap/spec v0.2.0-dev.2
 	github.com/stretchr/testify v1.10.0
 	github.com/swaggest/swgui v1.8.4
 )
@@ -30,5 +30,3 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/oaswrap/spec => ../..
