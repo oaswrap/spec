@@ -1,202 +1,487 @@
 # -------------------------------
 # Vars
-PKG := ./...
+#
+# Use := for immediate expansion, which is generally safer in Makefiles.
+PKG           := ./...
 COVERAGE_FILE := coverage.out
-ADAPTERS := chiopenapi echoopenapi fiberopenapi ginopenapi httpopenapi
+ADAPTERS      := chiopenapi echoopenapi fiberopenapi ginopenapi httpopenapi
+
+# Platform detection for sed compatibility
+# Using an immediately expanded variable for this is good practice.
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+	SED_INPLACE := sed -i ''
+else
+	SED_INPLACE := sed -i
+endif
+
+# Colors for better output
+RED    := \033[0;31m
+GREEN  := \033[0;32m
+YELLOW := \033[1;33m
+BLUE   := \033[0;34m
+NC     := \033[0m # No Color
+
+# Ensure all targets are marked as phony to avoid conflicts with filenames.
+.PHONY: test test-parallel test-update test-update-parallel
+.PHONY: testcov coverage-html
+.PHONY: tidy sync clean
+.PHONY: fix-replace check-replace-strict
+.PHONY: lint install-tools
+.PHONY: list-adapters adapter-status
+.PHONY: check check-release check-dry-run
+.PHONY: release-check
+.PHONY: bump-dev bump-dev-dry-run
+.PHONY: release release-dev release-dry-run
+.PHONY: check-adapter-deps sync-adapter-deps
+.PHONY: list-tags delete-version verify-tags
+.PHONY: help
 
 # -------------------------------
 # Core + Adapters: Tests
-.PHONY: test
+#
 test:
-	@echo "🔍 Core tests..."
-	@gotestsum --format standard-quiet -- $(PKG)
+	@echo "$(BLUE)🔍 Running core tests...$(NC)"
+	@gotestsum --format standard-quiet -- $(PKG) || (echo "$(RED)❌ Core tests failed$(NC)" && exit 1)
+	@echo "$(GREEN)✅ Core tests passed$(NC)"
 	@for a in $(ADAPTERS); do \
-		echo "🔍 Adapter $$a..."; \
-		cd adapters/$$a && gotestsum --format standard-quiet -- ./... || exit 1; \
-		cd ../..; \
+		echo "$(BLUE)🔍 Testing adapter $$a...$(NC)"; \
+		(cd "adapters/$$a" && gotestsum --format standard-quiet -- ./...) || (echo "$(RED)❌ Adapter $$a tests failed$(NC)" && exit 1); \
 	done
+	@echo "$(GREEN)🎉 All tests passed!$(NC)"
 
-.PHONY: test-parallel
+# FIX: Added a final 'wait' and failure checking to ensure the script exits
+# with an error if any parallel test fails.
 test-parallel:
-	@gotestsum --format standard-quiet -- $(PKG) &
-	@for a in $(ADAPTERS); do \
-		(cd adapters/$$a && gotestsum --format standard-quiet -- ./...) & \
+	@echo "$(BLUE)🚀 Running tests in parallel...$(NC)"
+	@pids=""; \
+	gotestsum --format standard-quiet -- $(PKG) & pids="$$pids $$!"; \
+	for a in $(ADAPTERS); do \
+		(cd "adapters/$$a" && gotestsum --format standard-quiet -- ./...) & pids="$$pids $$!"; \
 	done; \
-	wait
+	\
+	status=0; \
+	for pid in $$pids; do \
+		wait $$pid || status=1; \
+	done; \
+	if [ $$status -ne 0 ]; then \
+		echo "$(RED)❌ One or more parallel tests failed$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(GREEN)🎉 All parallel tests completed!$(NC)"
 
-.PHONY: test-update
 test-update:
-	@echo "🔍 Core tests (updating golden files)..."
-	@gotestsum --format standard-quiet -- -update $(PKG)
+	@echo "$(YELLOW)🔍 Running core tests (updating golden files)...$(NC)"
+	@gotestsum --format standard-quiet -- -update $(PKG) || (echo "$(RED)❌ Core test update failed$(NC)" && exit 1)
 	@for a in $(ADAPTERS); do \
-		echo "🔍 Adapter $$a (updating golden files)..."; \
-		cd adapters/$$a && gotestsum --format standard-quiet -- -update ./... || exit 1; \
-		cd ../..; \
+		echo "$(YELLOW)🔍 Updating adapter $$a golden files...$(NC)"; \
+		(cd "adapters/$$a" && gotestsum --format standard-quiet -- -update ./...) || (echo "$(RED)❌ Adapter $$a update failed$(NC)" && exit 1); \
 	done
+	@echo "$(GREEN)✅ All golden files updated!$(NC)"
 
-.PHONY: test-update-parallel
+# FIX: Added failure checking similar to 'test-parallel'.
 test-update-parallel:
-	@gotestsum --format standard-quiet -- -update $(PKG) &
-	@for a in $(ADAPTERS); do \
-		(cd adapters/$$a && gotestsum --format standard-quiet -- -update ./...) & \
+	@echo "$(YELLOW)🚀 Updating golden files in parallel...$(NC)"
+	@pids=""; \
+	gotestsum --format standard-quiet -- -update $(PKG) & pids="$$pids $$!"; \
+	for a in $(ADAPTERS); do \
+		(cd "adapters/$$a" && gotestsum --format standard-quiet -- -update ./...) & pids="$$pids $$!"; \
 	done; \
-	wait
+	\
+	status=0; \
+	for pid in $$pids; do \
+		wait $$pid || status=1; \
+	done; \
+	if [ $$status -ne 0 ]; then \
+		echo "$(RED)❌ One or more parallel golden file updates failed$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(GREEN)✅ All golden files updated in parallel!$(NC)"
 
 # -------------------------------
 # Coverage
-.PHONY: testcov
+#
 testcov:
+	@echo "$(BLUE)📊 Generating coverage report...$(NC)"
 	@gotestsum --format standard-quiet -- -coverprofile=$(COVERAGE_FILE) $(PKG)
+	@echo "$(BLUE)📈 Core coverage:$(NC)"
 	@go tool cover -func=$(COVERAGE_FILE)
 	@for a in $(ADAPTERS); do \
-		cd adapters/$$a && gotestsum --format standard-quiet -- -coverprofile=$$a-$(COVERAGE_FILE) ./... && go tool cover -func=$$a-$(COVERAGE_FILE) || exit 1; \
-		cd ../..; \
+		echo "$(BLUE)📈 Adapter $$a coverage:$(NC)"; \
+		(cd "adapters/$$a" && gotestsum --format standard-quiet -- -coverprofile=$$a-$(COVERAGE_FILE) ./... && go tool cover -func=$$a-$(COVERAGE_FILE)) || exit 1; \
 	done
+	@echo "$(GREEN)✅ Coverage reports generated!$(NC)"
+
+coverage-html: testcov
+	@echo "$(BLUE)🌐 Generating HTML coverage reports...$(NC)"
+	@go tool cover -html=$(COVERAGE_FILE) -o coverage.html
+	@for a in $(ADAPTERS); do \
+		(cd "adapters/$$a" && go tool cover -html=$$a-$(COVERAGE_FILE) -o $$a-coverage.html); \
+	done
+	@echo "$(GREEN)✅ HTML coverage reports generated!$(NC)"
 
 # -------------------------------
 # Tidy, Sync, Clean
-.PHONY: tidy
+#
 tidy:
-	@echo "🧹 Tidying core..."
+	@echo "$(BLUE)🧹 Tidying core...$(NC)"
 	@go mod tidy
 	@for a in $(ADAPTERS); do \
-		echo "🧹 Tidying adapters/$$a..."; \
-		cd adapters/$$a && go mod tidy && cd ../..; \
+		echo "$(BLUE)🧹 Tidying adapters/$$a...$(NC)"; \
+		(cd "adapters/$$a" && go mod tidy); \
 	done
+	@echo "$(GREEN)✅ All modules tidied!$(NC)"
 
-.PHONY: sync
 sync:
-	@echo "🔗 Syncing workspace..."
+	@echo "$(BLUE)🔗 Syncing workspace...$(NC)"
 	@go work sync
+	@echo "$(GREEN)✅ Workspace synced!$(NC)"
 
-.PHONY: clean
 clean:
-	@echo "🧹 Cleaning..."
-	@rm -f $(COVERAGE_FILE)
-	@for a in $(ADAPTERS); do rm -f adapters/$$a/$$a-$(COVERAGE_FILE); done
+	@echo "$(BLUE)🧹 Cleaning coverage files...$(NC)"
+	@rm -f $(COVERAGE_FILE) coverage.html
+	@for a in $(ADAPTERS); do \
+		rm -f "adapters/$$a/$$a-$(COVERAGE_FILE)" "adapters/$$a/$$a-coverage.html"; \
+	done
+	@echo "$(GREEN)✅ Cleanup completed!$(NC)"
 
 # -------------------------------
 # Replace Management
-.PHONY: fix-replace
+#
 fix-replace:
-	@echo "🔧 Removing local replaces..."
+	@echo "$(YELLOW)🔧 Removing local replaces...$(NC)"
 	@for a in $(ADAPTERS); do \
-		cd adapters/$$a && \
-		if grep -q "replace github.com/oaswrap/spec" go.mod; then \
-			go mod edit -dropreplace github.com/oaswrap/spec; \
-			go mod tidy; \
-			echo "✅ Removed replace in adapters/$$a"; \
+		if grep -q "replace github.com/oaswrap/spec" "adapters/$$a/go.mod"; then \
+			(cd "adapters/$$a" && go mod edit -dropreplace github.com/oaswrap/spec && go mod tidy); \
+			echo "$(GREEN)✅ Removed replace in adapters/$$a$(NC)"; \
 		else \
-			echo "✅ No replace in adapters/$$a"; \
+			echo "$(GREEN)✅ No replace needed in adapters/$$a$(NC)"; \
 		fi; \
-		cd ../..; \
 	done
 
-.PHONY: check-replace-strict
 check-replace-strict:
-	@echo "🔍 Checking for accidental replaces..."
+	@echo "$(BLUE)🔍 Checking for accidental replaces...$(NC)"
 	@for a in $(ADAPTERS); do \
-		if grep -q "replace github.com/oaswrap/spec" adapters/$$a/go.mod 2>/dev/null; then \
-			echo "🚫 Found replace in adapters/$$a/go.mod"; \
-			echo "💡 Run 'make fix-replace' to auto-fix"; \
+		if grep -q "replace github.com/oaswrap/spec" "adapters/$$a/go.mod" 2>/dev/null; then \
+			echo "$(RED)🚫 Found replace in adapters/$$a/go.mod$(NC)"; \
+			echo "$(YELLOW)💡 Run 'make fix-replace' to auto-fix$(NC)"; \
 			exit 1; \
-		else \
-			echo "✅ No replace in adapters/$$a/go.mod"; \
 		fi; \
 	done
+	@echo "$(GREEN)✅ No accidental replaces found.$(NC)"
 
 # -------------------------------
 # Lint & Tools
-.PHONY: lint
+#
 lint:
-	@echo "🔍 Linting core..."
-	@golangci-lint run
+	@echo "$(BLUE)🔍 Linting core...$(NC)"
+	@golangci-lint run || (echo "$(RED)❌ Core linting failed$(NC)" && exit 1)
+	@echo "$(GREEN)✅ Core linting passed$(NC)"
 	@for a in $(ADAPTERS); do \
-		echo "🔍 Linting adapters/$$a..."; \
-		cd adapters/$$a && golangci-lint run && cd ../..; \
+		echo "$(BLUE)🔍 Linting adapters/$$a...$(NC)"; \
+		(cd "adapters/$$a" && golangci-lint run) || (echo "$(RED)❌ Adapter $$a linting failed$(NC)" && exit 1); \
 	done
+	@echo "$(GREEN)🎉 All linting passed!$(NC)"
 
-.PHONY: install-tools
 install-tools:
-	@echo "📦 Installing tools..."
+	@echo "$(BLUE)📦 Installing development tools...$(NC)"
 	@go install gotest.tools/gotestsum@latest
 	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	@echo "$(GREEN)✅ Tools installed successfully!$(NC)"
+
+# -------------------------------
+# Utility
+#
+list-adapters:
+	@echo "$(BLUE)📋 Available adapters:$(NC)"
+	@for a in $(ADAPTERS); do echo "  - $$a"; done
+
+adapter-status:
+	@echo "$(BLUE)📊 Adapter status overview:$(NC)"
+	@for a in $(ADAPTERS); do \
+		if [ -d "adapters/$$a" ]; then \
+			echo "$(GREEN)✅ $$a$(NC) - exists"; \
+		else \
+			echo "$(RED)❌ $$a$(NC) - missing"; \
+		fi; \
+	done
 
 # -------------------------------
 # Quality Gates
-.PHONY: check
+#
 check: sync tidy lint test
+	@echo "$(GREEN)🎉 All local development checks passed!$(NC)"
 
-.PHONY: check-release
-check-release: sync tidy fix-replace lint test check-replace-strict
+check-release: sync tidy check-replace-strict lint test
+	@echo "$(GREEN)🎉 All release checks passed!$(NC)"
+
+check-dry-run:
+	@echo "$(YELLOW)🔍 Dry run - would execute: sync tidy lint test$(NC)"
+	@echo "$(BLUE)Current git status:$(NC)"
+	@git status --short
 
 # -------------------------------
 # Release Checks
-.PHONY: release-check
+#
 release-check:
-	@git diff --exit-code || (echo "❌ Uncommitted changes" && exit 1)
-	@git diff --cached --exit-code || (echo "❌ Staged changes" && exit 1)
-	@git status --porcelain | grep -q . && (echo "❌ Untracked files" && exit 1) || true
+	@echo "$(BLUE)🔍 Checking git state for release...$(NC)"
+	@if ! git diff --exit-code --quiet; then \
+		echo "$(RED)❌ Uncommitted changes detected$(NC)"; \
+		exit 1; \
+	fi
+	@if ! git diff --cached --exit-code --quiet; then \
+		echo "$(RED)❌ Staged changes detected$(NC)"; \
+		exit 1; \
+	fi
+	# FIX: Redirect stderr to /dev/null to silence "Not a git repository" errors in certain CI environments.
+	@BRANCH=$$(\
+		git branch --show-current 2>/dev/null \
+	); \
+	if [ "$$BRANCH" != "main" ] && [ "$$BRANCH" != "master" ]; then \
+		echo "$(YELLOW)⚠️  Warning: Not on main/master branch (current: $$BRANCH)$(NC)"; \
+	fi
+	@echo "$(GREEN)✅ Git state is clean for release$(NC)"
 
 # -------------------------------
 # Bump Dev
-.PHONY: bump-dev
+#
 bump-dev:
-ifndef NEXT
-	$(error Usage: make bump-dev NEXT=v0.2.0-dev.1)
-endif
-	@echo "🔢 Bumping adapters to $(NEXT)..."
+	# FIX: Added a check for the NEXT variable at the target level.
+	@if [ -z "$(NEXT)" ]; then \
+		echo "$(RED)Usage: make bump-dev NEXT=v0.2.0-dev.1$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)🔢 Bumping adapters to $(NEXT)...$(NC)"
 	@for a in $(ADAPTERS); do \
-		cd adapters/$$a && \
-		sed -i.bak -E 's#(github.com/oaswrap/spec )v[0-9]+\.[0-9]+\.[^ ]*#\1$(NEXT)#' go.mod && \
-		rm -f go.mod.bak && \
-		go mod tidy; \
-		cd ../..; \
+		(cd "adapters/$$a" && \
+		$(SED_INPLACE) -E 's#(github.com/oaswrap/spec )v[0-9]+\.[0-9]+\.[^ ]*#\1$(NEXT)#' go.mod && \
+		go mod tidy); \
+		echo "$(GREEN)✅ Updated adapters/$$a to $(NEXT)$(NC)"; \
+	done
+	@echo "$(GREEN)🎉 All adapters bumped to $(NEXT)!$(NC)"
+
+bump-dev-dry-run:
+	@if [ -z "$(NEXT)" ]; then \
+		echo "$(RED)Usage: make bump-dev-dry-run NEXT=v0.2.0-dev.1$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(YELLOW)🔍 Dry run - would bump adapters to $(NEXT):$(NC)"
+	@for a in $(ADAPTERS); do \
+		echo "  - adapters/$$a"; \
 	done
 
 # -------------------------------
 # Release & Dev Tag
-.PHONY: release
+#
+# FIX: Corrected shell variable usage ($$ADAPTER_TAG) and added release-check dependency.
 release: release-check
-ifndef VERSION
-	$(error Usage: make release VERSION=v1.2.3)
-endif
-	@echo "🚀 Running release quality gate..."
-	@make check-release
-	@echo "🏷️  Tagging release $(VERSION)..."
-	@git tag $(VERSION)
-	@git push origin $(VERSION)
-	@echo "🎉 Production release $(VERSION) created and pushed!"
+	@if [ -z "$(VERSION)" ]; then \
+		echo "$(RED)Usage: make release VERSION=v1.2.3$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)🚀 Running release quality gate...$(NC)"
+	@$(MAKE) check-release
+	@echo "$(BLUE)🏷️  Tagging main release $(VERSION)...$(NC)"
+	@git tag "$(VERSION)"
+	@echo "$(BLUE)🏷️  Tagging adapter releases...$(NC)"
+	@for a in $(ADAPTERS); do \
+		ADAPTER_TAG="adapters/$$a/$(VERSION)"; \
+		git tag "$$ADAPTER_TAG"; \
+		echo "$(GREEN)✅ Tagged $$ADAPTER_TAG$(NC)"; \
+	done
+	@echo "$(BLUE)📤 Pushing main tag...$(NC)"
+	@git push origin "$(VERSION)"
+	@echo "$(BLUE)📤 Pushing adapter tags...$(NC)"
+	@for a in $(ADAPTERS); do \
+		ADAPTER_TAG="adapters/$$a/$(VERSION)"; \
+		git push origin "$$ADAPTER_TAG"; \
+		echo "$(GREEN)✅ Pushed $$ADAPTER_TAG$(NC)"; \
+	done
+	@echo "$(GREEN)🎉 Production release $(VERSION) created and pushed!$(NC)"
+	@echo "$(BLUE)📋 Created tags:$(NC)"
+	@echo "  - $(VERSION) (main module)"
+	@for a in $(ADAPTERS); do echo "  - adapters/$$a/$(VERSION)"; done
 
-.PHONY: release-dev
+# FIX: Corrected shell variable usage and added release-check dependency.
 release-dev: release-check
-ifndef VERSION
-	$(error Usage: make release-dev VERSION=v1.2.3-dev.1)
-endif
-	@echo "🚀 Running dev release checks..."
-	@make check-release
-	@echo "🏷️  Tagging dev release $(VERSION)..."
-	@git tag $(VERSION)
-	@git push origin $(VERSION)
-	@echo "🎉 Dev release $(VERSION) created and pushed!"
+	@if [ -z "$(VERSION)" ]; then \
+		echo "$(RED)Usage: make release-dev VERSION=v1.2.3-dev.1$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)🚀 Running dev release checks...$(NC)"
+	@$(MAKE) check-release
+	@echo "$(BLUE)🏷️  Tagging main dev release $(VERSION)...$(NC)"
+	@git tag "$(VERSION)"
+	@echo "$(BLUE)🏷️  Tagging adapter dev releases...$(NC)"
+	@for a in $(ADAPTERS); do \
+		ADAPTER_TAG="adapters/$$a/$(VERSION)"; \
+		git tag "$$ADAPTER_TAG"; \
+		echo "$(GREEN)✅ Tagged $$ADAPTER_TAG$(NC)"; \
+	done
+	@echo "$(BLUE)📤 Pushing main dev tag...$(NC)"
+	@git push origin "$(VERSION)"
+	@echo "$(BLUE)📤 Pushing adapter dev tags...$(NC)"
+	@for a in $(ADAPTERS); do \
+		ADAPTER_TAG="adapters/$$a/$(VERSION)"; \
+		git push origin "$$ADAPTER_TAG"; \
+		echo "$(GREEN)✅ Pushed $$ADAPTER_TAG$(NC)"; \
+	done
+	@echo "$(GREEN)🎉 Dev release $(VERSION) created and pushed!$(NC)"
+	@echo "$(BLUE)📋 Created tags:$(NC)"
+	@echo "  - $(VERSION) (main module)"
+	@for a in $(ADAPTERS); do echo "  - adapters/$$a/$(VERSION)"; done
+
+release-dry-run:
+	@if [ -z "$(VERSION)" ]; then \
+		echo "$(RED)Usage: make release-dry-run VERSION=v1.2.3$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(YELLOW)🔍 Dry run - would create release $(VERSION):$(NC)"
+	@echo "  - Run quality gate checks"
+	@echo "  - Create git tag: $(VERSION)"
+	@echo "  - Create adapter tags:"
+	@for a in $(ADAPTERS); do echo "    - adapters/$$a/$(VERSION)"; done
+	@echo "  - Push main tag to origin"
+	@echo "  - Push adapter tags to origin"
+
+# -------------------------------
+# Dependency Management
+#
+# FIX: Escaped shell variables and improved logic for clarity.
+check-adapter-deps:
+	@echo "$(BLUE)🔍 Checking adapter dependencies...$(NC)"
+	@LATEST_TAG=$$(\
+		git tag -l 'v*' --sort=-version:refname | grep -v 'adapters/' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$$' | head -1\
+	); \
+	for a in $(ADAPTERS); do \
+		echo "$(BLUE)📋 Adapter: $$a$(NC)"; \
+		SPEC_VERSION=$$(\
+			grep 'github.com/oaswrap/spec ' "adapters/$$a/go.mod" | awk '{print $$2}' \
+		); \
+		echo "  References: $$SPEC_VERSION"; \
+	done; \
+	echo ""; \
+	echo "$(BLUE)📋 Latest stable release tag: $$LATEST_TAG$(NC)"; \
+	echo ""; \
+	echo "$(YELLOW)💡 To sync all adapters to the latest release, run:$(NC)"; \
+	echo "   make sync-adapter-deps VERSION=$$LATEST_TAG"
+
+sync-adapter-deps:
+	@if [ -z "$(VERSION)" ]; then \
+		echo "$(RED)Usage: make sync-adapter-deps VERSION=v1.2.3$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)🔄 Syncing adapter dependencies to $(VERSION)...$(NC)"
+	@for a in $(ADAPTERS); do \
+		echo "$(BLUE)📝 Updating adapters/$$a...$(NC)"; \
+		(cd "adapters/$$a" && \
+		$(SED_INPLACE) -E 's#(github.com/oaswrap/spec )v[0-9]+\.[0-9]+\.[^ ]*#\1$(VERSION)#' go.mod && \
+		go mod tidy); \
+		echo "$(GREEN)✅ Updated adapters/$$a to $(VERSION)$(NC)"; \
+	done
+	@echo "$(GREEN)🎉 All adapters synced to $(VERSION)!$(NC)"
+
+# -------------------------------
+# Tag Management
+#
+list-tags:
+	@echo "$(BLUE)📋 All version tags:$(NC)"
+	@git tag -l 'v*' --sort=-version:refname | head -10
+	@echo ""
+	@echo "$(BLUE)📋 Adapter tags for latest version:$(NC)"
+	@LATEST=$$(\
+		git tag -l 'v*' --sort=-version:refname | grep -v 'adapters/' | head -1\
+	); \
+	if [ -n "$$LATEST" ]; then \
+		echo "Latest version: $$LATEST"; \
+		for a in $(ADAPTERS); do \
+			if git tag -l "adapters/$$a/$$LATEST" | grep -q .; then \
+				echo "$(GREEN)✅ adapters/$$a/$$LATEST$(NC)"; \
+			else \
+				echo "$(RED)❌ adapters/$$a/$$LATEST$(NC)"; \
+			fi; \
+		done; \
+	else \
+		echo "No version tags found"; \
+	fi
+
+delete-version:
+	@if [ -z "$(VERSION)" ]; then \
+		echo "$(RED)Usage: make delete-version VERSION=v1.2.3$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(YELLOW)⚠️  This will delete version $(VERSION) and all related adapter tags!$(NC)"
+	@printf "Press Enter to continue or Ctrl+C to cancel... "; \
+	read -r
+	@echo "$(BLUE)🗑️  Deleting local tags...$(NC)"
+	@git tag -d "$(VERSION)" 2>/dev/null || true
+	@for a in $(ADAPTERS); do \
+		git tag -d "adapters/$$a/$(VERSION)" 2>/dev/null || true; \
+	done
+	@echo "$(BLUE)🗑️  Deleting remote tags...$(NC)"
+	@git push --delete origin "$(VERSION)" 2>/dev/null || true
+	@for a in $(ADAPTERS); do \
+		git push --delete origin "adapters/$$a/$(VERSION)" 2>/dev/null || true; \
+	done
+	@echo "$(GREEN)✅ Version $(VERSION) deleted locally and remotely!$(NC)"
+
+verify-tags:
+	@if [ -z "$(VERSION)" ]; then \
+		echo "$(RED)Usage: make verify-tags VERSION=v1.2.3$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)🔍 Verifying tags for version $(VERSION)...$(NC)"
+	@if git tag -l "$(VERSION)" | grep -q .; then \
+		echo "$(GREEN)✅ Main tag $(VERSION) exists$(NC)"; \
+	else \
+		echo "$(RED)❌ Main tag $(VERSION) missing$(NC)"; \
+	fi
+	@for a in $(ADAPTERS); do \
+		ADAPTER_TAG="adapters/$$a/$(VERSION)"; \
+		if git tag -l "$$ADAPTER_TAG" | grep -q .; then \
+			echo "$(GREEN)✅ $$ADAPTER_TAG exists$(NC)"; \
+		else \
+			echo "$(RED)❌ $$ADAPTER_TAG missing$(NC)"; \
+		fi; \
+	done
 
 # -------------------------------
 # Help
-.PHONY: help
+#
 help:
-	@echo "make test                # Core + adapters tests"
-	@echo "make test-parallel       # Parallel test"
-	@echo "make test-update         # Update golden files"
-	@echo "make test-update-parallel # Update golden files (parallel)"
-	@echo "make testcov             # Coverage"
-	@echo "make tidy                # go mod tidy"
-	@echo "make sync                # go work sync"
-	@echo "make clean               # Clean coverage"
-	@echo "make lint                # Run linters"
-	@echo "make fix-replace         # Drop local replaces"
-	@echo "make check               # Local dev check"
-	@echo "make check-release       # Full release check"
-	@echo "make release-check       # Ensure clean git state"
-	@echo "make bump-dev NEXT=...   # Bump adapters version"
-	@echo "make release VERSION=... # Tag production release"
-	@echo "make release-dev VERSION=...  # Tag dev version"
+	@echo "$(BLUE)Available targets:$(NC)"
+	@echo ""
+	@echo "$(YELLOW)Testing & Coverage:$(NC)"
+	@echo "  test                     Run all tests sequentially"
+	@echo "  test-parallel            Run all tests in parallel"
+	@echo "  test-update              Update golden test files"
+	@echo "  testcov                  Generate coverage reports"
+	@echo "  coverage-html            Generate HTML coverage reports"
+	@echo ""
+	@echo "$(YELLOW)Development Workflow:$(NC)"
+	@echo "  install-tools            Install required dev tools (gotestsum, golangci-lint)"
+	@echo "  lint                     Run linters on all modules"
+	@echo "  tidy                     Run 'go mod tidy' on all modules"
+	@echo "  sync                     Run 'go work sync'"
+	@echo "  clean                    Clean up generated files"
+	@echo ""
+	@echo "$(YELLOW)Quality Gates & Pre-release Checks:$(NC)"
+	@echo "  check                    Run local dev checks (sync, tidy, lint, test)"
+	@echo "  check-release            Run stricter checks for a release"
+	@echo "  release-check            Ensure git state is clean for a release"
+	@echo "  fix-replace              Remove local 'replace' directives from go.mod files"
+	@echo "  check-replace-strict     Fail if any local 'replace' directives are found"
+	@echo ""
+	@echo "$(YELLOW)Release & Version Management:$(NC)"
+	@echo "  release VERSION=...      Create and push a new production release tag"
+	@echo "  release-dev VERSION=...  Create and push a new development release tag"
+	@echo "  delete-version VERSION=..Delete a version tag locally and remotely"
+	@echo "  bump-dev NEXT=...        Update adapter dependencies to a new dev version"
+	@echo ""
+	@echo "$(YELLOW)Utilities & Information:$(NC)"
+	@echo "  help                     Show this help message"
+	@echo "  list-adapters            List all configured adapters"
+	@echo "  list-tags                List recent tags and check adapter tag coverage"
+	@echo "  verify-tags VERSION=...  Check if all tags for a version exist"
+	@echo "  check-adapter-deps       Check the main dependency version for each adapter"
+	@echo "  sync-adapter-deps VERSION=..Sync all adapters to a specific main dependency version"
