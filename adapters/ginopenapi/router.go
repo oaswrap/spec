@@ -2,6 +2,7 @@ package ginopenapi
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/oaswrap/spec"
@@ -36,8 +37,6 @@ func NewRouter(ginRouter gin.IRouter, opts ...option.OpenAPIOption) Generator {
 	gen := spec.NewRouter(opts...)
 	cfg := gen.Config()
 
-	handler := handler.NewOpenAPIHandler(cfg, gen)
-
 	rr := &router{
 		ginRouter:  ginRouter,
 		specRouter: gen,
@@ -46,6 +45,8 @@ func NewRouter(ginRouter gin.IRouter, opts ...option.OpenAPIOption) Generator {
 	if cfg.DisableDocs {
 		return rr
 	}
+
+	handler := handler.NewOpenAPIHandler(cfg, gen)
 
 	openapiPath := util.JoinPath(cfg.DocsPath, constant.OpenAPIFileName)
 	ginRouter.GET(cfg.DocsPath, handler.Docs)
@@ -65,12 +66,15 @@ var _ Generator = &router{}
 // Handle registers a new route with the specified method and path, and returns a Route object.
 func (r *router) Handle(method string, path string, handlers ...gin.HandlerFunc) Route {
 	gr := r.ginRouter.Handle(method, path, handlers...)
-	sr := r.specRouter.Add(method, path)
+	route := &route{ginRoute: gr}
 
-	return &route{
-		ginRoute:  gr,
-		specRoute: sr,
+	if strings.EqualFold(method, http.MethodConnect) {
+		// CONNECT method is not supported by OpenAPI, so we skip it
+		return route
 	}
+	route.specRoute = r.specRouter.Add(method, path)
+
+	return route
 }
 
 // GET registers a new GET route with the specified path and handlers.

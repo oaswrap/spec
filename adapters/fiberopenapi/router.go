@@ -1,6 +1,8 @@
 package fiberopenapi
 
 import (
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/oaswrap/spec"
 	"github.com/oaswrap/spec/adapters/fiberopenapi/internal/constant"
@@ -90,9 +92,7 @@ func (r *router) Delete(path string, handler ...fiber.Handler) Route {
 }
 
 func (r *router) Connect(path string, handler ...fiber.Handler) Route {
-	fr := r.fiberRouter.Connect(path, handler...)
-
-	return &route{fr: fr}
+	return r.Add(fiber.MethodConnect, path, handler...)
 }
 
 func (r *router) Options(path string, handler ...fiber.Handler) Route {
@@ -105,12 +105,13 @@ func (r *router) Trace(path string, handler ...fiber.Handler) Route {
 
 func (r *router) Add(method, path string, handler ...fiber.Handler) Route {
 	fr := r.fiberRouter.Add(method, path, handler...)
-	sr := r.specRouter.Add(method, path)
+	route := &route{fr: fr}
 
-	route := &route{
-		fr: fr,
-		sr: sr,
+	if strings.EqualFold(method, fiber.MethodConnect) {
+		// CONNECT method is not supported by OpenAPI, so we skip it
+		return route
 	}
+	route.sr = r.specRouter.Add(method, path)
 
 	return route
 }
