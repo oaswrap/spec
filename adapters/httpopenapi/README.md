@@ -15,7 +15,7 @@ A lightweight adapter for the [HTTP](https://golang.org/pkg/net/http/) web frame
 ## Installation
 
 ```bash
-go get github.com/oaswrap/spec/adapters/chiopenapi
+go get github.com/oaswrap/spec/adapters/httpopenapi
 ```
 
 ## Quick Start
