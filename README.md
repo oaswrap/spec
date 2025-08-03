@@ -97,8 +97,9 @@ For seamless HTTP server integration, use one of our framework adapters. Each ad
 
 | Framework | Adapter Package |
 |-----------|-----------------|
-| **Gin** | [ginopenapi](/adapters/ginopenapi) |
+| **Chi** | [chiopenapi](/adapters/chiopenapi) |
 | **Echo** | [echoopenapi](/adapters/echoopenapi) |
+| **Gin** | [ginopenapi](/adapters/ginopenapi) |
 | **Fiber** | [fiberopenapi](/adapters/fiberopenapi) |
 
 Each adapter provides:

@@ -64,9 +64,8 @@ func NewRouter(e *echo.Echo, opts ...option.OpenAPIOption) Generator {
 
 func (r *router) Add(method, path string, handler echo.HandlerFunc, m ...echo.MiddlewareFunc) Route {
 	echoRoute := r.echoGroup.Add(method, path, handler, m...)
-	route := &route{
-		echoRoute: echoRoute,
-	}
+	route := &route{echoRoute: echoRoute}
+
 	if strings.EqualFold(method, echo.CONNECT) {
 		// CONNECT method is not supported by OpenAPI, so we skip it
 		return route

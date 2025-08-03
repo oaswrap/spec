@@ -30,7 +30,7 @@ make fix-replace
 ## ✅ How We Organize Modules
 
 - **Core** module: root package (`./...`)
-- **Adapters**: `adapters/fiberopenapi`, `adapters/ginopenapi`, `adapters/echoopenapi`
+- **Adapters**: `adapters/fiberopenapi`, `adapters/ginopenapi`, `adapters/echoopenapi`, `adapters/chiopenapi`
 
 Each adapter has its own `go.mod`. Adapters must **not** have `replace` statements in their `go.mod` — this is enforced by `make check-replace-strict`.
 

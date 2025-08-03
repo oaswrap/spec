@@ -2,7 +2,7 @@
 # Vars
 PKG := ./...
 COVERAGE_FILE := coverage.out
-ADAPTERS := fiberopenapi ginopenapi echoopenapi
+ADAPTERS := chiopenapi echoopenapi fiberopenapi ginopenapi
 
 # -------------------------------
 # Core + Adapters: Tests
@@ -21,6 +21,24 @@ test-parallel:
 	@gotestsum --format standard-quiet -- $(PKG) &
 	@for a in $(ADAPTERS); do \
 		(cd adapters/$$a && gotestsum --format standard-quiet -- ./...) & \
+	done; \
+	wait
+
+.PHONY: test-update
+test-update:
+	@echo "🔍 Core tests (updating golden files)..."
+	@gotestsum --format standard-quiet -- -update $(PKG)
+	@for a in $(ADAPTERS); do \
+		echo "🔍 Adapter $$a (updating golden files)..."; \
+		cd adapters/$$a && gotestsum --format standard-quiet -- -update ./... || exit 1; \
+		cd ../..; \
+	done
+
+.PHONY: test-update-parallel
+test-update-parallel:
+	@gotestsum --format standard-quiet -- -update $(PKG) &
+	@for a in $(ADAPTERS); do \
+		(cd adapters/$$a && gotestsum --format standard-quiet -- -update ./...) & \
 	done; \
 	wait
 
@@ -168,6 +186,8 @@ endif
 help:
 	@echo "make test                # Core + adapters tests"
 	@echo "make test-parallel       # Parallel test"
+	@echo "make test-update         # Update golden files"
+	@echo "make test-update-parallel # Update golden files (parallel)"
 	@echo "make testcov             # Coverage"
 	@echo "make tidy                # go mod tidy"
 	@echo "make sync                # go work sync"
