@@ -2,7 +2,6 @@ package echoopenapi
 
 import (
 	"io/fs"
-	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/oaswrap/spec"
@@ -66,7 +65,7 @@ func (r *router) Add(method, path string, handler echo.HandlerFunc, m ...echo.Mi
 	echoRoute := r.echoGroup.Add(method, path, handler, m...)
 	route := &route{echoRoute: echoRoute}
 
-	if strings.EqualFold(method, echo.CONNECT) {
+	if method == echo.CONNECT {
 		// CONNECT method is not supported by OpenAPI, so we skip it
 		return route
 	}

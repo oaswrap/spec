@@ -1,8 +1,6 @@
 package fiberopenapi
 
 import (
-	"strings"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/oaswrap/spec"
 	"github.com/oaswrap/spec/adapters/fiberopenapi/internal/constant"
@@ -107,7 +105,7 @@ func (r *router) Add(method, path string, handler ...fiber.Handler) Route {
 	fr := r.fiberRouter.Add(method, path, handler...)
 	route := &route{fr: fr}
 
-	if strings.EqualFold(method, fiber.MethodConnect) {
+	if method == fiber.MethodConnect {
 		// CONNECT method is not supported by OpenAPI, so we skip it
 		return route
 	}

@@ -2,7 +2,6 @@ package chiopenapi
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/oaswrap/spec"
@@ -115,7 +114,7 @@ func (r *router) Mount(pattern string, h http.Handler) {
 
 func (r *router) Method(method, pattern string, h http.Handler) Route {
 	r.chiRouter.Method(method, pattern, h)
-	if strings.EqualFold(method, http.MethodConnect) {
+	if method == http.MethodConnect {
 		// CONNECT method is not supported by OpenAPI, so we skip it
 		return &route{}
 	}
@@ -126,7 +125,7 @@ func (r *router) Method(method, pattern string, h http.Handler) Route {
 
 func (r *router) MethodFunc(method, pattern string, h http.HandlerFunc) Route {
 	r.chiRouter.MethodFunc(method, pattern, h)
-	if strings.EqualFold(method, http.MethodConnect) {
+	if method == http.MethodConnect {
 		// CONNECT method is not supported by OpenAPI, so we skip it
 		return &route{}
 	}

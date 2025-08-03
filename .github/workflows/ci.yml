@@ -27,8 +27,18 @@ jobs:
     - name: 🐹 Setup Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.23'
+        go-version-file: 'go.mod' # <-- REFINEMENT 1
         cache: true
+
+    - name: Set Go environment
+      id: go-env
+      run: echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
+
+    - name: 🗂️ Cache Go Tools
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.GOPATH }}/bin
+        key: ${{ runner.os }}-go-tools-${{ hashFiles('**/go.sum') }}
 
     - name: 🔧 Install Tools
       run: make install-tools
@@ -48,7 +58,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest] # Optional: [ubuntu-latest, macos-latest, windows-latest]
         go-version: ['1.23', '1.24']
 
     steps:
@@ -60,6 +70,16 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
         cache: true
+
+    - name: Set Go environment
+      id: go-env
+      run: echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
+
+    - name: 🗂️ Cache Go Tools
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.GOPATH }}/bin
+        key: ${{ runner.os }}-go-tools-${{ hashFiles('**/go.sum') }}
 
     - name: 🔧 Install Tools
       run: make install-tools

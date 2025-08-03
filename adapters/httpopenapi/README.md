@@ -1,12 +1,12 @@
-# chiopenapi
+# httpopenapi
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/oaswrap/spec/adapters/chiopenapi.svg)](https://pkg.go.dev/github.com/oaswrap/spec/adapters/chiopenapi)
+[![Go Reference](https://pkg.go.dev/badge/github.com/oaswrap/spec/adapters/httpopenapi.svg)](https://pkg.go.dev/github.com/oaswrap/spec/adapters/httpopenapi)
 
-A lightweight adapter for the [Chi](https://github.com/go-chi/chi) web framework that automatically generates OpenAPI 3.x specifications from your routes using [`oaswrap/spec`](https://github.com/oaswrap/spec).
+A lightweight adapter for the [HTTP](https://golang.org/pkg/net/http/) web framework that automatically generates OpenAPI 3.x specifications from your routes using [`oaswrap/spec`](https://github.com/oaswrap/spec).
 
-## Why chiopenapi?
+## Why httpopenapi?
 
-- **⚡ Seamless Integration** — Works with your existing Chi routes and handlers
+- **⚡ Seamless Integration** — Works with your existing HTTP routes and handlers
 - **📝 Automatic Documentation** — Generate OpenAPI specs from route definitions and struct tags
 - **🎯 Type Safety** — Full Go type safety for OpenAPI configuration
 - **🔧 Built-in UI** — Swagger UI served automatically at `/docs`
@@ -28,27 +28,28 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/oaswrap/spec/adapters/chiopenapi"
+	"github.com/oaswrap/spec/adapters/httpopenapi"
 	"github.com/oaswrap/spec/option"
 )
 
 func main() {
-	c := chi.NewRouter()
-	// Create a new OpenAPI router
-	r := chiopenapi.NewRouter(c,
+	mainMux := http.NewServeMux()
+	r := httpopenapi.NewGenerator(mainMux,
 		option.WithTitle("My API"),
 		option.WithVersion("1.0.0"),
+		option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
 	)
-	// Add routes
-	r.Route("/api/v1", func(r chiopenapi.Router) {
-		r.Post("/login", LoginHandler).With(
+
+	r.Route("/api/v1", func(r httpopenapi.Router) {
+		r.HandleFunc("POST /login", LoginHandler).With(
 			option.Summary("User login"),
 			option.Request(new(LoginRequest)),
 			option.Response(200, new(LoginResponse)),
 		)
-
-		r.Get("/users/{id}", GetUserHandler).With(
+		auth := r.Group("/", AuthMiddleware).With(
+			option.GroupSecurity("bearerAuth"),
+		)
+		auth.HandleFunc("GET /users/{id}", GetUserHandler).With(
 			option.Summary("Get user by ID"),
 			option.Request(new(GetUserRequest)),
 			option.Response(200, new(User)),
@@ -63,7 +64,7 @@ func main() {
 	log.Printf("🚀 OpenAPI docs available at: %s", "http://localhost:3000/docs")
 
 	// Start the server
-	if err := http.ListenAndServe(":3000", c); err != nil {
+	if err := http.ListenAndServe(":3000", mainMux); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -86,6 +87,18 @@ type User struct {
 	Name string `json:"name"`
 }
 
+func AuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Simulate authentication logic
+		authHeader := r.Header.Get("Authorization")
+		if authHeader != "" && authHeader == "Bearer example-token" {
+			next.ServeHTTP(w, r)
+		} else {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		}
+	})
+}
+
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -98,7 +111,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	var req GetUserRequest
-	id := chi.URLParam(r, "id")
+	id := r.PathValue("id")
 	if id == "" {
 		http.Error(w, "User ID is required", http.StatusBadRequest)
 		return
@@ -110,22 +123,6 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-## Advanced Features
-
-### Route Groups with Common Settings
-```go
-// Apply settings to all routes in a group
-adminAPI := api.Group("/admin").With(
-    option.GroupTags("Administration"),
-    option.GroupSecurity("bearerAuth"),
-)
-
-adminAPI.GET("/users", getUsersHandler).With(
-    option.Summary("List all users"),
-    option.Response(200, new([]User)),
-)
-```
-
 ## Configuration Options
 
 For all available configuration options, see the main [`oaswrap/spec`](https://github.com/oaswrap/spec#configuration-options) documentation.
@@ -133,7 +130,7 @@ For all available configuration options, see the main [`oaswrap/spec`](https://g
 ## API Reference
 
 - **Core**: [pkg.go.dev/github.com/oaswrap/spec](https://pkg.go.dev/github.com/oaswrap/spec)
-- **Adapter**: [pkg.go.dev/github.com/oaswrap/spec/adapters/chiopenapi](https://pkg.go.dev/github.com/oaswrap/spec/adapters/chiopenapi)
+- **Adapter**: [pkg.go.dev/github.com/oaswrap/spec/adapters/httpopenapi](https://pkg.go.dev/github.com/oaswrap/spec/adapters/httpopenapi)
 - **Options**: [pkg.go.dev/github.com/oaswrap/spec/option](https://pkg.go.dev/github.com/oaswrap/spec/option)
 
 ## Contributing

@@ -6,4 +6,5 @@ use (
 	./adapters/echoopenapi
 	./adapters/fiberopenapi
 	./adapters/ginopenapi
+	./adapters/httpopenapi
 )
