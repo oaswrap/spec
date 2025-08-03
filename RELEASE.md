@@ -1,106 +1,45 @@
+# ✅ Release Process
 
-# 📦 Releasing & Version Management
+## 🗂️  1. Sync adapter dependencies
 
-This project uses a **multi-module mono-repo** with a main module (`spec`) and multiple adapters.
+Run this to bump each adapter’s `go.mod` to the new version:
 
-## 🔑 How versioning works
-
-- **Main module (`spec`)** has its own semantic version tag: `v0.x.y`  
-- **Adapters** depend on the main module by exact version (`github.com/oaswrap/spec v0.x.y`).
-- When `spec` is bumped, adapters must update their `go.mod` to match.
-
----
-
-## ✅ How release tagging works
-
-Your `Makefile` does:
-- **`make release`** → creates a version tag for `spec` **and** tags each adapter **as-is**.
-- It does **not** rewrite adapter `go.mod` — that’s up to you.
-
-**So:** After you tag, you should run a sync to update adapters to the new `spec` version.
-
-This means:
-- **The tag freezes the code state at that point**.
-- **Syncing adapters after** makes the next patch or minor bump correct.
-
-This is normal and matches how major Go mono-repos (e.g., Kubernetes) handle internal module deps.
-
----
-
-## ✅ Recommended release flow
-
-### 🟢 1️⃣ Bump to next dev version
-
-When starting new work:
-
-```bash
-make bump-dev NEXT=v0.3.0-dev.1 NO_TIDY=1
-git commit -am "chore: bump dev version"
+```
+make sync-adapter-deps VERSION=v0.3.0 NO_TIDY=1
 ```
 
-**NO_TIDY=1** skips `go mod tidy` (the new tag doesn’t exist yet).
+> 🔍 The `NO_TIDY=1` skips `go mod tidy` for speed.  
+> You will tidy after pushing tags.
 
----
+## ✅ 2. Commit changes
 
-### 🟢 2️⃣ Create and push dev release
+Stage and commit the updated adapter files:
 
-```bash
-make release-dev VERSION=v0.3.0-dev.1
+```
+git add adapters/*/go.mod adapters/*/go.sum
+git commit -m "chore(adapters): bump spec version to v0.3.0"
 ```
 
-- Tags `spec` and all adapters
-- Pushes the tags
-- Runs `tidy` after the tags exist
+## 🚀 3. Run the release
 
----
+Create & push the tags:
 
-### 🟢 3️⃣ Develop, test, merge as usual
-
-Keep merging PRs on the `-dev` version.
-
----
-
-### 🟢 4️⃣ When ready, release stable
-
-```bash
+```
 make release VERSION=v0.3.0
 ```
 
-- Tags `spec` and all adapters
-- Pushes the tags
-- Runs `tidy` after tagging
+## 🚀 4. For dev release
 
-**Adapters will be tagged as they are — so they may still point to the old `spec` version in `go.mod`.**
+Same steps but with a dev version:
 
----
-
-### 🟢 5️⃣ Immediately sync adapters (best practice)
-
-After stable tag is pushed:
-
-```bash
-make sync-adapter-deps VERSION=v0.3.0
-git commit -am "chore: sync adapters to v0.3.0"
-git push
+```
+make sync-adapter-deps VERSION=v0.3.0-dev.1 NO_TIDY=1
+git add adapters/*/go.mod adapters/*/go.sum
+git commit -m "chore(adapters): bump spec version to v0.3.0-dev.1"
+make release-dev VERSION=v0.3.0-dev.1
 ```
 
-This updates each adapter’s `go.mod` to match the new stable version.  
-This keeps your next patch or minor version aligned.
+## 🔑 Notes
 
----
-
-## ✅ Key rule
-
-**Never `sync-adapter-deps` to a version that does not exist yet.**  
-Always tag first → then sync.
-
----
-
-## ⚡ Final checklist
-
-| Command | Use for |
-|----------------------------|-------------------------|
-| `make bump-dev NEXT=...` | Prepare next dev version |
-| `make release-dev VERSION=...` | Tag & push dev version |
-| `make release VERSION=...` | Tag & push stable version |
-| `make sync-adapter-deps VERSION=...` | Update adapters to use the stable version |
+- `sync-adapter-deps` **does NOT commit** — you must commit before tagging.
+- After tags are pushed, `make tidy` runs to clean up.

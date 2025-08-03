@@ -253,8 +253,6 @@ release: release-check
 	fi
 	@echo "$(BLUE)🚀 Running release quality gate...$(NC)"
 	@$(MAKE) check-release
-	@echo "$(BLUE)🔄 Syncing adapter dependencies to $(VERSION)...$(NC)"
-	@$(MAKE) sync-adapter-deps VERSION=$(VERSION) NO_TIDY=1
 	@echo "$(BLUE)🏷️  Tagging main release $(VERSION)...$(NC)"
 	@git tag "$(VERSION)"
 	@echo "$(BLUE)🏷️  Tagging adapter releases...$(NC)"
@@ -288,8 +286,6 @@ release-dev: release-check
 	fi
 	@echo "$(BLUE)🚀 Running dev release checks...$(NC)"
 	@$(MAKE) check-release
-	@echo "$(BLUE)🔄 Syncing adapter dependencies to $(VERSION)...$(NC)"
-	@$(MAKE) sync-adapter-deps VERSION=$(VERSION) NO_TIDY=1
 	@echo "$(BLUE)🏷️  Tagging main dev release $(VERSION)...$(NC)"
 	@git tag "$(VERSION)"
 	@echo "$(BLUE)🏷️  Tagging adapter dev releases...$(NC)"
