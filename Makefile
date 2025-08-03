@@ -31,7 +31,6 @@ NC     := \033[0m # No Color
 .PHONY: list-adapters adapter-status
 .PHONY: check check-release check-dry-run
 .PHONY: release-check
-.PHONY: bump-dev bump-dev-dry-run
 .PHONY: release release-dev release-dry-run
 .PHONY: check-adapter-deps sync-adapter-deps
 .PHONY: list-tags delete-version verify-tags
@@ -243,44 +242,6 @@ release-check:
 	@echo "$(GREEN)✅ Git state is clean for release$(NC)"
 
 # -----------------------------------
-# Bump dev version for adapters
-#
-# Use this when you want to bump adapters to a new dev version
-# BEFORE you push a tag. The new version must be tagged afterward.
-# Example:
-#   make bump-dev NEXT=v0.3.0-dev.1 NO_TIDY=1
-#   git commit -am "chore: bump dev version"
-#   make release-dev VERSION=v0.3.0-dev.1
-#
-bump-dev:
-	@if [ -z "$(NEXT)" ]; then \
-		echo "$(RED)Usage: make bump-dev NEXT=v0.3.0-dev.1 [NO_TIDY=1]$(NC)"; \
-		exit 1; \
-	fi
-	@echo "$(BLUE)🔢 Bumping adapters to $(NEXT)...$(NC)"
-	@for a in $(ADAPTERS); do \
-		(cd "adapters/$$a" && \
-		$(SED_INPLACE) -E 's#(github.com/oaswrap/spec )v[0-9]+\.[0-9]+\.[^ ]*#\1$(NEXT)#' go.mod); \
-		if [ "$(NO_TIDY)" != "1" ]; then \
-			(cd "adapters/$$a" && go mod tidy); \
-		else \
-			echo "$(YELLOW)⚠️  Skipped go mod tidy for adapters/$$a because NO_TIDY=1$(NC)"; \
-		fi; \
-		echo "$(GREEN)✅ Updated adapters/$$a to $(NEXT)$(NC)"; \
-	done
-	@echo "$(GREEN)🎉 All adapters bumped to $(NEXT)!$(NC)"
-
-bump-dev-dry-run:
-	@if [ -z "$(NEXT)" ]; then \
-		echo "$(RED)Usage: make bump-dev-dry-run NEXT=v0.2.0-dev.1$(NC)"; \
-		exit 1; \
-	fi
-	@echo "$(YELLOW)🔍 Dry run - would bump adapters to $(NEXT):$(NC)"
-	@for a in $(ADAPTERS); do \
-		echo "  - adapters/$$a"; \
-	done
-
-# -----------------------------------
 # Release stable version
 #
 # Tags main module + all adapters, pushes, then tidies to fix go.sum.
@@ -292,6 +253,8 @@ release: release-check
 	fi
 	@echo "$(BLUE)🚀 Running release quality gate...$(NC)"
 	@$(MAKE) check-release
+	@echo "$(BLUE)🔄 Syncing adapter dependencies to $(VERSION)...$(NC)"
+	@$(MAKE) sync-adapter-deps VERSION=$(VERSION) NO_TIDY=1
 	@echo "$(BLUE)🏷️  Tagging main release $(VERSION)...$(NC)"
 	@git tag "$(VERSION)"
 	@echo "$(BLUE)🏷️  Tagging adapter releases...$(NC)"
@@ -325,6 +288,8 @@ release-dev: release-check
 	fi
 	@echo "$(BLUE)🚀 Running dev release checks...$(NC)"
 	@$(MAKE) check-release
+	@echo "$(BLUE)🔄 Syncing adapter dependencies to $(VERSION)...$(NC)"
+	@$(MAKE) sync-adapter-deps VERSION=$(VERSION) NO_TIDY=1
 	@echo "$(BLUE)🏷️  Tagging main dev release $(VERSION)...$(NC)"
 	@git tag "$(VERSION)"
 	@echo "$(BLUE)🏷️  Tagging adapter dev releases...$(NC)"
@@ -348,16 +313,39 @@ release-dev: release-check
 
 release-dry-run:
 	@if [ -z "$(VERSION)" ]; then \
-		echo "$(RED)Usage: make release-dry-run VERSION=v1.2.3$(NC)"; \
+		echo "$(RED)Usage: make release-dry-run VERSION=v0.3.0$(NC)"; \
 		exit 1; \
 	fi
-	@echo "$(YELLOW)🔍 Dry run - would create release $(VERSION):$(NC)"
-	@echo "  - Run quality gate checks"
-	@echo "  - Create git tag: $(VERSION)"
-	@echo "  - Create adapter tags:"
-	@for a in $(ADAPTERS); do echo "    - adapters/$$a/$(VERSION)"; done
-	@echo "  - Push main tag to origin"
-	@echo "  - Push adapter tags to origin"
+	@echo "$(YELLOW)🔍 Dry run - would perform the following for release $(VERSION):$(NC)"
+	@echo ""
+	@echo "  1️⃣  Run quality gate checks (check-release)"
+	@echo "  2️⃣  Run: make sync-adapter-deps VERSION=$(VERSION) NO_TIDY=1"
+	@echo "  3️⃣  Tag main module: $(VERSION)"
+	@echo "  4️⃣  Tag adapters:"
+	@for a in $(ADAPTERS); do echo "      - adapters/$$a/$(VERSION)"; done
+	@echo "  5️⃣  Push main tag to origin"
+	@echo "  6️⃣  Push adapter tags to origin"
+	@echo "  7️⃣  Run: make tidy (after tags are pushed)"
+	@echo ""
+	@echo "$(YELLOW)✅ Dry run complete — no changes made.$(NC)"
+
+release-dev-dry-run:
+	@if [ -z "$(VERSION)" ]; then \
+		echo "$(RED)Usage: make release-dev-dry-run VERSION=v0.3.0-dev.1$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(YELLOW)🔍 Dry run - would perform the following for dev release $(VERSION):$(NC)"
+	@echo ""
+	@echo "  1️⃣  Run quality gate checks (check-release)"
+	@echo "  2️⃣  Run: make sync-adapter-deps VERSION=$(VERSION) NO_TIDY=1"
+	@echo "  3️⃣  Tag main module: $(VERSION)"
+	@echo "  4️⃣  Tag adapters:"
+	@for a in $(ADAPTERS); do echo "      - adapters/$$a/$(VERSION)"; done
+	@echo "  5️⃣  Push main dev tag to origin"
+	@echo "  6️⃣  Push adapter dev tags to origin"
+	@echo "  7️⃣  Run: make tidy (after tags are pushed)"
+	@echo ""
+	@echo "$(YELLOW)✅ Dev dry run complete — no changes made.$(NC)"
 
 # -------------------------------
 # Dependency Management
@@ -501,8 +489,9 @@ help:
 	@echo "$(YELLOW)Release & Version Management:$(NC)"
 	@echo "  release VERSION=...      Create and push a new production release tag"
 	@echo "  release-dev VERSION=...  Create and push a new development release tag"
+	@echo "  release-dry-run VERSION=...  Dry run of the release process"
+	@echo "  release-dev-dry-run VERSION=...  Dry run of the development release process"
 	@echo "  delete-version VERSION=..Delete a version tag locally and remotely"
-	@echo "  bump-dev NEXT=...        Update adapter dependencies to a new dev version"
 	@echo ""
 	@echo "$(YELLOW)Utilities & Information:$(NC)"
 	@echo "  help                     Show this help message"
