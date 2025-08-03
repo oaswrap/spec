@@ -19,28 +19,34 @@ jobs:
     name: 🛡️ Quality Gate
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    
+
     steps:
     - name: 📥 Checkout
       uses: actions/checkout@v4
-      
+
     - name: 🐹 Setup Go
       uses: actions/setup-go@v5
       with:
         go-version: '1.23'
         cache: true
-        
+
     - name: 🔧 Install Tools
       run: make install-tools
-      
-    - name: ✅ Run Quality Checks
+
+    - name: 🔗 Sync Workspace
+      run: make sync tidy
+
+    - name: ✅ Quality Checks (Lint + Test + Replace Check)
       run: make check
+
+    - name: 🔒 Verify No Accidental Replace
+      run: make check-replace-strict
 
   # ========================================
   # Test Matrix
   # ========================================
   test:
-    name: 🧪 Test (Go ${{ matrix.go-version }}, ${{ matrix.os }})
+    name: 🧪 Test Matrix (Go ${{ matrix.go-version }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     needs: quality
@@ -64,5 +70,8 @@ jobs:
     - name: 🔧 Install Tools
       run: make install-tools
 
-    - name: 🧪 Run Tests
+    - name: 🔗 Sync Workspace
+      run: make sync tidy
+
+    - name: 🧪 Run Parallel Tests
       run: make test-parallel
