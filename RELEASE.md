@@ -1,87 +1,76 @@
-# Release Process
 
-This document outlines the steps for creating and deploying new versions of `oaswrap/spec`. The entire release process is automated using GitHub Actions and is triggered by pushing a new Git tag.
+# 📦 Releasing & Version Management
 
-## ## Prerequisites
+This project uses a **multi-module mono-repo** with a main module (`spec`) and multiple adapters.
 
-Before creating a release, ensure your local environment is correctly set up:
-1.  Check out the `main` branch: `git checkout main`
-2.  Pull the latest changes from the remote: `git pull origin main`
+## 🔑 How versioning works
 
-## ## Development Release 🧪
+- **Main module (`spec`)** has its own semantic version tag: `v0.x.y`  
+- **Adapters** depend on the main module by exact version (`github.com/oaswrap/spec v0.x.y`).
+- To keep everything aligned, adapters must update their `go.mod` when `spec` is bumped.
 
-Development releases are used for pre-releases or internal testing versions (e.g., `v1.2.3-dev.1`). They are marked as "pre-release" on GitHub.
+## 🚀 Release workflow
 
-### ### Step 1: Run Pre-Release Checks (Recommended)
+### ✅ 1️⃣ Bump to next dev version (before releasing)
 
-Verify that the codebase passes all quality gates before tagging. This command runs tests, linting, and other essential checks.
-
-```bash
-make check-release
-````
-
-### ### Step 2: Create and Push the Dev Tag
-
-Use the `release-dev` Makefile target. This single command runs final checks, creates the main tag and all associated adapter tags, and pushes them to `origin`.
-
-Replace `vX.Y.Z-dev.N` with your actual version number.
+If you are preparing a **new development version**, bump all adapters first:
 
 ```bash
-make release-dev VERSION=v1.2.3-dev.1
+make bump-dev NEXT=v0.3.0-dev.1 NO_TIDY=1
+git commit -am "chore: bump dev version"
 ```
 
-Pushing the tag automatically triggers the **🚀 Release** workflow on GitHub, which builds and publishes the pre-release.
+> `NO_TIDY=1` skips `go mod tidy` because the tag doesn’t exist yet — tidy will run after pushing.
 
-## ## Stable Release 🎉
-
-Stable releases are official, production-ready versions (e.g., `v1.2.3`). They are marked as the "Latest" release on GitHub.
-
-### ### Step 1: Finalize Dependencies and Commit
-
-Ensure all internal dependencies are updated to the final release version. For example, if you were using dev versions in adapter modules, sync them to the new stable version number.
+### ✅ 2️⃣ Create and push dev release
 
 ```bash
-# Example: Update all adapter go.mod files
-make sync-adapter-deps VERSION=v1.2.3
-
-# Commit the final changes
-git add .
-git commit -m "build: prepare for release v1.2.3"
-git push origin main
+make release-dev VERSION=v0.3.0-dev.1
 ```
 
-### ### Step 2: Run Final Release Checks
+This:
+- Runs final checks
+- Creates git tag for `spec` and all adapters
+- Pushes all tags
+- Runs `go mod tidy` to update `go.sum`
 
-Run the comprehensive quality gate on the final commit to ensure it's stable.
+### ✅ 3️⃣ Create and push stable release
+
+When ready for production:
 
 ```bash
-make check-release
+make release VERSION=v0.3.0
 ```
 
-### ### Step 3: Create and Push the Stable Tag
+Same steps:
+- Final checks
+- Tags `spec` and all adapters
+- Pushes tags
+- Runs `tidy` to finalize `go.sum`
 
-Use the `release` Makefile target to kick off the production deployment.
+### ✅ 4️⃣ Sync adapters to the released version
 
-Replace `vX.Y.Z` with your actual version number.
+After pushing the stable tag, you may **re-sync** all adapters:
 
 ```bash
-make release VERSION=v1.2.3
+make sync-adapter-deps VERSION=v0.3.0
+git commit -am "chore: sync adapters to v0.3.0"
 ```
 
-Pushing the stable tag triggers the **🚀 Release** workflow, which creates the official GitHub Release and marks it as **"Latest"**.
+## ⚠️ Good practice
 
-## ## Utility Commands
+- Always run `go mod tidy` **after** pushing new tags.
+- CI will fail if `go.sum` or `replace` directives are stale.
+- Use `NO_TIDY=1` only when bumping to a **version that doesn’t exist yet** — tidy will run after the release push.
 
-Your `Makefile` includes helpful commands for managing releases safely.
+## ✅ Commands recap
 
-* **Dry Run**: To see what a release would do without creating or pushing any tags, use the `release-dry-run` target:
+| Command                     | Use case                                |
+|-----------------------------|-----------------------------------------|
+| `make bump-dev NEXT=...`    | Prepare adapters for next dev version   |
+| `make release-dev VERSION=...` | Tag & push dev version, tidy after push |
+| `make release VERSION=...`  | Tag & push stable version, tidy after push |
+| `make sync-adapter-deps VERSION=...` | Sync adapters to a released version |
 
-    ```bash
-    make release-dry-run VERSION=v1.2.3
-    ```
-
-* **Fixing a Mistake**: To delete a mistakenly created version tag from both your local repository and the remote (`origin`), use the `delete-version` target:
-
-    ```bash
-    make delete-version VERSION=v1.2.3
-    ```
+📌 **Keeping all adapters aligned = no broken builds.**  
+Use this flow → keep your mono-repo healthy. 🔒✅

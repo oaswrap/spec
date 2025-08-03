@@ -242,20 +242,30 @@ release-check:
 	fi
 	@echo "$(GREEN)✅ Git state is clean for release$(NC)"
 
-# -------------------------------
-# Bump Dev
+# -----------------------------------
+# Bump dev version for adapters
+#
+# Use this when you want to bump adapters to a new dev version
+# BEFORE you push a tag. The new version must be tagged afterward.
+# Example:
+#   make bump-dev NEXT=v0.3.0-dev.1 NO_TIDY=1
+#   git commit -am "chore: bump dev version"
+#   make release-dev VERSION=v0.3.0-dev.1
 #
 bump-dev:
-	# FIX: Added a check for the NEXT variable at the target level.
 	@if [ -z "$(NEXT)" ]; then \
-		echo "$(RED)Usage: make bump-dev NEXT=v0.2.0-dev.1$(NC)"; \
+		echo "$(RED)Usage: make bump-dev NEXT=v0.3.0-dev.1 [NO_TIDY=1]$(NC)"; \
 		exit 1; \
 	fi
 	@echo "$(BLUE)🔢 Bumping adapters to $(NEXT)...$(NC)"
 	@for a in $(ADAPTERS); do \
 		(cd "adapters/$$a" && \
-		$(SED_INPLACE) -E 's#(github.com/oaswrap/spec )v[0-9]+\.[0-9]+\.[^ ]*#\1$(NEXT)#' go.mod && \
-		go mod tidy); \
+		$(SED_INPLACE) -E 's#(github.com/oaswrap/spec )v[0-9]+\.[0-9]+\.[^ ]*#\1$(NEXT)#' go.mod); \
+		if [ "$(NO_TIDY)" != "1" ]; then \
+			(cd "adapters/$$a" && go mod tidy); \
+		else \
+			echo "$(YELLOW)⚠️  Skipped go mod tidy for adapters/$$a because NO_TIDY=1$(NC)"; \
+		fi; \
 		echo "$(GREEN)✅ Updated adapters/$$a to $(NEXT)$(NC)"; \
 	done
 	@echo "$(GREEN)🎉 All adapters bumped to $(NEXT)!$(NC)"
@@ -270,13 +280,14 @@ bump-dev-dry-run:
 		echo "  - adapters/$$a"; \
 	done
 
-# -------------------------------
-# Release & Dev Tag
+# -----------------------------------
+# Release stable version
 #
-# FIX: Corrected shell variable usage ($$ADAPTER_TAG) and added release-check dependency.
+# Tags main module + all adapters, pushes, then tidies to fix go.sum.
+#
 release: release-check
 	@if [ -z "$(VERSION)" ]; then \
-		echo "$(RED)Usage: make release VERSION=v1.2.3$(NC)"; \
+		echo "$(RED)Usage: make release VERSION=v0.3.0$(NC)"; \
 		exit 1; \
 	fi
 	@echo "$(BLUE)🚀 Running release quality gate...$(NC)"
@@ -297,15 +308,19 @@ release: release-check
 		git push origin "$$ADAPTER_TAG"; \
 		echo "$(GREEN)✅ Pushed $$ADAPTER_TAG$(NC)"; \
 	done
+	@echo "$(BLUE)🧹 Tidying all modules now that tags are pushed...$(NC)"
+	@$(MAKE) tidy
+	@echo "$(GREEN)✅ Tidy completed after release push!$(NC)"
 	@echo "$(GREEN)🎉 Production release $(VERSION) created and pushed!$(NC)"
-	@echo "$(BLUE)📋 Created tags:$(NC)"
-	@echo "  - $(VERSION) (main module)"
-	@for a in $(ADAPTERS); do echo "  - adapters/$$a/$(VERSION)"; done
 
-# FIX: Corrected shell variable usage and added release-check dependency.
+# -----------------------------------
+# Release dev version
+#
+# Same as release, but for dev tags.
+#
 release-dev: release-check
 	@if [ -z "$(VERSION)" ]; then \
-		echo "$(RED)Usage: make release-dev VERSION=v1.2.3-dev.1$(NC)"; \
+		echo "$(RED)Usage: make release-dev VERSION=v0.3.0-dev.1$(NC)"; \
 		exit 1; \
 	fi
 	@echo "$(BLUE)🚀 Running dev release checks...$(NC)"
@@ -326,10 +341,10 @@ release-dev: release-check
 		git push origin "$$ADAPTER_TAG"; \
 		echo "$(GREEN)✅ Pushed $$ADAPTER_TAG$(NC)"; \
 	done
+	@echo "$(BLUE)🧹 Tidying all modules now that dev tags are pushed...$(NC)"
+	@$(MAKE) tidy
+	@echo "$(GREEN)✅ Tidy completed after dev release push!$(NC)"
 	@echo "$(GREEN)🎉 Dev release $(VERSION) created and pushed!$(NC)"
-	@echo "$(BLUE)📋 Created tags:$(NC)"
-	@echo "  - $(VERSION) (main module)"
-	@for a in $(ADAPTERS); do echo "  - adapters/$$a/$(VERSION)"; done
 
 release-dry-run:
 	@if [ -z "$(VERSION)" ]; then \
@@ -366,17 +381,28 @@ check-adapter-deps:
 	echo "$(YELLOW)💡 To sync all adapters to the latest release, run:$(NC)"; \
 	echo "   make sync-adapter-deps VERSION=$$LATEST_TAG"
 
+# -----------------------------------
+# Sync adapter dependencies to an existing version
+#
+# Use this AFTER you publish a version.
+# Example:
+#   make sync-adapter-deps VERSION=v0.3.0
+#
 sync-adapter-deps:
 	@if [ -z "$(VERSION)" ]; then \
-		echo "$(RED)Usage: make sync-adapter-deps VERSION=v1.2.3$(NC)"; \
+		echo "$(RED)Usage: make sync-adapter-deps VERSION=v0.3.0 [NO_TIDY=1]$(NC)"; \
 		exit 1; \
 	fi
 	@echo "$(BLUE)🔄 Syncing adapter dependencies to $(VERSION)...$(NC)"
 	@for a in $(ADAPTERS); do \
 		echo "$(BLUE)📝 Updating adapters/$$a...$(NC)"; \
 		(cd "adapters/$$a" && \
-		$(SED_INPLACE) -E 's#(github.com/oaswrap/spec )v[0-9]+\.[0-9]+\.[^ ]*#\1$(VERSION)#' go.mod && \
-		go mod tidy); \
+		$(SED_INPLACE) -E 's#(github.com/oaswrap/spec )v[0-9]+\.[0-9]+\.[^ ]*#\1$(VERSION)#' go.mod); \
+		if [ "$(NO_TIDY)" != "1" ]; then \
+			(cd "adapters/$$a" && go mod tidy); \
+		else \
+			echo "$(YELLOW)⚠️  Skipped go mod tidy for adapters/$$a because NO_TIDY=1$(NC)"; \
+		fi; \
 		echo "$(GREEN)✅ Updated adapters/$$a to $(VERSION)$(NC)"; \
 	done
 	@echo "$(GREEN)🎉 All adapters synced to $(VERSION)!$(NC)"
