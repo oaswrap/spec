@@ -278,8 +278,12 @@ release: release-check
 
 	echo "$(BLUE)⏳ Waiting for Go proxy to index $(VERSION)...$(NC)"
 	@sleep 5
+
 	@echo "$(BLUE)🔍 Forcing proxy refresh for root module...$(NC)"
 	@GOPROXY=proxy.golang.org go list -m github.com/oaswrap/spec@$(VERSION) || true
+
+	@echo "$(BLUE)🔍 Fallback: direct fetch to ensure fresh tag is visible...$(NC)"
+	@GOPROXY=direct go list -m github.com/your/repo@$(VERSION) || true
 
 	@echo "$(BLUE)📤 Pushing adapter tags...$(NC)"
 	@if [ -n "$(ADAPTERS)" ]; then \
@@ -329,6 +333,7 @@ release-dry-run: release-check
 	@echo "  - Push HEAD"
 	@echo "  - Push main tag: $(VERSION)"
 	@echo "  - Wait & warm Go proxy"
+	@echo "  - Force direct fetch fallback"
 	@echo "  - Push adapter tags:"
 
 	@if [ -n "$(ADAPTERS)" ]; then \
