@@ -272,9 +272,16 @@ release: release-check
 		done \
 	fi
 
-	@echo "$(BLUE)📤 Pushing commit and tags...$(NC)"
+	@echo "$(BLUE)📤 Pushing commit and main tag first...$(NC)"
 	@git push origin HEAD
 	@git push origin "$(VERSION)"
+
+	echo "$(BLUE)⏳ Waiting for Go proxy to index $(VERSION)...$(NC)"
+	@sleep 5
+	@echo "$(BLUE)🔍 Forcing proxy refresh for root module...$(NC)"
+	@GOPROXY=proxy.golang.org go list -m github.com/oaswrap/spec@$(VERSION) || true
+
+	@echo "$(BLUE)📤 Pushing adapter tags...$(NC)"
 	@if [ -n "$(ADAPTERS)" ]; then \
 		for a in $(ADAPTERS); do \
 			ADAPTER_TAG="adapters/$$a/$(VERSION)"; \
@@ -318,18 +325,19 @@ release-dry-run: release-check
 		done \
 	fi
 
-	@echo "$(BLUE)📤 [Dry Run] Remote that would be pushed: origin$(NC)"
+	@echo "$(BLUE)📤 [Dry Run] Would push in this order:$(NC)"
 	@echo "  - Push HEAD"
-	@echo "  - Push tags:"
+	@echo "  - Push main tag: $(VERSION)"
+	@echo "  - Wait & warm Go proxy"
+	@echo "  - Push adapter tags:"
 
-	@echo "    - $(VERSION)"
 	@if [ -n "$(ADAPTERS)" ]; then \
 		for a in $(ADAPTERS); do \
 			echo "    - adapters/$$a/$(VERSION)"; \
 		done \
 	fi
 
-	@echo "$(BLUE)🧹 [Dry Run] Would run tidy after pushing tags$(NC)"
+	@echo "$(BLUE)🧹 [Dry Run] Would tidy after pushing tags$(NC)"
 	@echo "$(GREEN)✅ [Dry Run] Release plan looks good!$(NC)"
 
 release-dry-run-clean:
