@@ -6,7 +6,6 @@ import (
 	"github.com/oaswrap/spec/option"
 )
 
-
 type route struct {
 	ginRoute  gin.IRoutes
 	specRoute spec.Route
