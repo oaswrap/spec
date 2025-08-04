@@ -31,7 +31,7 @@ NC     := \033[0m # No Color
 .PHONY: list-adapters adapter-status
 .PHONY: check check-release check-dry-run
 .PHONY: release-check
-.PHONY: release release-dry-run release-dry-run-clean
+.PHONY: release release-dry-run release-dry-run-clean release-status
 .PHONY: check-adapter-deps sync-adapter-deps
 .PHONY: list-tags delete-version verify-tags
 .PHONY: help
@@ -349,6 +349,35 @@ release-dry-run-clean:
 	@git reset
 	@git checkout -- .
 	@echo "$(GREEN)✅ Cleaned staged and working tree changes from dry run.$(NC)"
+
+release-status:
+	@if [ -z "$(VERSION)" ]; then \
+		echo "$(RED)Usage: make release-status VERSION=v0.3.0$(NC)"; \
+		exit 1; \
+	fi
+
+	@echo "$(BLUE)🔍 Checking available versions at proxy.golang.org...$(NC)"
+	@echo "$(BLUE)Available versions for github.com/oaswrap/spec:$(NC)"
+	@curl -s https://proxy.golang.org/github.com/oaswrap/spec/@v/list || echo "$(RED)❌ Could not reach proxy.golang.org$(NC)"
+
+	@echo ""
+	@echo "$(BLUE)🔍 Checking if $(VERSION) is indexed at proxy.golang.org...$(NC)"
+	@curl -s https://proxy.golang.org/github.com/oaswrap/spec/@v/$(VERSION).info || echo "$(RED)❌ Version not found at proxy.golang.org$(NC)"
+
+	@echo ""
+	@echo "$(BLUE)🔍 Checking checksum database sum.golang.org for $(VERSION)...$(NC)"
+	@curl -s https://sum.golang.org/lookup/github.com/oaswrap/spec@$(VERSION) || echo "$(RED)❌ Not found in checksum DB$(NC)"
+
+	@echo ""
+	@echo "$(BLUE)🔍 Testing go list -m at proxy.golang.org...$(NC)"
+	@GOPROXY=proxy.golang.org go list -m github.com/oaswrap/spec@$(VERSION) || echo "$(RED)❌ Not found via go list -m (proxy)$(NC)"
+
+	@echo ""
+	@echo "$(BLUE)🔍 Testing go list -m with direct fallback...$(NC)"
+	@GOPROXY=direct go list -m github.com/oaswrap/spec@$(VERSION) || echo "$(RED)❌ Not found via go list -m (direct)$(NC)"
+
+	@echo ""
+	@echo "$(GREEN)✅ Status check done for $(VERSION)!$(NC)"
 
 # -------------------------------
 # Dependency Management
