@@ -31,7 +31,7 @@ NC     := \033[0m # No Color
 .PHONY: list-adapters adapter-status
 .PHONY: check check-release check-dry-run
 .PHONY: release-check
-.PHONY: release release-dry-run
+.PHONY: release release-dry-run release-dry-run-clean
 .PHONY: check-adapter-deps sync-adapter-deps
 .PHONY: list-tags delete-version verify-tags
 .PHONY: help
@@ -249,6 +249,7 @@ release: release-check
 		echo "$(RED)Usage: make release VERSION=v0.3.0$(NC)"; \
 		exit 1; \
 	fi
+
 	@echo "$(BLUE)🚀 Running release quality gate...$(NC)"
 	@$(MAKE) check-release
 
@@ -257,55 +258,84 @@ release: release-check
 
 	@echo "$(BLUE)📥 Committing updated adapter dependencies...$(NC)"
 	@git add .
-	@git commit -m "chore: sync adapters to $(VERSION)"
+	@git diff --cached --quiet || git commit -m "chore: sync adapters to $(VERSION)"
 
 	@echo "$(BLUE)🏷️  Tagging main release $(VERSION)...$(NC)"
-	@git tag "$(VERSION)"
+	@git tag -f "$(VERSION)"
 
 	@echo "$(BLUE)🏷️  Tagging adapter releases...$(NC)"
-	@for a in $(ADAPTERS); do \
-		ADAPTER_TAG="adapters/$$a/$(VERSION)"; \
-		git tag "$$ADAPTER_TAG"; \
-		echo "$(GREEN)✅ Tagged $$ADAPTER_TAG$(NC)"; \
-	done
+	@if [ -n "$(ADAPTERS)" ]; then \
+		for a in $(ADAPTERS); do \
+			ADAPTER_TAG="adapters/$$a/$(VERSION)"; \
+			git tag -f "$$ADAPTER_TAG"; \
+			echo "$(GREEN)✅ Tagged $$ADAPTER_TAG$(NC)"; \
+		done \
+	fi
 
-	@echo "$(BLUE)📤 Pushing main tag and commit...$(NC)"
-	@git push origin "$(VERSION)"
+	@echo "$(BLUE)📤 Pushing commit and tags...$(NC)"
 	@git push origin HEAD
-
-	@echo "$(BLUE)📤 Pushing adapter tags...$(NC)"
-	@for a in $(ADAPTERS); do \
-		ADAPTER_TAG="adapters/$$a/$(VERSION)"; \
-		git push origin "$$ADAPTER_TAG"; \
-		echo "$(GREEN)✅ Pushed $$ADAPTER_TAG$(NC)"; \
-	done
+	@git push origin "$(VERSION)"
+	@if [ -n "$(ADAPTERS)" ]; then \
+		for a in $(ADAPTERS); do \
+			ADAPTER_TAG="adapters/$$a/$(VERSION)"; \
+			git push origin "$$ADAPTER_TAG"; \
+			echo "$(GREEN)✅ Pushed $$ADAPTER_TAG$(NC)"; \
+		done \
+	fi
 
 	@echo "$(BLUE)🧹 Tidying all modules now that tags are pushed...$(NC)"
 	@$(MAKE) tidy
-	@echo "$(GREEN)✅ Tidy completed after release push!$(NC)"
+	@git add .
+	@git diff --cached --quiet || git commit -m "chore: tidy modules after $(VERSION)"
+
+	@echo "$(GREEN)✅ Tidy completed and committed after release push!$(NC)"
 	@echo "$(GREEN)🎉 Production release $(VERSION) created and pushed!$(NC)"
 
 # -------------------------------
 # Development Release Management
 #
-release-dry-run:
+release-dry-run: release-check
 	@if [ -z "$(VERSION)" ]; then \
 		echo "$(RED)Usage: make release-dry-run VERSION=v0.3.0$(NC)"; \
 		exit 1; \
 	fi
-	@echo "$(YELLOW)🔍 Dry run — this is what would happen for release $(VERSION):$(NC)"
-	@echo ""
-	@echo "  1️⃣  Run quality gate checks: make check-release"
-	@echo "  2️⃣  Sync adapter dependencies: make sync-adapter-deps VERSION=$(VERSION) NO_TIDY=1"
-	@echo "  3️⃣  Commit updated adapter dependencies"
-	@echo "  4️⃣  Tag main module: $(VERSION)"
-	@echo "  5️⃣  Tag adapters:"
-	@for a in $(ADAPTERS); do echo "      - adapters/$$a/$(VERSION)"; done
-	@echo "  6️⃣  Push commit + main tag to origin"
-	@echo "  7️⃣  Push adapter tags to origin"
-	@echo "  8️⃣  Run tidy: make tidy"
-	@echo ""
-	@echo "$(YELLOW)✅ Dry run complete — no changes made.$(NC)"
+
+	@echo "$(BLUE)🚀 [Dry Run] Running release quality gate...$(NC)"
+	@$(MAKE) check-release
+
+	@echo "$(BLUE)🔄 [Dry Run] Syncing adapter dependencies to $(VERSION)...$(NC)"
+	@$(MAKE) sync-adapter-deps VERSION=$(VERSION) NO_TIDY=1
+
+	@echo "$(BLUE)📥 [Dry Run] Staged changes that would be committed:$(NC)"
+	@git add .
+	@git diff --cached --name-status
+
+	@echo "$(BLUE)🏷️  [Dry Run] Tags that would be created:$(NC)"
+	@echo "  - $(VERSION)"
+	@if [ -n "$(ADAPTERS)" ]; then \
+		for a in $(ADAPTERS); do \
+			echo "  - adapters/$$a/$(VERSION)"; \
+		done \
+	fi
+
+	@echo "$(BLUE)📤 [Dry Run] Remote that would be pushed: origin$(NC)"
+	@echo "  - Push HEAD"
+	@echo "  - Push tags:"
+
+	@echo "    - $(VERSION)"
+	@if [ -n "$(ADAPTERS)" ]; then \
+		for a in $(ADAPTERS); do \
+			echo "    - adapters/$$a/$(VERSION)"; \
+		done \
+	fi
+
+	@echo "$(BLUE)🧹 [Dry Run] Would run tidy after pushing tags$(NC)"
+	@echo "$(GREEN)✅ [Dry Run] Release plan looks good!$(NC)"
+
+release-dry-run-clean:
+	@git reset
+	@git checkout -- .
+	@echo "$(GREEN)✅ Cleaned staged and working tree changes from dry run.$(NC)"
 
 # -------------------------------
 # Dependency Management
