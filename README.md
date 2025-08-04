@@ -15,13 +15,13 @@ A lightweight, framework-agnostic OpenAPI 3.x specification builder for Go that 
 - **🚀 Adapter Ecosystem** — Seamless integration with popular frameworks via dedicated adapters
 - **📝 CI/CD Ready** — Generate specs at build time for documentation pipelines
 
-## Quick Start
-
-### Installation
+## Installation
 
 ```bash
 go get github.com/oaswrap/spec
 ```
+
+## Quick Start
 
 ### Basic Usage (Standalone)
 
@@ -89,27 +89,41 @@ type User struct {
 
 📖 **[View the generated spec](https://rest.wiki/?https://raw.githubusercontent.com/oaswrap/spec/main/examples/basic/openapi.yaml)** on Rest.Wiki
 
-## Framework Integration
+### Framework Integration
 
-For seamless HTTP server integration, use one of our framework adapters. Each adapter has its own repository with complete examples and documentation.
+For seamless HTTP server integration, use one of our framework adapters:
 
-### Available Adapters
-
-| Framework | Adapter Package |
-|-----------|-----------------|
-| **Chi** | [chiopenapi](/adapters/chiopenapi) |
-| **Echo** | [echoopenapi](/adapters/echoopenapi) |
-| **Gin** | [ginopenapi](/adapters/ginopenapi) |
-| **Fiber** | [fiberopenapi](/adapters/fiberopenapi) |
-| **HTTP** | [httpopenapi](/adapters/httpopenapi) |
+| Framework | Package | Status |
+|-----------|---------|---------|
+| **Chi** | [`chiopenapi`](https://github.com/oaswrap/chiopenapi) | ✅ Stable |
+| **Echo** | [`echoopenapi`](https://github.com/oaswrap/echoopenapi) | ✅ Stable |
+| **Gin** | [`ginopenapi`](https://github.com/oaswrap/ginopenapi) | ✅ Stable |
+| **Fiber** | [`fiberopenapi`](https://github.com/oaswrap/fiberopenapi) | ✅ Stable |
+| **HTTP** | [`httpopenapi`](https://github.com/oaswrap/httpopenapi) | ✅ Stable |
+| **Mux** | Coming soon | 🚧 Planned |
 
 Each adapter provides:
-- Automatic spec generation from your routes
-- Built-in Swagger UI documentation
-- JSON/YAML spec endpoints
-- Inline OpenAPI options with route definitions
+- ✅ Automatic spec generation from your routes
+- 📚 Built-in Swagger UI documentation at `/docs`
+- 📄 YAML spec endpoints at `/docs/openapi.yaml`
+- 🔧 Inline OpenAPI options with route definitions
 
 Visit the individual adapter repositories for framework-specific examples and detailed integration guides.
+
+## When to Use What?
+
+### ✅ Use `spec` standalone when you:
+- Generate OpenAPI files at **build time**
+- Integrate with **CI/CD pipelines**
+- Build **custom documentation tools**
+- Need **static spec generation**
+- Want **framework independence**
+
+### ✅ Use framework adapters when you:
+- Want **automatic spec generation** from routes
+- Need **built-in documentation UI**
+- Prefer **inline OpenAPI configuration**
+- Want **live spec endpoints**
 
 ## Configuration Options
 
@@ -117,7 +131,7 @@ The `option` package provides comprehensive OpenAPI configuration:
 
 ### Basic Information
 ```go
-option.WithOpenAPIVersion("3.0.3") // Specify OpenAPI version (default is "3.0.3")
+option.WithOpenAPIVersion("3.0.3") // Default: "3.0.3"
 option.WithTitle("My API")
 option.WithDescription("API description")
 option.WithVersion("1.2.3")
@@ -137,7 +151,7 @@ option.WithTags(
 		Description: "Operations related to user management",
 	},
 	openapi.Tag{
-		Name:        "Authentication",
+		Name:        "Authentication", 
 		Description: "Authentication related operations",
 	},
 )
@@ -182,22 +196,23 @@ option.WithSecurity("oauth2", option.SecurityOAuth2(
 
 ### Route Documentation
 ```go
-option.OperationID("getUserByID") // Specify unique operation ID
-option.Summary("Short description") // Brief summary of the operation
-option.Description("Detailed description") // Full description of the operation
-option.Tags("User Management", "Authentication") // Group operations by tags
-option.Request(new(RequestModel)) // Define request body model
-option.Response(200, new(ResponseModel), // Define response model
-	option.ContentDescription("Successful response"), // Add description for response
-	option.ContentType("application/json"), // Specify content type
-	option.ContentDefault(true), // Mark as default response
+option.OperationID("getUserByID")           // Unique operation ID
+option.Summary("Short description")         // Brief summary
+option.Description("Detailed description") // Full description
+option.Tags("User Management", "Authentication") // Group by tags
+option.Request(new(RequestModel))          // Request body model
+option.Response(200, new(ResponseModel),   // Response model
+	option.ContentDescription("Successful response"),
+	option.ContentType("application/json"),
+	option.ContentDefault(true),
 )
-option.Security("bearerAuth") // Apply security scheme to the route
-option.Deprecated() // Mark route as deprecated
-option.Hidden()     // Hide route from OpenAPI spec
+option.Security("bearerAuth")              // Apply security scheme
+option.Deprecated()                        // Mark as deprecated
+option.Hidden()                            // Hide from spec
 ```
 
-Parameters (path, query, headers) are defined using struct tags in your request models:
+### Parameter Definition
+Define parameters using struct tags in your request models:
 
 ```go
 type GetUserRequest struct {
@@ -211,39 +226,23 @@ type GetUserRequest struct {
 Apply settings to all routes within a group:
 
 ```go
-// Apply tags, security, and other settings to all routes in the group
+// Apply to all routes in the group
 adminGroup := r.Group("/admin",
 	option.GroupTags("Administration"),
 	option.GroupSecurity("bearerAuth"),
-	option.GroupDeprecated(), // Mark all routes as deprecated
+	option.GroupDeprecated(),
 )
 
 // Hide internal routes from documentation
 internalGroup := r.Group("/internal",
-	option.GroupHidden(), // Exclude from OpenAPI spec
+	option.GroupHidden(),
 )
 ```
-
-## Use Cases
-
-### ✅ Use `spec` standalone when you:
-- Generate OpenAPI files at **build time**
-- Integrate with **CI/CD pipelines**
-- Build **custom documentation tools**
-- Need **static spec generation**
-- Want **framework independence**
-
-### ✅ Use framework adapters when you:
-- Want **automatic spec generation** from routes
-- Need **built-in documentation UI**
-- Prefer **inline OpenAPI configuration**
-- Want **live spec endpoints**
 
 ## Advanced Features
 
 ### Rich Schema Documentation
 ```go
-// Use struct tags to generate detailed OpenAPI schemas
 type CreateUserRequest struct {
 	Name     string   `json:"name" required:"true" minLength:"2" maxLength:"50"`
 	Email    string   `json:"email" required:"true" format:"email"`
@@ -252,7 +251,7 @@ type CreateUserRequest struct {
 }
 ```
 
-For comprehensive struct tag documentation and advanced schema features, see the [swaggest/openapi-go features guide](https://github.com/swaggest/openapi-go?tab=readme-ov-file#features) and [swaggest/jsonschema-go field tags](https://github.com/swaggest/jsonschema-go?tab=readme-ov-file#field-tags).
+For comprehensive struct tag documentation, see [swaggest/openapi-go](https://github.com/swaggest/openapi-go?tab=readme-ov-file#features) and [swaggest/jsonschema-go](https://github.com/swaggest/jsonschema-go?tab=readme-ov-file#field-tags).
 
 ### Generic Response Types
 ```go
@@ -270,38 +269,48 @@ option.Response(200, new(APIResponse[[]Product]))
 
 ## Examples
 
-Check out the [`examples/`](examples/) directory for complete working examples:
+Explore complete working examples in the [`examples/`](examples/) directory:
 
 - **[Basic](examples/basic/)** — Standalone spec generation
-- **[Petstore](examples/petstore/)** — Full Petstore API example with routes and models
+- **[Petstore](examples/petstore/)** — Full Petstore API with routes and models
 
 ## API Reference
 
-For complete API documentation, visit [pkg.go.dev/github.com/oaswrap/spec](https://pkg.go.dev/github.com/oaswrap/spec).
+Complete documentation at [pkg.go.dev/github.com/oaswrap/spec](https://pkg.go.dev/github.com/oaswrap/spec).
 
 Key packages:
 - [`spec`](https://pkg.go.dev/github.com/oaswrap/spec) — Core router and spec builder
-- [`option`](https://pkg.go.dev/github.com/oaswrap/spec/option) — All configuration options
+- [`option`](https://pkg.go.dev/github.com/oaswrap/spec/option) — Configuration options
 
 ## FAQ
 
 **Q: Can I use this with my existing API?**  
-A: Yes! You can either use the standalone version to document existing APIs, or gradually migrate to framework adapters.
+A: Absolutely! Use the standalone version to document existing APIs, or gradually migrate to framework adapters.
 
 **Q: How does this compare to swag/swaggo?**  
-A: While swag uses code comments, oaswrap uses pure Go code for type safety and better IDE support. Both approaches have their merits.
+A: While swag uses code comments, oaswrap uses pure Go code for type safety and better IDE support. Both have their merits - swag is annotation-based while oaswrap is code-first.
+
+**Q: How does this compare to Huma?**  
+A: Both are excellent choices with different philosophies:
+- **Huma** is a complete HTTP framework with built-in OpenAPI generation, validation, and middleware
+- **oaswrap/spec** is a lightweight, framework-agnostic documentation builder that works with your existing setup
+- Use **Huma** if you're building a new API and want an all-in-one solution with automatic validation
+- Use **oaswrap** if you have existing code, prefer framework flexibility, or need standalone spec generation
 
 **Q: Can I customize the generated documentation UI?**  
-A: Framework adapters provide built-in UIs, but you can also serve the spec with any OpenAPI-compatible documentation tool.
+A: Framework adapters provide built-in UIs, but you can serve the spec with any OpenAPI-compatible tool like Swagger UI, Redoc, or Stoplight.
 
 **Q: Is this production ready?**  
-A: The library is in active development. While the core functionality is solid, consider it beta software. We recommend thorough testing before production use.
+A: The library is in active development. While core functionality is solid, consider it beta software. Thorough testing is recommended before production use.
+
+**Q: How do I handle authentication in the generated docs?**  
+A: Define security schemes using `option.WithSecurity()` and apply them to routes with `option.Security()`. The generated docs will include authentication UI.
 
 ## Roadmap
 
 - [ ] Mux adapter
-- [ ] Stoplight support
-- [ ] Redoc UI support
+- [ ] Redoc UI support  
+- [ ] Stoplight Elements integration
 
 ## Contributing
 
@@ -312,7 +321,7 @@ We welcome contributions! Here's how you can help:
 3. **📝 Improve docs** — Help make our documentation clearer
 4. **🔧 Submit PRs** — Fix bugs or add features
 
-Please check our issues and discussions before starting work on new features.
+Please check existing issues and discussions before starting work on new features.
 
 ## License
 

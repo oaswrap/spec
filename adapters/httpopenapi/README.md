@@ -2,14 +2,15 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/oaswrap/spec/adapters/httpopenapi.svg)](https://pkg.go.dev/github.com/oaswrap/spec/adapters/httpopenapi)
 
-A lightweight adapter for the [HTTP](https://golang.org/pkg/net/http/) web framework that automatically generates OpenAPI 3.x specifications from your routes using [`oaswrap/spec`](https://github.com/oaswrap/spec).
+A lightweight adapter for the [net/http](https://pkg.go.dev/net/http) package that automatically generates OpenAPI 3.x specifications from your routes using [`oaswrap/spec`](https://github.com/oaswrap/spec).
 
-## Why httpopenapi?
+## Features
 
-- **⚡ Seamless Integration** — Works with your existing HTTP routes and handlers
+- **⚡ Seamless Integration** — Works with your existing net/http routes and handlers
 - **📝 Automatic Documentation** — Generate OpenAPI specs from route definitions and struct tags
 - **🎯 Type Safety** — Full Go type safety for OpenAPI configuration
 - **🔧 Built-in UI** — Swagger UI served automatically at `/docs`
+- **📄 YAML Export** — OpenAPI spec available at `/docs/openapi.yaml`
 - **🚀 Zero Overhead** — Minimal performance impact on your API
 
 ## Installation
@@ -123,14 +124,58 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-## Configuration Options
+## Documentation Features
 
-For all available configuration options, see the main [`oaswrap/spec`](https://github.com/oaswrap/spec#configuration-options) documentation.
+### Built-in Endpoints
+When you create a httpopenapi router, the following endpoints are automatically available:
+
+- **`/docs`** — Interactive Swagger UI documentation
+- **`/docs/openapi.yaml`** — Raw OpenAPI specification in YAML format
+
+If you want to disable the built-in UI, you can do so by passing `option.WithDisableDocs()` when creating the router:
+
+```go
+r := httpopenapi.NewRouter(c,
+	option.WithTitle("My API"),
+	option.WithVersion("1.0.0"),
+	option.WithDisableDocs(),
+)
+```
+
+### Rich Schema Documentation
+Use struct tags to generate detailed OpenAPI schemas:
+
+```go
+type CreateProductRequest struct {
+	Name        string   `json:"name" required:"true" minLength:"1" maxLength:"100"`
+	Description string   `json:"description" maxLength:"500"`
+	Price       float64  `json:"price" required:"true" minimum:"0" maximum:"999999.99"`
+	Category    string   `json:"category" required:"true" enum:"electronics,books,clothing"`
+	Tags        []string `json:"tags" maxItems:"10"`
+	InStock     bool     `json:"in_stock" default:"true"`
+}
+```
+
+For more struct tag options, see the [swaggest/openapi-go](https://github.com/swaggest/openapi-go?tab=readme-ov-file#features).
+
+## Examples
+
+Check out complete examples in the main repository:
+- [Basic HTTP Example](https://github.com/oaswrap/spec/tree/main/examples/adapters/httpopenapi/basic)
+
+## Best Practices
+
+1. **Organize with Tags** — Group related operations using `option.Tags()`
+2. **Document Everything** — Use `option.Summary()` and `option.Description()` for all routes
+3. **Define Error Responses** — Include common error responses (400, 401, 404, 500)
+4. **Use Validation Tags** — Leverage struct tags for request validation documentation
+5. **Security First** — Define and apply appropriate security schemes
+6. **Version Your API** — Use route groups for API versioning (`/api/v1`, `/api/v2`)
 
 ## API Reference
 
-- **Core**: [pkg.go.dev/github.com/oaswrap/spec](https://pkg.go.dev/github.com/oaswrap/spec)
-- **Adapter**: [pkg.go.dev/github.com/oaswrap/spec/adapters/httpopenapi](https://pkg.go.dev/github.com/oaswrap/spec/adapters/httpopenapi)
+- **Spec**: [pkg.go.dev/github.com/oaswrap/spec](https://pkg.go.dev/github.com/oaswrap/spec)
+- **HTTP Adapter**: [pkg.go.dev/github.com/oaswrap/spec/adapters/httpopenapi](https://pkg.go.dev/github.com/oaswrap/spec/adapters/httpopenapi)
 - **Options**: [pkg.go.dev/github.com/oaswrap/spec/option](https://pkg.go.dev/github.com/oaswrap/spec/option)
 
 ## Contributing
