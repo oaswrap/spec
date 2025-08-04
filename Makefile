@@ -102,20 +102,20 @@ test-update-parallel:
 #
 testcov:
 	@echo "$(BLUE)📊 Generating coverage report...$(NC)"
-	@gotestsum --format standard-quiet -- -coverprofile=$(COVERAGE_FILE) $(PKG)
+	@gotestsum --format standard-quiet -- -coverprofile="coverage/$(COVERAGE_FILE)" $(PKG)
 	@echo "$(BLUE)📈 Core coverage:$(NC)"
-	@go tool cover -func=$(COVERAGE_FILE)
+	@go tool cover -func="$(COVERAGE_FILE)"
 	@for a in $(ADAPTERS); do \
 		echo "$(BLUE)📈 Adapter $$a coverage:$(NC)"; \
-		(cd "adapters/$$a" && gotestsum --format standard-quiet -- -coverprofile=$$a-$(COVERAGE_FILE) ./... && go tool cover -func=$$a-$(COVERAGE_FILE)) || exit 1; \
+		(cd "adapters/$$a" && gotestsum --format standard-quiet -- -coverprofile="../../coverage/$$a-$(COVERAGE_FILE)" ./... && go tool cover -func="../../coverage/$$a-$(COVERAGE_FILE)") || exit 1; \
 	done
 	@echo "$(GREEN)✅ Coverage reports generated!$(NC)"
 
-coverage-html: testcov
+testcov-html: testcov
 	@echo "$(BLUE)🌐 Generating HTML coverage reports...$(NC)"
-	@go tool cover -html=$(COVERAGE_FILE) -o coverage.html
+	@go tool cover -html="coverage/$(COVERAGE_FILE)" -o "coverage/coverage.html"
 	@for a in $(ADAPTERS); do \
-		(cd "adapters/$$a" && go tool cover -html=$$a-$(COVERAGE_FILE) -o $$a-coverage.html); \
+		(cd "adapters/$$a" && go tool cover -html="../../coverage/$$a-$(COVERAGE_FILE)" -o "../../coverage/$$a-coverage.html"); \
 	done
 	@echo "$(GREEN)✅ HTML coverage reports generated!$(NC)"
 
