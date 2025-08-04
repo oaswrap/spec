@@ -253,7 +253,7 @@ release: release-check
 	@$(MAKE) check-release
 
 	@echo "$(BLUE)🔄 Syncing adapter dependencies to $(VERSION)...$(NC)"
-	@$(MAKE) sync-adapter-deps VERSION=$(VERSION)
+	@$(MAKE) sync-adapter-deps VERSION=$(VERSION) NO_TIDY=1
 
 	@echo "$(BLUE)📥 Committing updated adapter dependencies...$(NC)"
 	@git add .
@@ -296,7 +296,7 @@ release-dry-run:
 	@echo "$(YELLOW)🔍 Dry run — this is what would happen for release $(VERSION):$(NC)"
 	@echo ""
 	@echo "  1️⃣  Run quality gate checks: make check-release"
-	@echo "  2️⃣  Sync adapter dependencies: make sync-adapter-deps VERSION=$(VERSION)"
+	@echo "  2️⃣  Sync adapter dependencies: make sync-adapter-deps VERSION=$(VERSION) NO_TIDY=1"
 	@echo "  3️⃣  Commit updated adapter dependencies"
 	@echo "  4️⃣  Tag main module: $(VERSION)"
 	@echo "  5️⃣  Tag adapters:"
