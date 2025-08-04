@@ -283,7 +283,7 @@ release: release-check
 	@GOPROXY=proxy.golang.org go list -m github.com/oaswrap/spec@$(VERSION) || true
 
 	@echo "$(BLUE)🔍 Fallback: direct fetch to ensure fresh tag is visible...$(NC)"
-	@GOPROXY=direct go list -m github.com/your/repo@$(VERSION) || true
+	@GOPROXY=direct go list -m github.com/oaswrap/spec@$(VERSION) || true
 
 	@echo "$(BLUE)📤 Pushing adapter tags...$(NC)"
 	@if [ -n "$(ADAPTERS)" ]; then \
