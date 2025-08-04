@@ -4,8 +4,8 @@ import (
 	"sync"
 
 	"github.com/labstack/echo/v4"
-	"github.com/oaswrap/spec/adapters/echoopenapi/internal/constant"
 	"github.com/oaswrap/spec"
+	"github.com/oaswrap/spec/adapters/echoopenapi/internal/constant"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/pkg/util"
 	"github.com/swaggest/swgui"

@@ -5,8 +5,8 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
-	"github.com/oaswrap/spec/adapters/ginopenapi/internal/constant"
 	"github.com/oaswrap/spec"
+	"github.com/oaswrap/spec/adapters/ginopenapi/internal/constant"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/pkg/util"
 	"github.com/swaggest/swgui"

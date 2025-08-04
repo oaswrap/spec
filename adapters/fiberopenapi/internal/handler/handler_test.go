@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/oaswrap/spec/adapters/fiberopenapi/internal/handler"
 	"github.com/oaswrap/spec"
+	"github.com/oaswrap/spec/adapters/fiberopenapi/internal/handler"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 	"github.com/stretchr/testify/assert"

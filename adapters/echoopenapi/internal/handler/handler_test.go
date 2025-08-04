@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	"github.com/oaswrap/spec/adapters/echoopenapi/internal/handler"
 	"github.com/oaswrap/spec"
+	"github.com/oaswrap/spec/adapters/echoopenapi/internal/handler"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 	"github.com/stretchr/testify/assert"

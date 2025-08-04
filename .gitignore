@@ -17,9 +17,7 @@ coverage.*
 *.coverprofile
 profile.cov
 junit.xml
-# Adapter coverage files  
-adapters/*/*-coverage.out
-adapters/*/*-coverage.html
+coverage/
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
