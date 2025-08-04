@@ -95,11 +95,11 @@ For seamless HTTP server integration, use one of our framework adapters:
 
 | Framework | Package | Status |
 |-----------|---------|---------|
-| **Chi** | [`chiopenapi`](https://github.com/oaswrap/chiopenapi) | ✅ Stable |
-| **Echo** | [`echoopenapi`](https://github.com/oaswrap/echoopenapi) | ✅ Stable |
-| **Gin** | [`ginopenapi`](https://github.com/oaswrap/ginopenapi) | ✅ Stable |
-| **Fiber** | [`fiberopenapi`](https://github.com/oaswrap/fiberopenapi) | ✅ Stable |
-| **HTTP** | [`httpopenapi`](https://github.com/oaswrap/httpopenapi) | ✅ Stable |
+| **Chi** | [`chiopenapi`](/adapters/chiopenapi) | ✅ Stable |
+| **Echo** | [`echoopenapi`](/adapters/echoopenapi) | ✅ Stable |
+| **Gin** | [`ginopenapi`](/adapters/ginopenapi) | ✅ Stable |
+| **Fiber** | [`fiberopenapi`](/adapters/fiberopenapi) | ✅ Stable |
+| **HTTP** | [`httpopenapi`](/adapters/httpopenapi) | ✅ Stable |
 | **Mux** | Coming soon | 🚧 Planned |
 
 Each adapter provides:
