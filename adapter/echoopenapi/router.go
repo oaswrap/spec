@@ -10,7 +10,6 @@ import (
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 	"github.com/oaswrap/spec/pkg/parser"
-	"github.com/oaswrap/spec/pkg/util"
 )
 
 type router struct {
@@ -52,11 +51,10 @@ func NewRouter(e *echo.Echo, opts ...option.OpenAPIOption) Generator {
 		return rr
 	}
 
-	handler := handler.NewOpenAPIHandler(cfg, gen)
-	openapiPath := util.JoinPath(cfg.DocsPath, constant.OpenAPIFileName)
+	handler := handler.NewHandler(gen)
 
-	rr.echoGroup.GET(openapiPath, handler.OpenAPIYaml)
-	rr.echoGroup.GET(cfg.DocsPath, handler.Docs)
+	rr.echoGroup.GET(handler.DocsFilePath(), handler.DocsFile)
+	rr.echoGroup.GET(handler.DocsPath(), handler.Docs)
 
 	return rr
 }

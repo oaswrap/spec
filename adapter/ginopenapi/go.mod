@@ -5,8 +5,8 @@ go 1.21
 require (
 	github.com/gin-gonic/gin v1.10.1
 	github.com/oaswrap/spec v0.2.4
+	github.com/oaswrap/spec/module/specui v0.0.0
 	github.com/stretchr/testify v1.10.0
-	github.com/swaggest/swgui v1.8.4
 )
 
 require (
@@ -33,6 +33,7 @@ require (
 	github.com/swaggest/jsonschema-go v0.3.78 // indirect
 	github.com/swaggest/openapi-go v0.2.59 // indirect
 	github.com/swaggest/refl v1.4.0 // indirect
+	github.com/swaggest/swgui v1.8.4 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	golang.org/x/arch v0.8.0 // indirect
@@ -44,3 +45,5 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/oaswrap/spec/module/specui => ../../module/specui

@@ -5,11 +5,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/oaswrap/spec"
-	"github.com/oaswrap/spec/adapter/chiopenapi/internal/constant"
-	"github.com/oaswrap/spec/adapter/chiopenapi/internal/handler"
 	"github.com/oaswrap/spec/openapi"
+	"github.com/oaswrap/spec/adapter/chiopenapi/internal/constant"
+	"github.com/oaswrap/spec/module/specui"
 	"github.com/oaswrap/spec/option"
-	"github.com/oaswrap/spec/pkg/util"
 )
 
 type router struct {
@@ -52,10 +51,9 @@ func NewGenerator(r chi.Router, opts ...option.OpenAPIOption) Generator {
 		return rr
 	}
 
-	handler := handler.NewOpenAPIHandler(cfg, gen)
-	openapiPath := util.JoinPath(cfg.DocsPath, constant.OpenAPIFileName)
-	r.Get(cfg.DocsPath, handler.Docs)
-	r.Get(openapiPath, handler.OpenAPIYaml)
+	handler := specui.NewHandler(gen)
+	r.Get(handler.DocsPath(), handler.DocsFunc())
+	r.Get(handler.DocsFilePath(), handler.DocsFileFunc())
 
 	return rr
 }

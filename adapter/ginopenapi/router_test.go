@@ -341,7 +341,7 @@ func TestRouter_Gin(t *testing.T) {
 		rec := httptest.NewRecorder()
 		app.ServeHTTP(rec, req)
 		assert.Equal(t, http.StatusOK, rec.Code, "expected status code 200 for OpenAPI YAML path")
-		assert.Contains(t, rec.Header().Get("Content-Type"), "application/yaml", "expected content type to be application/yaml")
+		assert.Contains(t, rec.Header().Get("Content-Type"), "application/x-yaml", "expected content type to be application/x-yaml")
 		assert.NotEmpty(t, rec.Body.String(), "expected non-empty response body for OpenAPI YAML path")
 	})
 	t.Run("static directory serving", func(t *testing.T) {

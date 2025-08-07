@@ -7,11 +7,10 @@ import (
 
 	"github.com/oaswrap/spec"
 	"github.com/oaswrap/spec/adapter/httpopenapi/internal/constant"
-	"github.com/oaswrap/spec/adapter/httpopenapi/internal/handler"
 	"github.com/oaswrap/spec/adapter/httpopenapi/internal/parser"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
-	"github.com/oaswrap/spec/pkg/util"
+	"github.com/oaswrap/spec/module/specui"
 )
 
 type router struct {
@@ -48,10 +47,9 @@ func NewGenerator(mux *http.ServeMux, opts ...option.OpenAPIOption) Generator {
 		return r
 	}
 
-	handler := handler.NewOpenAPIHandler(cfg, gen)
-	openapiPath := util.JoinPath(cfg.DocsPath, constant.OpenAPIFileName)
-	mux.HandleFunc(http.MethodGet+" "+cfg.DocsPath, handler.Docs)
-	mux.HandleFunc(http.MethodGet+" "+openapiPath, handler.OpenAPIYaml)
+	handler := specui.NewHandler(gen)
+	mux.Handle(http.MethodGet+" "+handler.DocsPath(), handler.Docs())
+	mux.Handle(http.MethodGet+" "+handler.DocsFilePath(), handler.DocsFile())
 
 	return r
 }

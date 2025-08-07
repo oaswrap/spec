@@ -10,7 +10,6 @@ import (
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 	"github.com/oaswrap/spec/pkg/parser"
-	"github.com/oaswrap/spec/pkg/util"
 )
 
 // NewGenerator returns a new OpenAPI generator for Gin.
@@ -45,11 +44,10 @@ func NewRouter(ginRouter gin.IRouter, opts ...option.OpenAPIOption) Generator {
 		return rr
 	}
 
-	handler := handler.NewOpenAPIHandler(cfg, gen)
+	handler := handler.NewHandler(gen)
 
-	openapiPath := util.JoinPath(cfg.DocsPath, constant.OpenAPIFileName)
-	ginRouter.GET(cfg.DocsPath, handler.Docs)
-	ginRouter.GET(openapiPath, handler.OpenAPIYaml)
+	ginRouter.GET(handler.DocsFilePath(), handler.DocsFile)
+	ginRouter.GET(handler.DocsPath(), handler.Docs)
 
 	return rr
 }

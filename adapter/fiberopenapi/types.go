@@ -12,8 +12,8 @@ type Generator interface {
 	// Validate checks for errors at OpenAPI router initialization.
 	Validate() error
 
-	// GenerateOpenAPISchema generates the OpenAPI schema in the specified format.
-	GenerateOpenAPISchema(format ...string) ([]byte, error)
+	// GenerateSchema generates the OpenAPI schema in the specified format.
+	GenerateSchema(format ...string) ([]byte, error)
 	// MarshalYAML marshals the OpenAPI schema to YAML format.
 	MarshalYAML() ([]byte, error)
 	// MarshalJSON marshals the OpenAPI schema to JSON format.

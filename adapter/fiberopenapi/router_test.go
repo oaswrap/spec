@@ -270,7 +270,7 @@ func TestRouter_Spec(t *testing.T) {
 			assert.NoError(t, err, "failed to validate OpenAPI configuration")
 
 			// Test the OpenAPI schema generation
-			schema, err := r.GenerateOpenAPISchema()
+			schema, err := r.GenerateSchema()
 
 			require.NoError(t, err, "failed to generate OpenAPI schema")
 			goldenFile := filepath.Join("testdata", tt.golden)

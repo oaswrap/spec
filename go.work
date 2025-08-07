@@ -7,4 +7,12 @@ use (
 	./adapter/fiberopenapi
 	./adapter/ginopenapi
 	./adapter/httpopenapi
+	./module/specui
+	./examples/basic
+	./examples/petstore
+	./adapter/chiopenapi/examples/basic
+	./adapter/echoopenapi/examples/basic
+	./adapter/fiberopenapi/examples/basic
+	./adapter/ginopenapi/examples/basic
+	./adapter/httpopenapi/examples/basic
 )

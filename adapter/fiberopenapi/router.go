@@ -8,7 +8,6 @@ import (
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 	"github.com/oaswrap/spec/pkg/parser"
-	"github.com/oaswrap/spec/pkg/util"
 )
 
 // NewGenerator creates a new OpenAPI generator with the specified Fiber router and options.
@@ -45,11 +44,10 @@ func NewRouter(r fiber.Router, opts ...option.OpenAPIOption) Generator {
 		return rr
 	}
 
-	handler := handler.NewOpenAPIHandler(cfg, gen)
-	openapiPath := util.JoinPath(cfg.DocsPath, constant.OpenAPIFileName)
+	handler := handler.NewHandler(gen)
 
-	r.Get(cfg.DocsPath, handler.Docs)
-	r.Get(openapiPath, handler.OpenAPIYaml)
+	r.Get(handler.DocsFilePath(), handler.DocsFile)
+	r.Get(handler.DocsPath(), handler.Docs)
 
 	return rr
 }
@@ -152,7 +150,7 @@ func (r *router) Validate() error {
 	return r.gen.Validate()
 }
 
-func (r *router) GenerateOpenAPISchema(formats ...string) ([]byte, error) {
+func (r *router) GenerateSchema(formats ...string) ([]byte, error) {
 	return r.gen.GenerateSchema(formats...)
 }
 
