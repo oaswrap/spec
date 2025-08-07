@@ -27,12 +27,10 @@ func (h *Handler) DocsFilePath() string {
 
 func (h *Handler) Docs(c *fiber.Ctx) error {
 	ui := h.handler.Docs()
-	adaptor.HTTPHandler(ui)(c)
-	return nil
+	return adaptor.HTTPHandler(ui)(c)
 }
 
 func (h *Handler) DocsFile(c *fiber.Ctx) error {
 	ui := h.handler.DocsFile()
-	adaptor.HTTPHandler(ui)(c)
-	return nil
+	return adaptor.HTTPHandler(ui)(c)
 }

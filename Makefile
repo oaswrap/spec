@@ -124,6 +124,10 @@ lint: ## Run linting
 		echo "$(BLUE)🔍 Linting adapter/$$a...$(NC)"; \
 		(cd "adapter/$$a" && golangci-lint run) || (echo "$(RED)❌ Adapter $$a linting failed$(NC)" && exit 1); \
 	done
+	@for m in $(MODULES); do \
+		echo "$(BLUE)🔍 Linting module/$$m...$(NC)"; \
+		(cd "module/$$m" && golangci-lint run) || (echo "$(RED)❌ Module $$m linting failed$(NC)" && exit 1); \
+	done
 	@echo "$(GREEN)🎉 All linting passed!$(NC)"
 
 check: sync tidy lint test ## Run all local development checks
@@ -135,13 +139,8 @@ install-tools: ## Install development tools
 	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	@echo "$(GREEN)✅ Tools installed successfully!$(NC)"
 
-
 list-adapters: ## List available adapters
 	@echo "$(BLUE)📋 Available adapters:$(NC)"
-	@for a in $(ADAPTERS); do echo "  - $$a"; done
-
-adapter-status: ## Check the status of each adapter
-	@echo "$(BLUE)📊 Adapter status overview:$(NC)"
 	@for a in $(ADAPTERS); do \
 		if [ -d "adapter/$$a" ]; then \
 			echo "$(GREEN)✅ $$a$(NC) - exists"; \
@@ -157,14 +156,14 @@ sync-adapter-deps: ## Sync adapter dependencies to a specific version
 	fi
 	@echo "$(BLUE)🔄 Syncing adapter dependencies to $(VERSION)...$(NC)"
 	@for a in $(ADAPTERS); do \
-		echo "$(BLUE)📝 Updating adapters/$$a...$(NC)"; \
-		(cd "adapters/$$a" && \
+		echo "$(BLUE)📝 Updating adapter/$$a...$(NC)"; \
+		(cd "adapter/$$a" && \
 		$(SED_INPLACE) -E 's#(github.com/oaswrap/spec )v[0-9]+\.[0-9]+\.[^ ]*#\1$(VERSION)#' go.mod); \
 		if [ "$(NO_TIDY)" != "1" ]; then \
-			(cd "adapters/$$a" && go mod tidy); \
+			(cd "adapter/$$a" && go mod tidy); \
 		else \
-			echo "$(YELLOW)⚠️  Skipped go mod tidy for adapters/$$a because NO_TIDY=1$(NC)"; \
+			echo "$(YELLOW)⚠️  Skipped go mod tidy for adapter/$$a because NO_TIDY=1$(NC)"; \
 		fi; \
-		echo "$(GREEN)✅ Updated adapters/$$a to $(VERSION)$(NC)"; \
+		echo "$(GREEN)✅ Updated adapter/$$a to $(VERSION)$(NC)"; \
 	done
-	@echo "$(GREEN)🎉 All adapters synced to $(VERSION)!$(NC)"
+	@echo "$(GREEN)🎉 All adapter synced to $(VERSION)!$(NC)"
