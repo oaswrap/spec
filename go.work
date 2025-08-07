@@ -2,9 +2,9 @@ go 1.23.0
 
 use (
 	.
-	./adapters/chiopenapi
-	./adapters/echoopenapi
-	./adapters/fiberopenapi
-	./adapters/ginopenapi
-	./adapters/httpopenapi
+	./adapter/chiopenapi
+	./adapter/echoopenapi
+	./adapter/fiberopenapi
+	./adapter/ginopenapi
+	./adapter/httpopenapi
 )

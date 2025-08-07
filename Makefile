@@ -45,7 +45,7 @@ test:
 	@echo "$(GREEN)✅ Core tests passed$(NC)"
 	@for a in $(ADAPTERS); do \
 		echo "$(BLUE)🔍 Testing adapter $$a...$(NC)"; \
-		(cd "adapters/$$a" && gotestsum --format standard-quiet -- ./...) || (echo "$(RED)❌ Adapter $$a tests failed$(NC)" && exit 1); \
+		(cd "adapter/$$a" && gotestsum --format standard-quiet -- ./...) || (echo "$(RED)❌ Adapter $$a tests failed$(NC)" && exit 1); \
 	done
 	@echo "$(GREEN)🎉 All tests passed!$(NC)"
 
@@ -56,7 +56,7 @@ test-parallel:
 	@pids=""; \
 	gotestsum --format standard-quiet -- $(PKG) & pids="$$pids $$!"; \
 	for a in $(ADAPTERS); do \
-		(cd "adapters/$$a" && gotestsum --format standard-quiet -- ./...) & pids="$$pids $$!"; \
+		(cd "adapter/$$a" && gotestsum --format standard-quiet -- ./...) & pids="$$pids $$!"; \
 	done; \
 	\
 	status=0; \
@@ -74,7 +74,7 @@ test-update:
 	@gotestsum --format standard-quiet -- -update $(PKG) || (echo "$(RED)❌ Core test update failed$(NC)" && exit 1)
 	@for a in $(ADAPTERS); do \
 		echo "$(YELLOW)🔍 Updating adapter $$a golden files...$(NC)"; \
-		(cd "adapters/$$a" && gotestsum --format standard-quiet -- -update ./...) || (echo "$(RED)❌ Adapter $$a update failed$(NC)" && exit 1); \
+		(cd "adapter/$$a" && gotestsum --format standard-quiet -- -update ./...) || (echo "$(RED)❌ Adapter $$a update failed$(NC)" && exit 1); \
 	done
 	@echo "$(GREEN)✅ All golden files updated!$(NC)"
 
@@ -84,7 +84,7 @@ test-update-parallel:
 	@pids=""; \
 	gotestsum --format standard-quiet -- -update $(PKG) & pids="$$pids $$!"; \
 	for a in $(ADAPTERS); do \
-		(cd "adapters/$$a" && gotestsum --format standard-quiet -- -update ./...) & pids="$$pids $$!"; \
+		(cd "adapter/$$a" && gotestsum --format standard-quiet -- -update ./...) & pids="$$pids $$!"; \
 	done; \
 	\
 	status=0; \
@@ -107,7 +107,7 @@ testcov:
 	@go tool cover -func="$(COVERAGE_FILE)"
 	@for a in $(ADAPTERS); do \
 		echo "$(BLUE)📈 Adapter $$a coverage:$(NC)"; \
-		(cd "adapters/$$a" && gotestsum --format standard-quiet -- -coverprofile="../../coverage/$$a-$(COVERAGE_FILE)" ./... && go tool cover -func="../../coverage/$$a-$(COVERAGE_FILE)") || exit 1; \
+		(cd "adapter/$$a" && gotestsum --format standard-quiet -- -coverprofile="../../coverage/$$a-$(COVERAGE_FILE)" ./... && go tool cover -func="../../coverage/$$a-$(COVERAGE_FILE)") || exit 1; \
 	done
 	@echo "$(GREEN)✅ Coverage reports generated!$(NC)"
 
@@ -115,7 +115,7 @@ testcov-html: testcov
 	@echo "$(BLUE)🌐 Generating HTML coverage reports...$(NC)"
 	@go tool cover -html="coverage/$(COVERAGE_FILE)" -o "coverage/coverage.html"
 	@for a in $(ADAPTERS); do \
-		(cd "adapters/$$a" && go tool cover -html="../../coverage/$$a-$(COVERAGE_FILE)" -o "../../coverage/$$a-coverage.html"); \
+		(cd "adapter/$$a" && go tool cover -html="../../coverage/$$a-$(COVERAGE_FILE)" -o "../../coverage/$$a-coverage.html"); \
 	done
 	@echo "$(GREEN)✅ HTML coverage reports generated!$(NC)"
 
@@ -126,8 +126,8 @@ tidy:
 	@echo "$(BLUE)🧹 Tidying core...$(NC)"
 	@go mod tidy
 	@for a in $(ADAPTERS); do \
-		echo "$(BLUE)🧹 Tidying adapters/$$a...$(NC)"; \
-		(cd "adapters/$$a" && go mod tidy); \
+		echo "$(BLUE)🧹 Tidying adapter/$$a...$(NC)"; \
+		(cd "adapter/$$a" && go mod tidy); \
 	done
 	@echo "$(GREEN)✅ All modules tidied!$(NC)"
 
@@ -140,34 +140,9 @@ clean:
 	@echo "$(BLUE)🧹 Cleaning coverage files...$(NC)"
 	@rm -f $(COVERAGE_FILE) coverage.html
 	@for a in $(ADAPTERS); do \
-		rm -f "adapters/$$a/$$a-$(COVERAGE_FILE)" "adapters/$$a/$$a-coverage.html"; \
+		rm -f "adapter/$$a/$$a-$(COVERAGE_FILE)" "adapter/$$a/$$a-coverage.html"; \
 	done
 	@echo "$(GREEN)✅ Cleanup completed!$(NC)"
-
-# -------------------------------
-# Replace Management
-#
-fix-replace:
-	@echo "$(YELLOW)🔧 Removing local replaces...$(NC)"
-	@for a in $(ADAPTERS); do \
-		if grep -q "replace github.com/oaswrap/spec" "adapters/$$a/go.mod"; then \
-			(cd "adapters/$$a" && go mod edit -dropreplace github.com/oaswrap/spec && go mod tidy); \
-			echo "$(GREEN)✅ Removed replace in adapters/$$a$(NC)"; \
-		else \
-			echo "$(GREEN)✅ No replace needed in adapters/$$a$(NC)"; \
-		fi; \
-	done
-
-check-replace-strict:
-	@echo "$(BLUE)🔍 Checking for accidental replaces...$(NC)"
-	@for a in $(ADAPTERS); do \
-		if grep -q "replace github.com/oaswrap/spec" "adapters/$$a/go.mod" 2>/dev/null; then \
-			echo "$(RED)🚫 Found replace in adapters/$$a/go.mod$(NC)"; \
-			echo "$(YELLOW)💡 Run 'make fix-replace' to auto-fix$(NC)"; \
-			exit 1; \
-		fi; \
-	done
-	@echo "$(GREEN)✅ No accidental replaces found.$(NC)"
 
 # -------------------------------
 # Lint & Tools
@@ -177,8 +152,8 @@ lint:
 	@golangci-lint run || (echo "$(RED)❌ Core linting failed$(NC)" && exit 1)
 	@echo "$(GREEN)✅ Core linting passed$(NC)"
 	@for a in $(ADAPTERS); do \
-		echo "$(BLUE)🔍 Linting adapters/$$a...$(NC)"; \
-		(cd "adapters/$$a" && golangci-lint run) || (echo "$(RED)❌ Adapter $$a linting failed$(NC)" && exit 1); \
+		echo "$(BLUE)🔍 Linting adapter/$$a...$(NC)"; \
+		(cd "adapter/$$a" && golangci-lint run) || (echo "$(RED)❌ Adapter $$a linting failed$(NC)" && exit 1); \
 	done
 	@echo "$(GREEN)🎉 All linting passed!$(NC)"
 
@@ -198,7 +173,7 @@ list-adapters:
 adapter-status:
 	@echo "$(BLUE)📊 Adapter status overview:$(NC)"
 	@for a in $(ADAPTERS); do \
-		if [ -d "adapters/$$a" ]; then \
+		if [ -d "adapter/$$a" ]; then \
 			echo "$(GREEN)✅ $$a$(NC) - exists"; \
 		else \
 			echo "$(RED)❌ $$a$(NC) - missing"; \
@@ -266,7 +241,7 @@ release: release-check
 	@echo "$(BLUE)🏷️  Tagging adapter releases...$(NC)"
 	@if [ -n "$(ADAPTERS)" ]; then \
 		for a in $(ADAPTERS); do \
-			ADAPTER_TAG="adapters/$$a/$(VERSION)"; \
+			ADAPTER_TAG="adapter/$$a/$(VERSION)"; \
 			git tag -f "$$ADAPTER_TAG"; \
 			echo "$(GREEN)✅ Tagged $$ADAPTER_TAG$(NC)"; \
 		done \
@@ -288,7 +263,7 @@ release: release-check
 	@echo "$(BLUE)📤 Pushing adapter tags...$(NC)"
 	@if [ -n "$(ADAPTERS)" ]; then \
 		for a in $(ADAPTERS); do \
-			ADAPTER_TAG="adapters/$$a/$(VERSION)"; \
+			ADAPTER_TAG="adapter/$$a/$(VERSION)"; \
 			git push origin "$$ADAPTER_TAG"; \
 			echo "$(GREEN)✅ Pushed $$ADAPTER_TAG$(NC)"; \
 		done \
@@ -436,15 +411,15 @@ list-tags:
 	@echo ""
 	@echo "$(BLUE)📋 Adapter tags for latest version:$(NC)"
 	@LATEST=$$(\
-		git tag -l 'v*' --sort=-version:refname | grep -v 'adapters/' | head -1\
+		git tag -l 'v*' --sort=-version:refname | grep -v 'adapter/' | head -1\
 	); \
 	if [ -n "$$LATEST" ]; then \
 		echo "Latest version: $$LATEST"; \
 		for a in $(ADAPTERS); do \
-			if git tag -l "adapters/$$a/$$LATEST" | grep -q .; then \
-				echo "$(GREEN)✅ adapters/$$a/$$LATEST$(NC)"; \
+			if git tag -l "adapter/$$a/$$LATEST" | grep -q .; then \
+				echo "$(GREEN)✅ adapter/$$a/$$LATEST$(NC)"; \
 			else \
-				echo "$(RED)❌ adapters/$$a/$$LATEST$(NC)"; \
+				echo "$(RED)❌ adapter/$$a/$$LATEST$(NC)"; \
 			fi; \
 		done; \
 	else \
@@ -462,12 +437,12 @@ delete-version:
 	@echo "$(BLUE)🗑️  Deleting local tags...$(NC)"
 	@git tag -d "$(VERSION)" 2>/dev/null || true
 	@for a in $(ADAPTERS); do \
-		git tag -d "adapters/$$a/$(VERSION)" 2>/dev/null || true; \
+		git tag -d "adapter/$$a/$(VERSION)" 2>/dev/null || true; \
 	done
 	@echo "$(BLUE)🗑️  Deleting remote tags...$(NC)"
 	@git push --delete origin "$(VERSION)" 2>/dev/null || true
 	@for a in $(ADAPTERS); do \
-		git push --delete origin "adapters/$$a/$(VERSION)" 2>/dev/null || true; \
+		git push --delete origin "adapter/$$a/$(VERSION)" 2>/dev/null || true; \
 	done
 	@echo "$(GREEN)✅ Version $(VERSION) deleted locally and remotely!$(NC)"
 
@@ -483,7 +458,7 @@ verify-tags:
 		echo "$(RED)❌ Main tag $(VERSION) missing$(NC)"; \
 	fi
 	@for a in $(ADAPTERS); do \
-		ADAPTER_TAG="adapters/$$a/$(VERSION)"; \
+		ADAPTER_TAG="adapter/$$a/$(VERSION)"; \
 		if git tag -l "$$ADAPTER_TAG" | grep -q .; then \
 			echo "$(GREEN)✅ $$ADAPTER_TAG exists$(NC)"; \
 		else \

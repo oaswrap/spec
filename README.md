@@ -95,11 +95,11 @@ For seamless HTTP server integration, use one of our framework adapters:
 
 | Framework | Package | Status |
 |-----------|---------|---------|
-| **Chi** | [`chiopenapi`](/adapters/chiopenapi) | ✅ Stable |
-| **Echo** | [`echoopenapi`](/adapters/echoopenapi) | ✅ Stable |
-| **Gin** | [`ginopenapi`](/adapters/ginopenapi) | ✅ Stable |
-| **Fiber** | [`fiberopenapi`](/adapters/fiberopenapi) | ✅ Stable |
-| **HTTP** | [`httpopenapi`](/adapters/httpopenapi) | ✅ Stable |
+| **Chi** | [`chiopenapi`](/adapter/chiopenapi) | ✅ Stable |
+| **Echo** | [`echoopenapi`](/adapter/echoopenapi) | ✅ Stable |
+| **Gin** | [`ginopenapi`](/adapter/ginopenapi) | ✅ Stable |
+| **Fiber** | [`fiberopenapi`](/adapter/fiberopenapi) | ✅ Stable |
+| **HTTP** | [`httpopenapi`](/adapter/httpopenapi) | ✅ Stable |
 | **Mux** | Coming soon | 🚧 Planned |
 
 Each adapter provides:
