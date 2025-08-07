@@ -1,6 +1,7 @@
 package chiopenapi_test
 
 import (
+	"encoding/json"
 	"flag"
 	"net/http"
 	"net/http/httptest"
@@ -278,7 +279,7 @@ func TestRouter_Spec(t *testing.T) {
 
 func pingHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("pong"))
+	_ = json.NewEncoder(w).Encode(map[string]string{"message": "pong"})
 }
 
 type SingleRouteFunc func(path string, handler http.HandlerFunc) chiopenapi.Route
@@ -317,7 +318,7 @@ func TestRouter_Single(t *testing.T) {
 			c.ServeHTTP(rr, req)
 
 			assert.Equal(t, http.StatusOK, rr.Code, "expected status OK for %s method", tt.method)
-			assert.Equal(t, "pong", rr.Body.String(), "expected response body to be 'pong' for %s method", tt.method)
+			assert.Contains(t, rr.Body.String(), "pong", "expected response body to be 'pong' for %s method", tt.method)
 
 			if tt.method == "CONNECT" {
 				return
@@ -346,7 +347,7 @@ func TestRouter_Single(t *testing.T) {
 		c.ServeHTTP(rr, req)
 
 		assert.Equal(t, http.StatusOK, rr.Code, "expected status OK for GET method")
-		assert.Equal(t, "pong", rr.Body.String(), "expected response body to be 'pong' for GET method")
+		assert.Contains(t, rr.Body.String(), "pong", "expected response body to be 'pong' for GET method")
 
 		schema, err := r.GenerateSchema()
 		require.NoError(t, err, "failed to generate OpenAPI schema")
@@ -370,7 +371,7 @@ func TestRouter_Single(t *testing.T) {
 		c.ServeHTTP(rr, req)
 
 		assert.Equal(t, http.StatusOK, rr.Code, "expected status OK for CONNECT method")
-		assert.Equal(t, "pong", rr.Body.String(), "expected response body to be 'pong' for CONNECT method")
+		assert.Contains(t, rr.Body.String(), "pong", "expected response body to be 'pong' for CONNECT method")
 
 		schema, err := r.GenerateSchema()
 		require.NoError(t, err, "failed to generate OpenAPI schema")
@@ -390,7 +391,7 @@ func TestRouter_Single(t *testing.T) {
 		c.ServeHTTP(rr, req)
 
 		assert.Equal(t, http.StatusOK, rr.Code, "expected status OK for Handle method")
-		assert.Equal(t, "pong", rr.Body.String(), "expected response body to be 'pong' for Handle method")
+		assert.Contains(t, rr.Body.String(), "pong", "expected response body to be 'pong' for Handle method")
 	})
 	t.Run("HandleFunc", func(t *testing.T) {
 		c := chi.NewRouter()
@@ -405,7 +406,7 @@ func TestRouter_Single(t *testing.T) {
 		c.ServeHTTP(rr, req)
 
 		assert.Equal(t, http.StatusOK, rr.Code, "expected status OK for HandleFunc method")
-		assert.Equal(t, "pong", rr.Body.String(), "expected response body to be 'pong' for HandleFunc method")
+		assert.Contains(t, rr.Body.String(), "pong", "expected response body to be 'pong' for HandleFunc method")
 	})
 	t.Run("Mount", func(t *testing.T) {
 		c := chi.NewRouter()
@@ -426,7 +427,7 @@ func TestRouter_Single(t *testing.T) {
 		c.ServeHTTP(rr, req)
 
 		assert.Equal(t, http.StatusOK, rr.Code, "expected status OK for Mount method")
-		assert.Equal(t, "pong", rr.Body.String(), "expected response body to be 'pong' for Mount method")
+		assert.Contains(t, rr.Body.String(), "pong", "expected response body to be 'pong' for Mount method")
 	})
 }
 
@@ -449,7 +450,7 @@ func TestRouter_Group(t *testing.T) {
 	c.ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusOK, rr.Code, "expected status OK for Group method")
-	assert.Equal(t, "pong", rr.Body.String(), "expected response body to be 'pong' for Group method")
+	assert.Contains(t, rr.Body.String(), "pong", "expected response body to be 'pong' for Group method")
 	schema, err := r.GenerateSchema()
 	require.NoError(t, err, "failed to generate OpenAPI schema")
 	assert.Contains(t, string(schema), "getPing", "expected OpenAPI schema to contain operation ID getPing")
@@ -478,7 +479,7 @@ func TestRouter_Middleware(t *testing.T) {
 		c.ServeHTTP(rec, req)
 		assert.True(t, called, "expected middleware to be called")
 		assert.Equal(t, http.StatusOK, rec.Code, "expected status OK for Middleware method")
-		assert.Equal(t, "pong", rec.Body.String(), "expected response body to be 'pong' for Middleware method")
+		assert.Contains(t, rec.Body.String(), "pong", "expected response body to be 'pong' for Middleware method")
 	})
 	t.Run("With", func(t *testing.T) {
 		called := false
@@ -497,7 +498,7 @@ func TestRouter_Middleware(t *testing.T) {
 		c.ServeHTTP(rec, req)
 		assert.True(t, called, "expected middleware to be called")
 		assert.Equal(t, http.StatusOK, rec.Code, "expected status OK for With method")
-		assert.Equal(t, "pong", rec.Body.String(), "expected response body to be 'pong' for With method")
+		assert.Contains(t, rec.Body.String(), "pong", "expected response body to be 'pong' for With method")
 	})
 }
 

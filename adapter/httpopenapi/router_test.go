@@ -1,6 +1,7 @@
 package httpopenapi_test
 
 import (
+	"encoding/json"
 	"flag"
 	"net/http"
 	"net/http/httptest"
@@ -278,7 +279,7 @@ func TestRouter_Spec(t *testing.T) {
 
 func pingHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("pong"))
+	_ = json.NewEncoder(w).Encode(map[string]string{"message": "pong"})
 }
 
 func TestRouter_Handle(t *testing.T) {
@@ -294,7 +295,7 @@ func TestRouter_Handle(t *testing.T) {
 		mux.ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.Equal(t, "pong", rec.Body.String())
+		assert.Contains(t, rec.Body.String(), "pong")
 
 		schema, err := r.GenerateSchema()
 		require.NoError(t, err, "failed to generate OpenAPI schema")
@@ -312,7 +313,7 @@ func TestRouter_Handle(t *testing.T) {
 		mux.ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.Equal(t, "pong", rec.Body.String())
+		assert.Contains(t, rec.Body.String(), "pong")
 
 		schema, err := r.GenerateSchema()
 		require.NoError(t, err, "failed to generate OpenAPI schema")
@@ -333,7 +334,7 @@ func TestRouter_HandleFunc(t *testing.T) {
 		mux.ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.Equal(t, "pong", rec.Body.String())
+		assert.Contains(t, rec.Body.String(), "pong")
 
 		schema, err := r.GenerateSchema()
 		require.NoError(t, err, "failed to generate OpenAPI schema")
@@ -351,7 +352,7 @@ func TestRouter_HandleFunc(t *testing.T) {
 		mux.ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.Equal(t, "pong", rec.Body.String())
+		assert.Contains(t, rec.Body.String(), "pong")
 
 		schema, err := r.GenerateSchema()
 		require.NoError(t, err, "failed to generate OpenAPI schema")
@@ -376,7 +377,7 @@ func TestRouter_Group(t *testing.T) {
 		mux.ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.Equal(t, "pong", rec.Body.String())
+		assert.Contains(t, rec.Body.String(), "pong")
 
 		schema, err := r.GenerateSchema()
 		require.NoError(t, err, "failed to generate OpenAPI schema")
@@ -405,7 +406,7 @@ func TestRouter_Group(t *testing.T) {
 
 		assert.True(t, called, "middleware should be called")
 		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.Equal(t, "pong", rec.Body.String())
+		assert.Contains(t, rec.Body.String(), "pong")
 
 		schema, err := r.GenerateSchema()
 		require.NoError(t, err, "failed to generate OpenAPI schema")
@@ -426,7 +427,7 @@ func TestRouter_Group(t *testing.T) {
 		mux.ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.Equal(t, "pong", rec.Body.String())
+		assert.Contains(t, rec.Body.String(), "pong")
 
 		schema, err := r.GenerateSchema()
 		require.NoError(t, err, "failed to generate OpenAPI schema")
@@ -454,7 +455,7 @@ func TestRouter_Group(t *testing.T) {
 
 		assert.True(t, called, "middleware should be called")
 		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.Equal(t, "pong", rec.Body.String())
+		assert.Contains(t, rec.Body.String(), "pong")
 
 		schema, err := r.GenerateSchema()
 		require.NoError(t, err, "failed to generate OpenAPI schema")
@@ -556,7 +557,9 @@ func TestGenerator_WriteSchemaTo(t *testing.T) {
 
 	tempFile, err := os.CreateTemp("", "openapi-schema-*.yaml")
 	require.NoError(t, err, "failed to create temporary file")
-	defer os.Remove(tempFile.Name())
+	defer func() {
+		_ = os.Remove(tempFile.Name())
+	}()
 
 	err = r.WriteSchemaTo(tempFile.Name())
 	require.NoError(t, err, "failed to write OpenAPI schema to file")
