@@ -86,3 +86,14 @@ jobs:
 
     - name: 🧪 Run Tests in Parallel
       run: make test-parallel
+
+    - name: 📊 Generate Coverage Report
+      if: matrix.go-version == '1.23'
+      run: make testcov
+    
+    - name: 📈 Upload Coverage Report
+      if: matrix.go-version == '1.23'
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: coverage/coverage.out

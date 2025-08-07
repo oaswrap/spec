@@ -3,6 +3,7 @@
 #
 # Use := for immediate expansion, which is generally safer in Makefiles.
 PKG           := ./...
+COVERAGE_DIR  := coverage
 COVERAGE_FILE := coverage.out
 ADAPTERS      := chiopenapi echoopenapi fiberopenapi ginopenapi httpopenapi
 
@@ -102,21 +103,22 @@ test-update-parallel:
 #
 testcov:
 	@echo "$(BLUE)📊 Generating coverage report...$(NC)"
-	@gotestsum --format standard-quiet -- -coverprofile="coverage/$(COVERAGE_FILE)" $(PKG)
-	@echo "$(BLUE)📈 Core coverage:$(NC)"
-	@go tool cover -func="$(COVERAGE_FILE)"
+	@mkdir -p $(COVERAGE_DIR)
+	@gotestsum --format standard-quiet -- -covermode=atomic -coverprofile="$(COVERAGE_DIR)/$(COVERAGE_FILE)" $(PKG)
+
 	@for a in $(ADAPTERS); do \
 		echo "$(BLUE)📈 Adapter $$a coverage:$(NC)"; \
-		(cd "adapter/$$a" && gotestsum --format standard-quiet -- -coverprofile="../../coverage/$$a-$(COVERAGE_FILE)" ./... && go tool cover -func="../../coverage/$$a-$(COVERAGE_FILE)") || exit 1; \
+		(cd "adapter/$$a" && gotestsum --format standard-quiet -- -covermode=atomic -coverprofile="../../$(COVERAGE_DIR)/$$a-$(COVERAGE_FILE)" ./...); \
+		if [ -f $(COVERAGE_DIR)/$$a-$(COVERAGE_FILE) ]; then \
+			tail -n +2 $(COVERAGE_DIR)/$$a-$(COVERAGE_FILE) >> $(COVERAGE_DIR)/coverage.out; \
+		fi; \
 	done
-	@echo "$(GREEN)✅ Coverage reports generated!$(NC)"
+	@echo "$(BLUE)📊 Combined coverage report saved to $(COVERAGE_DIR)/$(COVERAGE_FILE)$(NC)"
+	@go tool cover -func="$(COVERAGE_DIR)/$(COVERAGE_FILE)"
 
 testcov-html: testcov
 	@echo "$(BLUE)🌐 Generating HTML coverage reports...$(NC)"
 	@go tool cover -html="coverage/$(COVERAGE_FILE)" -o "coverage/coverage.html"
-	@for a in $(ADAPTERS); do \
-		(cd "adapter/$$a" && go tool cover -html="../../coverage/$$a-$(COVERAGE_FILE)" -o "../../coverage/$$a-coverage.html"); \
-	done
 	@echo "$(GREEN)✅ HTML coverage reports generated!$(NC)"
 
 # -------------------------------
