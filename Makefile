@@ -166,9 +166,20 @@ release-adapters: ## Release all adapters with the specified version
 	@echo "$(BLUE)🚀 Releasing adapters with version v$(VERSION)...$(NC)"
 	@for a in $(ADAPTERS); do \
 		echo "$(BLUE)🚀 Releasing adapter $$a...$(NC)"; \
-		(cd "adapter/$$a" && git tag -a v$(VERSION) -m "Release v$(VERSION)" && git push origin v$(VERSION)); \
+		(cd "adapter/$$a" && git tag -a adapter/$$a/v$(VERSION) -m "Release adapter/$$a/v$(VERSION)" && git push origin adapter/$$a/v$(VERSION)); \
 	done
 	@echo "$(GREEN)🎉 All adapters released with version v$(VERSION)!$(NC)"
+
+release-adapters-dry-run:
+	@echo "$(YELLOW)🔍 Dry run for releasing adapters with version v$(VERSION)...$(NC)"
+	@if [ -z "$(VERSION)" ]; then \
+		echo "$(RED)Usage: make release-adapters-dry-run VERSION=0.3.0$(NC)"; \
+		exit 1; \
+	fi
+	@for a in $(ADAPTERS); do \
+		echo "$(BLUE)🚀 Would release adapter $$a with version adapter/$$a/v$(VERSION)$(NC)"; \
+	done
+	@echo "$(GREEN)🎉 Dry run complete! No changes made.$(NC)"
 
 release-modules: ## Release all modules with the specified version
 	@if [ -z "$(VERSION)" ]; then \
@@ -178,6 +189,26 @@ release-modules: ## Release all modules with the specified version
 	@echo "$(BLUE)🚀 Releasing modules with version v$(VERSION)...$(NC)"
 	@for m in $(MODULES); do \
 		echo "$(BLUE)🚀 Releasing module $$m...$(NC)"; \
-		(cd "module/$$m" && git tag -a v$(VERSION) -m "Release v$(VERSION)" && git push origin v$(VERSION)); \
+		(cd "module/$$m" && git tag -a module/$$m/v$(VERSION) -m "Release module/$$m/v$(VERSION)" && git push origin module/$$m/v$(VERSION)); \
 	done
 	@echo "$(GREEN)🎉 All modules released with version v$(VERSION)!$(NC)"
+
+release-modules-dry-run: ## Dry run for releasing modules
+	@echo "$(YELLOW)🔍 Dry run for releasing modules with version v$(VERSION)...$(NC)"
+	@if [ -z "$(VERSION)" ]; then \
+		echo "$(RED)Usage: make release-modules-dry-run VERSION=0.3.0$(NC)"; \
+		exit 1; \
+	fi
+	@for m in $(MODULES); do \
+		echo "$(BLUE)🚀 Would release module $$m with version module/$$m/v$(VERSION)$(NC)"; \
+	done
+	@echo "$(GREEN)🎉 Dry run complete! No changes made.$(NC)"
+
+delete-tag: ## Delete a Git tag
+ifndef TAG
+	$(error TAG is undefined. Usage: make delete-tag TAG=tagname)
+endif
+	@echo "Are you sure you want to delete tag $(TAG)? [y/N]" && read ans && [ $${ans:-N} = y ]
+	git tag -d $(TAG)
+	git push origin :refs/tags/$(TAG)
+	@echo "Tag $(TAG) deleted successfully"

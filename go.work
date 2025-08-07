@@ -3,16 +3,16 @@ go 1.23.0
 use (
 	.
 	./adapter/chiopenapi
+	./adapter/chiopenapi/examples/basic
 	./adapter/echoopenapi
+	./adapter/echoopenapi/examples/basic
 	./adapter/fiberopenapi
+	./adapter/fiberopenapi/examples/basic
 	./adapter/ginopenapi
+	./adapter/ginopenapi/examples/basic
 	./adapter/httpopenapi
-	./module/specui
+	./adapter/httpopenapi/examples/basic
 	./examples/basic
 	./examples/petstore
-	./adapter/chiopenapi/examples/basic
-	./adapter/echoopenapi/examples/basic
-	./adapter/fiberopenapi/examples/basic
-	./adapter/ginopenapi/examples/basic
-	./adapter/httpopenapi/examples/basic
+	./module/specui
 )
