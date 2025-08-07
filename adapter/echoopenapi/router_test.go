@@ -37,8 +37,6 @@ func HelloHandler(c echo.Context) error {
 	return c.JSON(200, map[string]string{"response": "Hello " + req.Name})
 }
 
-type EchoOpenAPISingleRouteFunc func(path string, handler echo.HandlerFunc, m ...echo.MiddlewareFunc) echoopenapi.Route
-
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -324,56 +322,58 @@ func TestRouter_Spec(t *testing.T) {
 	}
 }
 
+type SingleRouteFunc func(path string, handler echo.HandlerFunc, m ...echo.MiddlewareFunc) echoopenapi.Route
+
 func TestRouter_Single(t *testing.T) {
 	tests := []struct {
 		method     string
 		path       string
-		methodFunc func(r echoopenapi.Router) EchoOpenAPISingleRouteFunc
+		methodFunc func(r echoopenapi.Router) SingleRouteFunc
 	}{
 		{
 			method:     "GET",
 			path:       "/hello",
-			methodFunc: func(r echoopenapi.Router) EchoOpenAPISingleRouteFunc { return r.GET },
+			methodFunc: func(r echoopenapi.Router) SingleRouteFunc { return r.GET },
 		},
 		{
 			method:     "POST",
 			path:       "/hello",
-			methodFunc: func(r echoopenapi.Router) EchoOpenAPISingleRouteFunc { return r.POST },
+			methodFunc: func(r echoopenapi.Router) SingleRouteFunc { return r.POST },
 		},
 		{
 			method:     "PUT",
 			path:       "/hello",
-			methodFunc: func(r echoopenapi.Router) EchoOpenAPISingleRouteFunc { return r.PUT },
+			methodFunc: func(r echoopenapi.Router) SingleRouteFunc { return r.PUT },
 		},
 		{
 			method:     "DELETE",
 			path:       "/hello",
-			methodFunc: func(r echoopenapi.Router) EchoOpenAPISingleRouteFunc { return r.DELETE },
+			methodFunc: func(r echoopenapi.Router) SingleRouteFunc { return r.DELETE },
 		},
 		{
 			method:     "PATCH",
 			path:       "/hello",
-			methodFunc: func(r echoopenapi.Router) EchoOpenAPISingleRouteFunc { return r.PATCH },
+			methodFunc: func(r echoopenapi.Router) SingleRouteFunc { return r.PATCH },
 		},
 		{
 			method:     "HEAD",
 			path:       "/hello",
-			methodFunc: func(r echoopenapi.Router) EchoOpenAPISingleRouteFunc { return r.HEAD },
+			methodFunc: func(r echoopenapi.Router) SingleRouteFunc { return r.HEAD },
 		},
 		{
 			method:     "OPTIONS",
 			path:       "/hello",
-			methodFunc: func(r echoopenapi.Router) EchoOpenAPISingleRouteFunc { return r.OPTIONS },
+			methodFunc: func(r echoopenapi.Router) SingleRouteFunc { return r.OPTIONS },
 		},
 		{
 			method:     "TRACE",
 			path:       "/hello",
-			methodFunc: func(r echoopenapi.Router) EchoOpenAPISingleRouteFunc { return r.TRACE },
+			methodFunc: func(r echoopenapi.Router) SingleRouteFunc { return r.TRACE },
 		},
 		{
 			method:     "CONNECT",
 			path:       "/hello",
-			methodFunc: func(r echoopenapi.Router) EchoOpenAPISingleRouteFunc { return r.CONNECT },
+			methodFunc: func(r echoopenapi.Router) SingleRouteFunc { return r.CONNECT },
 		},
 	}
 	for _, tt := range tests {

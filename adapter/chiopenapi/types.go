@@ -30,6 +30,7 @@ type Generator interface {
 
 // Router is an interface that defines methods for handling HTTP routes with OpenAPI support.
 type Router interface {
+	http.Handler
 	// Use applies middleware to the router.
 	Use(middlewares ...func(http.Handler) http.Handler)
 

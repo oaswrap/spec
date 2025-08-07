@@ -2,6 +2,8 @@ package chiopenapi_test
 
 import (
 	"flag"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
@@ -272,4 +274,416 @@ func TestRouter_Spec(t *testing.T) {
 			testutil.EqualYAML(t, want, schema)
 		})
 	}
+}
+
+func pingHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("pong"))
+}
+
+type SingleRouteFunc func(path string, handler http.HandlerFunc) chiopenapi.Route
+
+func TestRouter_Chi_Single(t *testing.T) {
+	tests := []struct {
+		method     string
+		path       string
+		methodFunc func(r chiopenapi.Router) SingleRouteFunc
+	}{
+		{
+			method:     "GET",
+			path:       "/ping",
+			methodFunc: func(r chiopenapi.Router) SingleRouteFunc { return r.Get },
+		},
+		{
+			method:     "POST",
+			path:       "/ping",
+			methodFunc: func(r chiopenapi.Router) SingleRouteFunc { return r.Post },
+		},
+		{
+			method:     "PUT",
+			path:       "/ping",
+			methodFunc: func(r chiopenapi.Router) SingleRouteFunc { return r.Put },
+		},
+		{
+			method:     "DELETE",
+			path:       "/ping",
+			methodFunc: func(r chiopenapi.Router) SingleRouteFunc { return r.Delete },
+		},
+		{
+			method:     "HEAD",
+			path:       "/ping",
+			methodFunc: func(r chiopenapi.Router) SingleRouteFunc { return r.Head },
+		},
+		{
+			method:     "OPTIONS",
+			path:       "/ping",
+			methodFunc: func(r chiopenapi.Router) SingleRouteFunc { return r.Options },
+		},
+		{
+			method:     "TRACE",
+			path:       "/ping",
+			methodFunc: func(r chiopenapi.Router) SingleRouteFunc { return r.Trace },
+		},
+		{
+			method:     "PATCH",
+			path:       "/ping",
+			methodFunc: func(r chiopenapi.Router) SingleRouteFunc { return r.Patch },
+		},
+		{
+			method:     "CONNECT",
+			path:       "/ping",
+			methodFunc: func(r chiopenapi.Router) SingleRouteFunc { return r.Connect },
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.method, func(t *testing.T) {
+			c := chi.NewRouter()
+			r := chiopenapi.NewRouter(c)
+			tt.methodFunc(r)(tt.path, pingHandler).With(
+				option.OperationID(tt.method+"Ping"),
+				option.Summary("Ping the server with "+tt.method),
+				option.Description("This endpoint is used to check if the server is running with a "+tt.method+" request."),
+			)
+
+			err := r.Validate()
+			require.NoError(t, err, "failed to validate OpenAPI configuration")
+
+			req := httptest.NewRequest(tt.method, tt.path, nil)
+			rr := httptest.NewRecorder()
+			c.ServeHTTP(rr, req)
+
+			assert.Equal(t, http.StatusOK, rr.Code, "expected status OK for %s method", tt.method)
+			assert.Equal(t, "pong", rr.Body.String(), "expected response body to be 'pong' for %s method", tt.method)
+
+			if tt.method == "CONNECT" {
+				return
+			}
+
+			schema, err := r.GenerateSchema()
+			require.NoError(t, err, "failed to generate OpenAPI schema")
+
+			assert.Contains(t, string(schema), tt.method, "expected OpenAPI schema to contain method %s", tt.method)
+		})
+	}
+	t.Run("Method", func(t *testing.T) {
+		c := chi.NewRouter()
+		r := chiopenapi.NewRouter(c)
+		r.Method("GET", "/ping", http.HandlerFunc(pingHandler)).With(
+			option.OperationID("getPing"),
+			option.Summary("Ping the server with GET"),
+			option.Description("This endpoint is used to check if the server is running with a GET request."),
+		)
+
+		err := r.Validate()
+		require.NoError(t, err, "failed to validate OpenAPI configuration")
+
+		req := httptest.NewRequest("GET", "/ping", nil)
+		rr := httptest.NewRecorder()
+		c.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusOK, rr.Code, "expected status OK for GET method")
+		assert.Equal(t, "pong", rr.Body.String(), "expected response body to be 'pong' for GET method")
+
+		schema, err := r.GenerateSchema()
+		require.NoError(t, err, "failed to generate OpenAPI schema")
+
+		assert.Contains(t, string(schema), "GET", "expected OpenAPI schema to contain method GET")
+	})
+	t.Run("Method with Connect", func(t *testing.T) {
+		c := chi.NewRouter()
+		r := chiopenapi.NewRouter(c)
+		r.Method("CONNECT", "/ping", http.HandlerFunc(pingHandler)).With(
+			option.OperationID("connectPing"),
+			option.Summary("Ping the server with CONNECT"),
+			option.Description("This endpoint is used to check if the server is running with a CONNECT request."),
+		)
+
+		err := r.Validate()
+		require.NoError(t, err, "failed to validate OpenAPI configuration")
+
+		req := httptest.NewRequest("CONNECT", "/ping", nil)
+		rr := httptest.NewRecorder()
+		c.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusOK, rr.Code, "expected status OK for CONNECT method")
+		assert.Equal(t, "pong", rr.Body.String(), "expected response body to be 'pong' for CONNECT method")
+
+		schema, err := r.GenerateSchema()
+		require.NoError(t, err, "failed to generate OpenAPI schema")
+
+		assert.NotContains(t, string(schema), "CONNECT", "expected OpenAPI schema not to contain method CONNECT")
+	})
+	t.Run("Handle", func(t *testing.T) {
+		c := chi.NewRouter()
+		r := chiopenapi.NewRouter(c)
+		r.Handle("/ping", http.HandlerFunc(pingHandler))
+
+		err := r.Validate()
+		require.NoError(t, err, "failed to validate OpenAPI configuration")
+
+		req := httptest.NewRequest("GET", "/ping", nil)
+		rr := httptest.NewRecorder()
+		c.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusOK, rr.Code, "expected status OK for Handle method")
+		assert.Equal(t, "pong", rr.Body.String(), "expected response body to be 'pong' for Handle method")
+	})
+	t.Run("HandleFunc", func(t *testing.T) {
+		c := chi.NewRouter()
+		r := chiopenapi.NewRouter(c)
+		r.HandleFunc("/ping", pingHandler)
+
+		err := r.Validate()
+		require.NoError(t, err, "failed to validate OpenAPI configuration")
+
+		req := httptest.NewRequest("GET", "/ping", nil)
+		rr := httptest.NewRecorder()
+		c.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusOK, rr.Code, "expected status OK for HandleFunc method")
+		assert.Equal(t, "pong", rr.Body.String(), "expected response body to be 'pong' for HandleFunc method")
+	})
+	t.Run("Mount", func(t *testing.T) {
+		c := chi.NewRouter()
+		r := chiopenapi.NewRouter(c)
+		subRouter := chiopenapi.NewRouter(chi.NewRouter())
+		subRouter.Get("/ping", pingHandler).With(
+			option.OperationID("getPing"),
+			option.Summary("Ping the server with Mount"),
+			option.Description("This endpoint is used to check if the server is running with a Mount request."),
+		)
+		r.Mount("/sub", subRouter)
+
+		err := r.Validate()
+		require.NoError(t, err, "failed to validate OpenAPI configuration")
+
+		req := httptest.NewRequest("GET", "/sub/ping", nil)
+		rr := httptest.NewRecorder()
+		c.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusOK, rr.Code, "expected status OK for Mount method")
+		assert.Equal(t, "pong", rr.Body.String(), "expected response body to be 'pong' for Mount method")
+	})
+}
+
+func TestRouter_Chi_Group(t *testing.T) {
+	c := chi.NewRouter()
+	r := chiopenapi.NewRouter(c)
+	r.Group(func(r chiopenapi.Router) {
+		r.Get("/ping", pingHandler).With(
+			option.OperationID("getPing"),
+			option.Summary("Ping the server with Group"),
+			option.Description("This endpoint is used to check if the server is running with a Group request."),
+		)
+	}).UseOptions(option.GroupTags("ping"), option.GroupDeprecated(true))
+
+	err := r.Validate()
+	require.NoError(t, err, "failed to validate OpenAPI configuration")
+
+	req := httptest.NewRequest("GET", "/ping", nil)
+	rr := httptest.NewRecorder()
+	c.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusOK, rr.Code, "expected status OK for Group method")
+	assert.Equal(t, "pong", rr.Body.String(), "expected response body to be 'pong' for Group method")
+	schema, err := r.GenerateSchema()
+	require.NoError(t, err, "failed to generate OpenAPI schema")
+	assert.Contains(t, string(schema), "getPing", "expected OpenAPI schema to contain operation ID getPing")
+	assert.Contains(t, string(schema), "Ping the server with Group", "expected OpenAPI schema to contain summary for getPing")
+	assert.Contains(t, string(schema), "deprecated", "expected OpenAPI schema to contain deprecated flag for getPing")
+}
+
+func TestRouter_Chi_Middleware(t *testing.T) {
+	t.Run("Use", func(t *testing.T) {
+		called := false
+		middleware := func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				called = true
+				next.ServeHTTP(w, r)
+			})
+		}
+		c := chi.NewRouter()
+		r := chiopenapi.NewRouter(c)
+		r.Group(func(r chiopenapi.Router) {
+			r.Use(middleware)
+			r.Get("/ping", pingHandler)
+		})
+
+		req := httptest.NewRequest("GET", "/ping", nil)
+		rec := httptest.NewRecorder()
+		c.ServeHTTP(rec, req)
+		assert.True(t, called, "expected middleware to be called")
+		assert.Equal(t, http.StatusOK, rec.Code, "expected status OK for Middleware method")
+		assert.Equal(t, "pong", rec.Body.String(), "expected response body to be 'pong' for Middleware method")
+	})
+	t.Run("With", func(t *testing.T) {
+		called := false
+		middleware := func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				called = true
+				next.ServeHTTP(w, r)
+			})
+		}
+		c := chi.NewRouter()
+		r := chiopenapi.NewRouter(c)
+		r.With(middleware).Get("/ping", pingHandler)
+
+		req := httptest.NewRequest("GET", "/ping", nil)
+		rec := httptest.NewRecorder()
+		c.ServeHTTP(rec, req)
+		assert.True(t, called, "expected middleware to be called")
+		assert.Equal(t, http.StatusOK, rec.Code, "expected status OK for With method")
+		assert.Equal(t, "pong", rec.Body.String(), "expected response body to be 'pong' for With method")
+	})
+}
+
+func TestRouter_Chi_NotFound(t *testing.T) {
+	c := chi.NewRouter()
+	r := chiopenapi.NewRouter(c)
+	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "Not Found", http.StatusNotFound)
+	})
+
+	err := r.Validate()
+	require.NoError(t, err, "failed to validate OpenAPI configuration")
+
+	req := httptest.NewRequest(http.MethodGet, "/not-found", nil)
+	rr := httptest.NewRecorder()
+	c.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusNotFound, rr.Code, "expected status Not Found")
+	assert.Equal(t, "Not Found\n", rr.Body.String(), "expected response body to be 'Not Found'")
+}
+
+func TestRouter_Chi_MethodNotAllowed(t *testing.T) {
+	c := chi.NewRouter()
+	r := chiopenapi.NewRouter(c)
+	r.Get("/ping", pingHandler).With(
+		option.OperationID("getPing"),
+		option.Summary("Ping the server"),
+		option.Description("This endpoint is used to check if the server is running."),
+	)
+	r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+	})
+
+	err := r.Validate()
+	require.NoError(t, err, "failed to validate OpenAPI configuration")
+
+	req := httptest.NewRequest(http.MethodPost, "/ping", nil)
+	rr := httptest.NewRecorder()
+	c.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusMethodNotAllowed, rr.Code, "expected status Method Not Allowed")
+	assert.Equal(t, "Method Not Allowed\n", rr.Body.String(), "expected response body to be 'Method Not Allowed'")
+}
+
+func TestGenerator_Docs(t *testing.T) {
+	c := chi.NewRouter()
+	r := chiopenapi.NewRouter(c)
+	r.Get("/ping", pingHandler).With(
+		option.OperationID("getPing"),
+		option.Summary("Ping the server"),
+		option.Description("This endpoint is used to check if the server is running."),
+	)
+
+	t.Run("should register docs route", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/docs", nil)
+		rr := httptest.NewRecorder()
+		c.ServeHTTP(rr, req)
+		assert.Equal(t, http.StatusOK, rr.Code, "expected status OK for /docs route")
+		assert.Contains(t, rr.Body.String(), "Chi OpenAPI", "expected response body to contain 'Chi OpenAPI'")
+	})
+	t.Run("should register docs file route", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/docs/openapi.yaml", nil)
+		rr := httptest.NewRecorder()
+		c.ServeHTTP(rr, req)
+		assert.Equal(t, http.StatusOK, rr.Code, "expected status OK for /docs/openapi.yaml route")
+		assert.Contains(t, rr.Body.String(), "openapi: 3.0.3", "expected response body to contain 'openapi: 3.0.3'")
+	})
+}
+
+func TestRouter_Docs_Disabled(t *testing.T) {
+	c := chi.NewRouter()
+	r := chiopenapi.NewRouter(c, option.WithDisableDocs(true))
+	r.Get("/ping", pingHandler).With(
+		option.OperationID("getPing"),
+		option.Summary("Ping the server"),
+		option.Description("This endpoint is used to check if the server is running."),
+	)
+
+	t.Run("should not register docs route", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/docs", nil)
+		rr := httptest.NewRecorder()
+		c.ServeHTTP(rr, req)
+		assert.Equal(t, http.StatusNotFound, rr.Code, "expected status Not Found for /docs route")
+	})
+	t.Run("should not register docs file route", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/docs/openapi.yaml", nil)
+		rr := httptest.NewRecorder()
+		c.ServeHTTP(rr, req)
+		assert.Equal(t, http.StatusNotFound, rr.Code, "expected status Not Found for /docs/openapi.yaml route")
+	})
+}
+
+func TestGenerator_MarshalJSON(t *testing.T) {
+	c := chi.NewRouter()
+	r := chiopenapi.NewRouter(c)
+	r.Get("/ping", pingHandler).With(
+		option.OperationID("getPing"),
+		option.Summary("Ping the server"),
+		option.Description("This endpoint is used to check if the server is running."),
+	)
+
+	err := r.Validate()
+	require.NoError(t, err, "failed to validate OpenAPI configuration")
+
+	schema, err := r.MarshalJSON()
+	require.NoError(t, err, "failed to marshal OpenAPI schema to JSON")
+	assert.NotEmpty(t, schema, "expected non-empty OpenAPI schema JSON")
+	assert.Contains(t, string(schema), `"openapi": "3.0.3"`, "expected OpenAPI version in schema JSON")
+	assert.Contains(t, string(schema), `"title": "Chi OpenAPI"`, "expected title in schema JSON")
+}
+
+func TestGenerator_MarshalYAML(t *testing.T) {
+	c := chi.NewRouter()
+	r := chiopenapi.NewRouter(c)
+	r.Get("/ping", pingHandler).With(
+		option.OperationID("getPing"),
+		option.Summary("Ping the server"),
+		option.Description("This endpoint is used to check if the server is running."),
+	)
+
+	err := r.Validate()
+	require.NoError(t, err, "failed to validate OpenAPI configuration")
+
+	schema, err := r.MarshalYAML()
+	require.NoError(t, err, "failed to marshal OpenAPI schema to YAML")
+	assert.NotEmpty(t, schema, "expected non-empty OpenAPI schema YAML")
+	assert.Contains(t, string(schema), "openapi: 3.0.3", "expected OpenAPI version in schema YAML")
+	assert.Contains(t, string(schema), "title: Chi OpenAPI", "expected title in schema YAML")
+}
+
+func TestGenerator_WriteSchemaTo(t *testing.T) {
+	c := chi.NewRouter()
+	r := chiopenapi.NewRouter(c)
+	r.Get("/ping", pingHandler).With(
+		option.OperationID("getPing"),
+		option.Summary("Ping the server"),
+		option.Description("This endpoint is used to check if the server is running."),
+	)
+
+	err := r.Validate()
+	require.NoError(t, err, "failed to validate OpenAPI configuration")
+
+	testDir := t.TempDir()
+	goldenPath := filepath.Join(testDir, "openapi.yaml")
+	err = r.WriteSchemaTo(goldenPath)
+	require.NoError(t, err, "failed to write OpenAPI schema to file")
+	assert.FileExists(t, goldenPath, "expected OpenAPI schema file to be created")
+	schema, err := os.ReadFile(goldenPath)
+	require.NoError(t, err, "failed to read OpenAPI schema file")
+	assert.NotEmpty(t, schema, "expected non-empty OpenAPI schema file")
+	assert.Contains(t, string(schema), "openapi: 3.0.3", "expected OpenAPI version in schema file")
+	assert.Contains(t, string(schema), "title: Chi OpenAPI", "expected title in schema file")
 }

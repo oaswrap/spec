@@ -5,9 +5,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/oaswrap/spec"
-	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/adapter/chiopenapi/internal/constant"
 	"github.com/oaswrap/spec/module/specui"
+	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 )
 
@@ -56,6 +56,10 @@ func NewGenerator(r chi.Router, opts ...option.OpenAPIOption) Generator {
 	r.Get(handler.DocsFilePath(), handler.DocsFileFunc())
 
 	return rr
+}
+
+func (r *router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	r.chiRouter.ServeHTTP(w, req)
 }
 
 func (r *router) Use(middlewares ...func(http.Handler) http.Handler) {
@@ -177,9 +181,6 @@ func (r *router) MethodNotAllowed(h http.HandlerFunc) {
 }
 
 func (r *router) UseOptions(opts ...option.GroupOption) Router {
-	if r.specRouter == nil {
-		return nil
-	}
 	r.specRouter.Use(opts...)
 	return r
 }
