@@ -58,7 +58,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest] # Optional: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest]
         go-version: ['1.23', '1.24']
 
     steps:
@@ -84,8 +84,8 @@ jobs:
     - name: 🔧 Install Tools
       run: make install-tools
 
-    - name: 🧪 Run Tests in Parallel
-      run: make test-parallel
+    - name: 🧪 Run Tests
+      run: make test
 
     - name: 📊 Generate Coverage Report
       if: matrix.go-version == '1.23'
