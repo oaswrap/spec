@@ -4,11 +4,12 @@ go 1.21
 
 require (
 	github.com/go-chi/chi/v5 v5.2.2
-	github.com/oaswrap/spec v0.2.4
+	github.com/oaswrap/spec v0.3.0
 	github.com/oaswrap/spec/adapter/chiopenapi v0.0.0
 )
 
 require (
+	github.com/oaswrap/spec/module/specui v0.3.0 // indirect
 	github.com/swaggest/jsonschema-go v0.3.78 // indirect
 	github.com/swaggest/openapi-go v0.2.59 // indirect
 	github.com/swaggest/refl v1.4.0 // indirect
