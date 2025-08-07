@@ -286,65 +286,57 @@ func TestRouter_Spec(t *testing.T) {
 	}
 }
 
-func TestRouter_Gin(t *testing.T) {
+type SingleRouteFunc func(path string, handlers ...gin.HandlerFunc) ginopenapi.Route
+
+func PingHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"message": "pong"})
+}
+
+func TestRouter_Single(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	totalCalled := 0
-	middleware := func(c *gin.Context) {
-		totalCalled++
-		c.Next()
+	tests := []struct {
+		method     string
+		path       string
+		methodFunc func(r ginopenapi.Router) SingleRouteFunc
+	}{
+		{http.MethodGet, "/ping", func(r ginopenapi.Router) SingleRouteFunc { return r.GET }},
+		{http.MethodPost, "/ping", func(r ginopenapi.Router) SingleRouteFunc { return r.POST }},
+		{http.MethodPut, "/ping", func(r ginopenapi.Router) SingleRouteFunc { return r.PUT }},
+		{http.MethodDelete, "/ping", func(r ginopenapi.Router) SingleRouteFunc { return r.DELETE }},
+		{http.MethodPatch, "/ping", func(r ginopenapi.Router) SingleRouteFunc { return r.PATCH }},
+		{http.MethodHead, "/ping", func(r ginopenapi.Router) SingleRouteFunc { return r.HEAD }},
+		{http.MethodOptions, "/ping", func(r ginopenapi.Router) SingleRouteFunc { return r.OPTIONS }},
 	}
-	pingHandler := func(c *gin.Context) {
-		c.JSON(200, gin.H{"message": "pong"})
-	}
-	app := gin.Default()
-	r := ginopenapi.NewRouter(app)
-	r.Use(middleware)
-	opts := []option.OperationOption{
-		option.OperationID("ping"),
-		option.Summary("Ping the server"),
-		option.Description("Returns a simple pong response"),
-		option.Response(200, new(struct {
-			Message string `json:"message" example:"pong"`
-		})),
-	}
-	r.GET("/ping", pingHandler).With(opts...)
-	r.POST("/ping", pingHandler).With(opts...)
-	r.PUT("/ping", pingHandler).With(opts...)
-	r.DELETE("/ping", pingHandler).With(opts...)
-	r.PATCH("/ping", pingHandler).With(opts...)
-	r.HEAD("/ping", pingHandler).With(opts...)
-	r.OPTIONS("/ping", pingHandler).With(opts...)
+	for _, tt := range tests {
+		t.Run(tt.method, func(t *testing.T) {
+			app := gin.New()
+			r := ginopenapi.NewRouter(app)
 
-	methods := []string{"GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"}
-	for i, method := range methods {
-		t.Run(method, func(t *testing.T) {
-			req, _ := http.NewRequest(method, "/ping", nil)
+			route := tt.methodFunc(r)(tt.path, PingHandler).With(
+				option.OperationID("ping"),
+				option.Summary("Ping the server"),
+				option.Description("Returns a simple pong response"),
+				option.Response(200, new(struct {
+					Message string `json:"message" example:"pong"`
+				})),
+			)
+
+			assert.NotNil(t, route, "expected route to be created")
+
+			req, _ := http.NewRequest(tt.method, tt.path, nil)
 			rec := httptest.NewRecorder()
 			app.ServeHTTP(rec, req)
-			assert.Equal(t, http.StatusOK, rec.Code, "expected status code 200 for %s", method)
-			assert.Equal(t, `{"message":"pong"}`, rec.Body.String(), "expected response body to be 'pong' for %s", method)
-			assert.Equal(t, i+1, totalCalled, "middleware should be called exactly once for %s", method)
+
+			assert.Equal(t, http.StatusOK, rec.Code, "expected status code 200 for %s", tt.method)
+			assert.Equal(t, `{"message":"pong"}`, rec.Body.String(), "expected response body to be 'pong' for %s", tt.method)
+
+			schema, err := r.GenerateSchema()
+			require.NoError(t, err, "failed to generate OpenAPI schema for %s", tt.method)
+			assert.Contains(t, string(schema), "operationId: ping", "expected operationId in schema for %s", tt.method)
 		})
 	}
-
-	t.Run("must register docs path", func(t *testing.T) {
-		docsPath := "/docs"
-		req, _ := http.NewRequest("GET", docsPath, nil)
-		rec := httptest.NewRecorder()
-		app.ServeHTTP(rec, req)
-		assert.Equal(t, http.StatusOK, rec.Code, "expected status code 200 for docs path")
-	})
-	t.Run("must register OpenAPI YAML path", func(t *testing.T) {
-		openAPIPath := "/docs/openapi.yaml"
-		req, _ := http.NewRequest("GET", openAPIPath, nil)
-		rec := httptest.NewRecorder()
-		app.ServeHTTP(rec, req)
-		assert.Equal(t, http.StatusOK, rec.Code, "expected status code 200 for OpenAPI YAML path")
-		assert.Contains(t, rec.Header().Get("Content-Type"), "application/x-yaml", "expected content type to be application/x-yaml")
-		assert.NotEmpty(t, rec.Body.String(), "expected non-empty response body for OpenAPI YAML path")
-	})
-	t.Run("static directory serving", func(t *testing.T) {
+	t.Run("Static", func(t *testing.T) {
 		// Create temp dir
 		tmpDir := t.TempDir()
 
@@ -356,7 +348,7 @@ func TestRouter_Gin(t *testing.T) {
 
 		// Setup Gin
 		gin.SetMode(gin.TestMode)
-		g := gin.Default()
+		g := gin.New()
 		r := ginopenapi.NewRouter(g)
 		r.Static("/static", tmpDir)
 
@@ -369,35 +361,8 @@ func TestRouter_Gin(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 		assert.Equal(t, string(fileContent), w.Body.String())
 	})
-	t.Run("static file serving", func(t *testing.T) {
-		// Create temp file
-		tmpFile, err := os.CreateTemp("", "static-file-*.txt")
-		require.NoError(t, err)
-		defer func() {
-			_ = os.Remove(tmpFile.Name())
-		}()
 
-		// Write content to temp file
-		fileContent := []byte("Hello, static file!")
-		_, err = tmpFile.Write(fileContent)
-		require.NoError(t, err)
-
-		// Setup Gin
-		gin.SetMode(gin.TestMode)
-		g := gin.Default()
-		r := ginopenapi.NewRouter(g)
-		r.StaticFile("/static-file", tmpFile.Name())
-
-		// Create test server
-		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/static-file", nil)
-		g.ServeHTTP(w, req)
-
-		// Assertions
-		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Equal(t, string(fileContent), w.Body.String())
-	})
-	t.Run("static fs serving", func(t *testing.T) {
+	t.Run("StaticFS", func(t *testing.T) {
 		// Create temp dir
 		tmpDir := t.TempDir()
 
@@ -409,7 +374,7 @@ func TestRouter_Gin(t *testing.T) {
 
 		// Setup Gin
 		gin.SetMode(gin.TestMode)
-		g := gin.Default()
+		g := gin.New()
 		r := ginopenapi.NewRouter(g)
 
 		// Serve the temp dir using StaticFS
@@ -424,7 +389,35 @@ func TestRouter_Gin(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 		assert.Equal(t, string(content), w.Body.String())
 	})
-	t.Run("static file fs serving", func(t *testing.T) {
+	t.Run("StaticFile", func(t *testing.T) {
+		// Create temp file
+		tmpFile, err := os.CreateTemp("", "static-file-*.txt")
+		require.NoError(t, err)
+		defer func() {
+			_ = os.Remove(tmpFile.Name())
+		}()
+
+		// Write content to temp file
+		fileContent := []byte("Hello, static file!")
+		_, err = tmpFile.Write(fileContent)
+		require.NoError(t, err)
+
+		// Setup Gin
+		gin.SetMode(gin.TestMode)
+		g := gin.New()
+		r := ginopenapi.NewRouter(g)
+		r.StaticFile("/static-file", tmpFile.Name())
+
+		// Create test server
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/static-file", nil)
+		g.ServeHTTP(w, req)
+
+		// Assertions
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, string(fileContent), w.Body.String())
+	})
+	t.Run("StaticFileFS", func(t *testing.T) {
 		// Setup temp dir and file
 		tmpDir := t.TempDir()
 		fileName := "foo.txt"
@@ -433,7 +426,7 @@ func TestRouter_Gin(t *testing.T) {
 		err := os.WriteFile(filepath.Join(tmpDir, fileName), content, 0644)
 		assert.NoError(t, err)
 
-		g := gin.Default()
+		g := gin.New()
 		r := ginopenapi.NewRouter(g)
 
 		// Serve the single file at /myfile
@@ -449,10 +442,117 @@ func TestRouter_Gin(t *testing.T) {
 	})
 }
 
+func TestRouter_Group(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	app := gin.New()
+	r := ginopenapi.NewRouter(app)
+
+	// Create a group with a prefix and middleware
+	group := r.Group("/api", func(c *gin.Context) {
+		c.Next()
+	})
+
+	// Add a route to the group
+	group.GET("/ping", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "pong"})
+	}).With(
+		option.OperationID("pingHandler"),
+		option.Summary("Ping the server"),
+		option.Description("Returns a simple pong response"),
+		option.Response(200, new(struct {
+			Message string `json:"message" example:"pong"`
+		})),
+	)
+
+	assert.NotNil(t, group, "expected group to be created")
+
+	req, _ := http.NewRequest("GET", "/api/ping", nil)
+	rec := httptest.NewRecorder()
+	app.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code, "expected status code 200 for /api/ping")
+	assert.Equal(t, `{"message":"pong"}`, rec.Body.String(), "expected response body to be 'pong' for /api/ping")
+
+	schema, err := r.GenerateSchema()
+	require.NoError(t, err, "failed to generate OpenAPI schema for /api/ping")
+	assert.Contains(t, string(schema), "operationId: pingHandler", "expected operationId in schema for /api/ping")
+}
+
+func TestRouter_Middleware(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	t.Run("Use", func(t *testing.T) {
+		called := false
+		middleware := func(c *gin.Context) {
+			called = true
+			c.Next()
+		}
+		app := gin.New()
+		r := ginopenapi.NewRouter(app)
+		r.Use(middleware)
+		r.GET("/test", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{"message": "test"})
+		}).With(
+			option.OperationID("testHandler"),
+		)
+
+		req := httptest.NewRequest("GET", "/test", nil)
+		rec := httptest.NewRecorder()
+		app.ServeHTTP(rec, req)
+		assert.Equal(t, http.StatusOK, rec.Code, "expected status code 200 for /test")
+		assert.Equal(t, `{"message":"test"}`, rec.Body.String(), "expected response body to be 'test'")
+		assert.True(t, called, "expected middleware to be called")
+	})
+}
+
+func TestGenerator_Docs(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	app := gin.New()
+	r := ginopenapi.NewRouter(app)
+
+	// Register a simple route
+	r.GET("/ping", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "pong"})
+	}).With(
+		option.OperationID("pingHandler"),
+		option.Summary("Ping the server"),
+		option.Description("Returns a simple pong response"),
+		option.Response(200, new(struct {
+			Message string `json:"message" example:"pong"`
+		})),
+	)
+
+	// Validate the router
+	err := r.Validate()
+	assert.NoError(t, err, "expected no error when validating router")
+
+	// Test the OpenAPI documentation endpoint
+	t.Run("should serve docs", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/docs", nil)
+		rec := httptest.NewRecorder()
+		app.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code, "expected status code 200 for /docs")
+		assert.Contains(t, rec.Body.String(), "Gin OpenAPI", "expected API documentation in response body")
+	})
+	t.Run("should serve OpenAPI YAML", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/docs/openapi.yaml", nil)
+		rec := httptest.NewRecorder()
+		app.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code, "expected status code 200 for /docs/openapi.yaml")
+		assert.NotEmpty(t, rec.Body.String(), "expected non-empty OpenAPI YAML response")
+		assert.Contains(t, rec.Header().Get("Content-Type"), "application/x-yaml", "expected Content-Type to be application/x-yaml")
+		assert.Contains(t, rec.Body.String(), "openapi: 3.0.3", "expected OpenAPI version in response body")
+	})
+}
+
 func TestGenerator_DisableDocs(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	app := gin.Default()
+	app := gin.New()
 	r := ginopenapi.NewGenerator(app, option.WithDisableDocs(true))
 
 	// Register a simple route
@@ -460,28 +560,18 @@ func TestGenerator_DisableDocs(t *testing.T) {
 		c.JSON(http.StatusOK, gin.H{"message": "test"})
 	})
 
-	// Validate the router
-	err := r.Validate()
-	assert.NoError(t, err, "expected no error when validating router with OpenAPI disabled")
-
-	// Test the registered route
-	req, _ := http.NewRequest("GET", "/test", nil)
-	rec := httptest.NewRecorder()
-	app.ServeHTTP(rec, req)
-	assert.Equal(t, http.StatusOK, rec.Code, "expected status code 200 for /test")
-	assert.Equal(t, `{"message":"test"}`, rec.Body.String(), "expected response body to be 'test'")
-
-	// Ensure OpenAPI paths are not registered
-	req, _ = http.NewRequest("GET", "/docs", nil)
-	rec = httptest.NewRecorder()
-	app.ServeHTTP(rec, req)
-	assert.Equal(t, http.StatusNotFound, rec.Code, "expected status code 404 for /docs when OpenAPI is disabled")
-
-	// Ensure OpenAPI YAML path is not registered
-	req, _ = http.NewRequest("GET", "/docs/openapi.yaml", nil)
-	rec = httptest.NewRecorder()
-	app.ServeHTTP(rec, req)
-	assert.Equal(t, http.StatusNotFound, rec.Code, "expected status code 404 for /docs/openapi.yaml when OpenAPI is disabled")
+	t.Run("should not register docs routes", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/docs", nil)
+		rec := httptest.NewRecorder()
+		app.ServeHTTP(rec, req)
+		assert.Equal(t, http.StatusNotFound, rec.Code, "expected status code 404 for /docs when OpenAPI is disabled")
+	})
+	t.Run("should not register OpenAPI YAML route", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/docs/openapi.yaml", nil)
+		rec := httptest.NewRecorder()
+		app.ServeHTTP(rec, req)
+		assert.Equal(t, http.StatusNotFound, rec.Code, "expected status code 404 for /docs/openapi.yaml when OpenAPI is disabled")
+	})
 }
 
 func TestGenerator_WriteSchemaTo(t *testing.T) {
@@ -514,7 +604,7 @@ func TestGenerator_WriteSchemaTo(t *testing.T) {
 func TestGenerator_MarshalYAML(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	app := gin.Default()
+	app := gin.New()
 	r := ginopenapi.NewRouter(app)
 
 	// Register a simple route
@@ -534,7 +624,7 @@ func TestGenerator_MarshalYAML(t *testing.T) {
 func TestGenerator_MarshalJSON(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	app := gin.Default()
+	app := gin.New()
 	r := ginopenapi.NewRouter(app)
 
 	// Register a simple route

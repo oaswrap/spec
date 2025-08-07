@@ -3,6 +3,7 @@ package httpopenapi_test
 import (
 	"flag"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
@@ -78,7 +79,7 @@ func TestRouter_Spec(t *testing.T) {
 				option.WithSecurity("apiKey", option.SecurityAPIKey("api_key", openapi.SecuritySchemeAPIKeyInHeader)),
 			},
 			setup: func(r httpopenapi.Router) {
-				pet := r.Group("/pet").With(
+				pet := r.Group("pet").With(
 					option.GroupTags("pet"),
 					option.GroupSecurity("petstore_auth", "write:pets", "read:pets"),
 				)
@@ -145,7 +146,7 @@ func TestRouter_Spec(t *testing.T) {
 					option.Response(204, nil),
 				)
 
-				store := r.Group("/store").With(
+				store := r.Group("store").With(
 					option.GroupTags("store"),
 				)
 				store.HandleFunc("POST /order", nil).With(
@@ -174,7 +175,7 @@ func TestRouter_Spec(t *testing.T) {
 					})),
 					option.Response(204, nil),
 				)
-				user := r.Group("/user").With(
+				user := r.Group("user").With(
 					option.GroupTags("user"),
 				)
 				user.HandleFunc("POST /createWithList", nil).With(
@@ -273,4 +274,296 @@ func TestRouter_Spec(t *testing.T) {
 			testutil.EqualYAML(t, want, schema)
 		})
 	}
+}
+
+func pingHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("pong"))
+}
+
+func TestRouter_Handle(t *testing.T) {
+	t.Run("GET", func(t *testing.T) {
+		mux := http.NewServeMux()
+		r := httpopenapi.NewRouter(mux)
+		r.Handle("GET /ping", http.HandlerFunc(pingHandler)).With(
+			option.OperationID("pingHandler"),
+		)
+
+		req := httptest.NewRequest("GET", "/ping", nil)
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, "pong", rec.Body.String())
+
+		schema, err := r.GenerateSchema()
+		require.NoError(t, err, "failed to generate OpenAPI schema")
+		assert.Contains(t, string(schema), "operationId: pingHandler", "expected operationId in schema")
+	})
+	t.Run("CONNECT", func(t *testing.T) {
+		mux := http.NewServeMux()
+		r := httpopenapi.NewRouter(mux)
+		r.Handle("CONNECT /ping", http.HandlerFunc(pingHandler)).With(
+			option.OperationID("pingHandler"),
+		)
+
+		req := httptest.NewRequest("CONNECT", "/ping", nil)
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, "pong", rec.Body.String())
+
+		schema, err := r.GenerateSchema()
+		require.NoError(t, err, "failed to generate OpenAPI schema")
+		assert.NotContains(t, string(schema), "operationId: pingHandler", "expected operationId in schema")
+	})
+}
+
+func TestRouter_HandleFunc(t *testing.T) {
+	t.Run("GET", func(t *testing.T) {
+		mux := http.NewServeMux()
+		r := httpopenapi.NewRouter(mux)
+		r.HandleFunc("GET /ping", pingHandler).With(
+			option.OperationID("pingHandler"),
+		)
+
+		req := httptest.NewRequest("GET", "/ping", nil)
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, "pong", rec.Body.String())
+
+		schema, err := r.GenerateSchema()
+		require.NoError(t, err, "failed to generate OpenAPI schema")
+		assert.Contains(t, string(schema), "operationId: pingHandler", "expected operationId in schema")
+	})
+	t.Run("CONNECT", func(t *testing.T) {
+		mux := http.NewServeMux()
+		r := httpopenapi.NewRouter(mux)
+		r.HandleFunc("CONNECT /ping", pingHandler).With(
+			option.OperationID("pingHandler"),
+		)
+
+		req := httptest.NewRequest("CONNECT", "/ping", nil)
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, "pong", rec.Body.String())
+
+		schema, err := r.GenerateSchema()
+		require.NoError(t, err, "failed to generate OpenAPI schema")
+		assert.NotContains(t, string(schema), "operationId: pingHandler", "expected operationId in schema")
+	})
+}
+
+func TestRouter_Group(t *testing.T) {
+	t.Run("Group", func(t *testing.T) {
+		mux := http.NewServeMux()
+		r := httpopenapi.NewRouter(mux)
+
+		group := r.Group("/api").With(
+			option.GroupTags("api"),
+		)
+		group.HandleFunc("GET /ping", pingHandler).With(
+			option.OperationID("pingHandler"),
+		)
+
+		req := httptest.NewRequest("GET", "/api/ping", nil)
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, "pong", rec.Body.String())
+
+		schema, err := r.GenerateSchema()
+		require.NoError(t, err, "failed to generate OpenAPI schema")
+		assert.Contains(t, string(schema), "operationId: pingHandler", "expected operationId in schema")
+	})
+	t.Run("Group with Middleware", func(t *testing.T) {
+		mux := http.NewServeMux()
+		r := httpopenapi.NewRouter(mux)
+		called := false
+		middleware := func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				called = true
+				next.ServeHTTP(w, r)
+			})
+		}
+		group := r.Group("/api", middleware).With(
+			option.GroupTags("api"),
+		)
+		group.HandleFunc("GET /ping", pingHandler).With(
+			option.OperationID("pingHandler"),
+		)
+
+		req := httptest.NewRequest("GET", "/api/ping", nil)
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, req)
+
+		assert.True(t, called, "middleware should be called")
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, "pong", rec.Body.String())
+
+		schema, err := r.GenerateSchema()
+		require.NoError(t, err, "failed to generate OpenAPI schema")
+		assert.Contains(t, string(schema), "operationId: pingHandler", "expected operationId in schema")
+	})
+	t.Run("Route", func(t *testing.T) {
+		mux := http.NewServeMux()
+		r := httpopenapi.NewRouter(mux)
+
+		r.Route("/api", func(r httpopenapi.Router) {
+			r.HandleFunc("GET /ping", pingHandler).With(
+				option.OperationID("pingHandler"),
+			)
+		})
+
+		req := httptest.NewRequest("GET", "/api/ping", nil)
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, "pong", rec.Body.String())
+
+		schema, err := r.GenerateSchema()
+		require.NoError(t, err, "failed to generate OpenAPI schema")
+		assert.Contains(t, string(schema), "operationId: pingHandler", "expected operationId in schema")
+	})
+	t.Run("Route with Middleware", func(t *testing.T) {
+		mux := http.NewServeMux()
+		r := httpopenapi.NewRouter(mux)
+		called := false
+		middleware := func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				called = true
+				next.ServeHTTP(w, r)
+			})
+		}
+		r.Route("/api", func(r httpopenapi.Router) {
+			r.HandleFunc("GET /ping", pingHandler).With(
+				option.OperationID("pingHandler"),
+			)
+		}, middleware)
+
+		req := httptest.NewRequest("GET", "/api/ping", nil)
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, req)
+
+		assert.True(t, called, "middleware should be called")
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, "pong", rec.Body.String())
+
+		schema, err := r.GenerateSchema()
+		require.NoError(t, err, "failed to generate OpenAPI schema")
+		assert.Contains(t, string(schema), "operationId: pingHandler", "expected operationId in schema")
+	})
+}
+
+func TestGenerator_Docs(t *testing.T) {
+	mux := http.NewServeMux()
+	r := httpopenapi.NewRouter(mux)
+
+	r.HandleFunc("GET /ping", pingHandler).With(
+		option.OperationID("pingHandler"),
+	)
+
+	// Test the OpenAPI documentation endpoint
+	t.Run("should serve docs", func(t *testing.T) {
+		docsReq := httptest.NewRequest("GET", "/docs", nil)
+		docsRec := httptest.NewRecorder()
+		mux.ServeHTTP(docsRec, docsReq)
+
+		assert.Equal(t, http.StatusOK, docsRec.Code)
+		assert.Contains(t, docsRec.Body.String(), "HTTP OpenAPI")
+	})
+	t.Run("should serve docs file", func(t *testing.T) {
+		docsFileReq := httptest.NewRequest("GET", "/docs/openapi.yaml", nil)
+		docsFileRec := httptest.NewRecorder()
+		mux.ServeHTTP(docsFileRec, docsFileReq)
+
+		assert.Equal(t, http.StatusOK, docsFileRec.Code)
+		assert.NotEmpty(t, docsFileRec.Body.String())
+		assert.Contains(t, docsFileRec.Header().Get("Content-Type"), "application/x-yaml")
+		assert.Contains(t, docsFileRec.Body.String(), "openapi: 3.0.3")
+	})
+}
+
+func TestGenerator_DisableDocs(t *testing.T) {
+	mux := http.NewServeMux()
+	r := httpopenapi.NewRouter(mux, option.WithDisableDocs(true))
+
+	r.HandleFunc("GET /ping", pingHandler).With(
+		option.OperationID("pingHandler"),
+	)
+
+	// Test that docs are not served when disabled
+	t.Run("should not serve docs when disabled", func(t *testing.T) {
+		docsReq := httptest.NewRequest("GET", "/docs", nil)
+		docsRec := httptest.NewRecorder()
+		mux.ServeHTTP(docsRec, docsReq)
+
+		assert.Equal(t, http.StatusNotFound, docsRec.Code, "expected 404 when docs are disabled")
+	})
+	t.Run("should not serve docs file when disabled", func(t *testing.T) {
+		docsFileReq := httptest.NewRequest("GET", "/docs/openapi.yaml", nil)
+		docsFileRec := httptest.NewRecorder()
+		mux.ServeHTTP(docsFileRec, docsFileReq)
+
+		assert.Equal(t, http.StatusNotFound, docsFileRec.Code, "expected 404 when docs are disabled")
+	})
+}
+
+func TestGenerator_MarshalJSON(t *testing.T) {
+	mux := http.NewServeMux()
+	r := httpopenapi.NewRouter(mux)
+
+	r.HandleFunc("GET /ping", pingHandler).With(
+		option.OperationID("pingHandler"),
+	)
+
+	jsonData, err := r.MarshalJSON()
+	require.NoError(t, err, "failed to marshal OpenAPI schema to JSON")
+
+	assert.NotEmpty(t, jsonData, "expected non-empty JSON data")
+	assert.Contains(t, string(jsonData), `"operationId": "pingHandler"`, "expected operationId in JSON schema")
+}
+
+func TestGenerator_MarshalYAML(t *testing.T) {
+	mux := http.NewServeMux()
+	r := httpopenapi.NewRouter(mux)
+
+	r.HandleFunc("GET /ping", pingHandler).With(
+		option.OperationID("pingHandler"),
+	)
+
+	yamlData, err := r.MarshalYAML()
+	require.NoError(t, err, "failed to marshal OpenAPI schema to YAML")
+
+	assert.NotEmpty(t, yamlData, "expected non-empty YAML data")
+	assert.Contains(t, string(yamlData), "operationId: pingHandler", "expected operationId in YAML schema")
+}
+
+func TestGenerator_WriteSchemaTo(t *testing.T) {
+	mux := http.NewServeMux()
+	r := httpopenapi.NewRouter(mux)
+
+	r.HandleFunc("GET /ping", pingHandler).With(
+		option.OperationID("pingHandler"),
+	)
+
+	tempFile, err := os.CreateTemp("", "openapi-schema-*.yaml")
+	require.NoError(t, err, "failed to create temporary file")
+	defer os.Remove(tempFile.Name())
+
+	err = r.WriteSchemaTo(tempFile.Name())
+	require.NoError(t, err, "failed to write OpenAPI schema to file")
+
+	schemaData, err := os.ReadFile(tempFile.Name())
+	require.NoError(t, err, "failed to read OpenAPI schema from file")
+
+	assert.NotEmpty(t, schemaData, "expected non-empty schema data")
+	assert.Contains(t, string(schemaData), "operationId: pingHandler", "expected operationId in written schema")
 }

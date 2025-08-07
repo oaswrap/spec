@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
@@ -289,94 +288,155 @@ func TestRouter_Spec(t *testing.T) {
 	}
 }
 
-func TestRouter_Fiber(t *testing.T) {
-	totalCalled := 0
-	testMiddleware := func(c *fiber.Ctx) error {
-		totalCalled++
-		return c.Next()
+type SingleRouteFunc func(string, ...fiber.Handler) fiberopenapi.Route
+
+func TestRouter_Single(t *testing.T) {
+	tests := []struct {
+		method     string
+		path       string
+		methodFunc func(r fiberopenapi.Router) SingleRouteFunc
+	}{
+		{"GET", "/ping", func(r fiberopenapi.Router) SingleRouteFunc { return r.Get }},
+		{"HEAD", "/ping", func(r fiberopenapi.Router) SingleRouteFunc { return r.Head }},
+		{"POST", "/ping", func(r fiberopenapi.Router) SingleRouteFunc { return r.Post }},
+		{"PUT", "/ping", func(r fiberopenapi.Router) SingleRouteFunc { return r.Put }},
+		{"PATCH", "/ping", func(r fiberopenapi.Router) SingleRouteFunc { return r.Patch }},
+		{"DELETE", "/ping", func(r fiberopenapi.Router) SingleRouteFunc { return r.Delete }},
+		{"CONNECT", "/ping", func(r fiberopenapi.Router) SingleRouteFunc { return r.Connect }},
+		{"OPTIONS", "/ping", func(r fiberopenapi.Router) SingleRouteFunc { return r.Options }},
+		{"TRACE", "/ping", func(r fiberopenapi.Router) SingleRouteFunc { return r.Trace }},
 	}
-	pingHandler := func(c *fiber.Ctx) error {
-		return c.SendString("pong")
-	}
+	for _, tt := range tests {
+		t.Run(tt.method, func(t *testing.T) {
+			app := fiber.New()
+			r := fiberopenapi.NewRouter(app)
 
-	app := fiber.New()
-	r := fiberopenapi.NewRouter(app)
-	r.Use(testMiddleware)
-	r.Get("/ping", pingHandler).With(
-		option.Summary("Ping Endpoint"),
-		option.Description("Endpoint to test ping functionality"),
-	).Name("ping.get")
-	r.Post("/ping", pingHandler).With(
-		option.Summary("Ping Endpoint with POST"),
-		option.Description("Endpoint to test ping functionality with POST method"),
-	).Name("ping.post")
-	r.Put("/ping", pingHandler).With(
-		option.Summary("Ping Endpoint with PUT"),
-		option.Description("Endpoint to test ping functionality with PUT method"),
-	).Name("ping.put")
-	r.Patch("/ping", pingHandler).With(
-		option.Summary("Ping Endpoint with PATCH"),
-		option.Description("Endpoint to test ping functionality with PATCH method"),
-	).Name("ping.patch")
-	r.Delete("/ping", pingHandler).With(
-		option.Summary("Ping Endpoint with DELETE"),
-		option.Description("Endpoint to test ping functionality with DELETE method"),
-	).Name("ping.delete")
-	r.Head("/ping", pingHandler).With(
-		option.Summary("Ping Endpoint with HEAD"),
-		option.Description("Endpoint to test ping functionality with HEAD method"),
-	).Name("ping.head")
-	r.Options("/ping", pingHandler).With(
-		option.Summary("Ping Endpoint with OPTIONS"),
-		option.Description("Endpoint to test ping functionality with OPTIONS method"),
-	).Name("ping.options")
-	r.Connect("/ping", pingHandler).With(
-		option.Summary("Ping Endpoint with CONNECT"),
-		option.Description("Endpoint to test ping functionality with CONNECT method"),
-	).Name("ping.connect")
-	r.Trace("/ping", pingHandler).With(
-		option.Summary("Ping Endpoint with TRACE"),
-		option.Description("Endpoint to test ping functionality with TRACE method"),
-	).Name("ping.trace")
-	err := r.Validate()
-	require.NoError(t, err, "failed to validate OpenAPI configuration")
+			routeFunc := tt.methodFunc(r)
+			route := routeFunc(tt.path, func(c *fiber.Ctx) error {
+				return c.SendString("pong")
+			}).With(
+				option.OperationID("ping"),
+				option.Summary("Ping Endpoint"),
+			).Name("ping")
 
-	methods := []string{
-		"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", "CONNECT", "TRACE",
-	}
-	totalCalled = 0 // Reset totalCalled for each method test
-	for i, method := range methods {
-		t.Run(method, func(t *testing.T) {
-			r := app.GetRoute("ping." + strings.ToLower(method))
-			assert.NotNil(t, r, "expected route to be registered for %s request", method)
+			assert.NotNil(t, route, "expected route to be created for %s %s", tt.method, tt.path)
+			fr := app.GetRoute("ping")
+			assert.NotEmpty(t, fr.Name, "expected route name to be set for %s %s", tt.method, tt.path)
 
-			assert.Equal(t, i, totalCalled, "expected middleware to be called %d times, got %d", i, totalCalled)
-
-			req, _ := http.NewRequest(method, "/ping", nil)
+			req, _ := http.NewRequest(tt.method, tt.path, nil)
 			res, err := app.Test(req, -1)
-			require.NoError(t, err, "failed to test %s request", method)
-			assert.Equal(t, http.StatusOK, res.StatusCode, "expected status OK for %s request", method)
+			require.NoError(t, err, "failed to test %s request", tt.method)
+			assert.Equal(t, http.StatusOK, res.StatusCode, "expected status OK for %s request", tt.method)
 
-			if method == "HEAD" {
-				return // HEAD requests do not have a body
+			if tt.method != "HEAD" {
+				body, err := io.ReadAll(res.Body)
+				require.NoError(t, err, "failed to read response body for %s request", tt.method)
+				assert.Equal(t, "pong", string(body), "expected response body to be 'pong' for %s request", tt.method)
 			}
-			body, err := io.ReadAll(res.Body)
-			require.NoError(t, err, "failed to read response body for %s request", method)
-			assert.Equal(t, "pong", string(body), "expected response body to be 'pong' for %s request", method)
+			if tt.method == "CONNECT" {
+				return // CONNECT method is not supported by OpenAPI, so we skip it
+			}
 
-			_ = res.Body.Close()
+			schema, err := r.GenerateSchema()
+			require.NoError(t, err, "failed to generate OpenAPI schema for %s request", tt.method)
+			assert.NotEmpty(t, schema, "expected non-empty OpenAPI schema for %s request", tt.method)
+
+			// Check if the route is registered in the OpenAPI schema
+			assert.Contains(t, string(schema), "operationId: ping", "expected operationId 'ping' in OpenAPI schema for %s request", tt.method)
 		})
 	}
 
-	t.Run("Static File Request", func(t *testing.T) {
+	t.Run("Static", func(t *testing.T) {
+		app := fiber.New()
+		r := fiberopenapi.NewRouter(app)
 		r.Static("/static", "./testdata", fiber.Static{})
 		req, _ := http.NewRequest("GET", "/static/petstore.yaml", nil)
 		res, err := app.Test(req, -1)
 		require.NoError(t, err, "failed to test static file request")
 		assert.Equal(t, http.StatusOK, res.StatusCode, "expected status OK for static file request")
 	})
+}
 
-	t.Run("must register docs route", func(t *testing.T) {
+func TestRouter_Group(t *testing.T) {
+	t.Run("Group", func(t *testing.T) {
+		app := fiber.New()
+		r := fiberopenapi.NewRouter(app)
+
+		group := r.Group("/api", func(c *fiber.Ctx) error {
+			return c.Next()
+		})
+
+		group.Get("/ping", func(c *fiber.Ctx) error {
+			return c.SendString("pong")
+		}).With(
+			option.OperationID("ping"),
+			option.Summary("Ping Endpoint"),
+		)
+
+		req, _ := http.NewRequest("GET", "/api/ping", nil)
+		res, err := app.Test(req, -1)
+		require.NoError(t, err, "failed to test group route")
+		assert.Equal(t, http.StatusOK, res.StatusCode, "expected status OK for group route")
+
+		body, err := io.ReadAll(res.Body)
+		require.NoError(t, err, "failed to read response body for group route")
+		assert.Equal(t, "pong", string(body), "expected response body to be 'pong' for group route")
+	})
+	t.Run("Route", func(t *testing.T) {
+		app := fiber.New()
+		r := fiberopenapi.NewRouter(app)
+
+		r.Route("/api", func(r fiberopenapi.Router) {
+			r.Get("/ping", func(c *fiber.Ctx) error {
+				return c.SendString("pong")
+			}).With(
+				option.OperationID("ping"),
+				option.Summary("Ping Endpoint"),
+			)
+		})
+
+		req, _ := http.NewRequest("GET", "/api/ping", nil)
+		res, err := app.Test(req, -1)
+		require.NoError(t, err, "failed to test route")
+		assert.Equal(t, http.StatusOK, res.StatusCode, "expected status OK for route")
+
+		body, err := io.ReadAll(res.Body)
+		require.NoError(t, err, "failed to read response body for route")
+		assert.Equal(t, "pong", string(body), "expected response body to be 'pong' for route")
+	})
+}
+
+func TestRouter_Middleware(t *testing.T) {
+	t.Run("Use", func(t *testing.T) {
+		called := false
+		middleware := func(c *fiber.Ctx) error {
+			called = true
+			return c.Next()
+		}
+		app := fiber.New()
+		r := fiberopenapi.NewRouter(app)
+		r.Use(middleware)
+		r.Get("/ping", func(c *fiber.Ctx) error {
+			return c.SendString("pong")
+		})
+
+		req, _ := http.NewRequest("GET", "/ping", nil)
+		res, err := app.Test(req, -1)
+		require.NoError(t, err, "failed to test middleware route")
+		assert.Equal(t, http.StatusOK, res.StatusCode, "expected status OK for middleware route")
+		assert.True(t, called, "expected middleware to be called")
+	})
+}
+
+func TestGenerator_Docs(t *testing.T) {
+	// Test that the docs route is registered
+	app := fiber.New()
+	r := fiberopenapi.NewRouter(app)
+	r.Get("/ping", PingHandler).With(
+		option.Summary("Ping Endpoint"),
+	)
+
+	t.Run("should serve docs", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/docs", nil)
 		res, err := app.Test(req, -1)
 		require.NoError(t, err, "failed to test docs route")
@@ -384,10 +444,9 @@ func TestRouter_Fiber(t *testing.T) {
 
 		body, err := io.ReadAll(res.Body)
 		require.NoError(t, err, "failed to read response body for docs route")
-		assert.NotEmpty(t, body, "expected non-empty response body for docs route")
-		_ = res.Body.Close()
+		assert.Contains(t, string(body), "Fiber OpenAPI", "expected response body to contain 'Fiber OpenAPI' for docs route")
 	})
-	t.Run("must register OpenAPI YAML route", func(t *testing.T) {
+	t.Run("should serve OpenAPI YAML", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/docs/openapi.yaml", nil)
 		res, err := app.Test(req, -1)
 		require.NoError(t, err, "failed to test OpenAPI YAML route")
@@ -396,7 +455,7 @@ func TestRouter_Fiber(t *testing.T) {
 		body, err := io.ReadAll(res.Body)
 		require.NoError(t, err, "failed to read response body for OpenAPI YAML route")
 		assert.NotEmpty(t, body, "expected non-empty response body for OpenAPI YAML route")
-		_ = res.Body.Close()
+		assert.Contains(t, string(body), "openapi: 3.0.3", "expected OpenAPI version in response body for OpenAPI YAML route")
 	})
 }
 
@@ -410,28 +469,21 @@ func TestGenerator_DisableDocs(t *testing.T) {
 		option.Summary("Ping Endpoint"),
 		option.Description("Endpoint to test ping functionality"),
 	)
-	err := r.Validate()
-	require.NoError(t, err, "failed to validate OpenAPI configuration")
-	req, _ := http.NewRequest("GET", "/ping", nil)
-	res, err := app.Test(req, -1)
-	require.NoError(t, err, "failed to test ping route")
-	assert.Equal(t, http.StatusOK, res.StatusCode, "expected status OK for ping route")
 
-	_ = res.Body.Close()
-
-	// Ensure OpenAPI routes are not registered
-	reqDocs, _ := http.NewRequest("GET", "/docs", nil)
-	resDocs, err := app.Test(reqDocs, -1)
-	require.NoError(t, err, "failed to test docs route")
-	assert.Equal(t, http.StatusNotFound, resDocs.StatusCode, "expected status Not Found for docs route")
-	_ = resDocs.Body.Close()
-
-	// Ensure OpenAPI YAML route is not registered
-	reqOpenAPI, _ := http.NewRequest("GET", "/docs/openapi.yaml", nil)
-	resOpenAPI, err := app.Test(reqOpenAPI, -1)
-	require.NoError(t, err, "failed to test OpenAPI YAML route")
-	assert.Equal(t, http.StatusNotFound, resOpenAPI.StatusCode, "expected status Not Found for OpenAPI YAML route")
-	_ = resOpenAPI.Body.Close()
+	t.Run("should not register docs route", func(t *testing.T) {
+		reqDocs, _ := http.NewRequest("GET", "/docs", nil)
+		resDocs, err := app.Test(reqDocs, -1)
+		require.NoError(t, err, "failed to test docs route")
+		assert.Equal(t, http.StatusNotFound, resDocs.StatusCode, "expected status Not Found for docs route")
+		_ = resDocs.Body.Close()
+	})
+	t.Run("should not register openapi.yaml route", func(t *testing.T) {
+		reqOpenAPI, _ := http.NewRequest("GET", "/docs/openapi.yaml", nil)
+		resOpenAPI, err := app.Test(reqOpenAPI, -1)
+		require.NoError(t, err, "failed to test OpenAPI YAML route")
+		assert.Equal(t, http.StatusNotFound, resOpenAPI.StatusCode, "expected status Not Found for OpenAPI YAML route")
+		_ = resOpenAPI.Body.Close()
+	})
 }
 
 func TestGenerator_WriteSchemaTo(t *testing.T) {
@@ -465,7 +517,7 @@ func TestGenerator_WriteSchemaTo(t *testing.T) {
 	assert.NotEmpty(t, schema, "expected non-empty OpenAPI schema")
 }
 
-func TestGenerator_MarshallYAML(t *testing.T) {
+func TestGenerator_MarshalYAML(t *testing.T) {
 	app := fiber.New()
 	r := fiberopenapi.NewRouter(app,
 		option.WithTitle("Test API Marshall YAML"),

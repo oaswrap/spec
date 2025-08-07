@@ -330,51 +330,15 @@ func TestRouter_Single(t *testing.T) {
 		path       string
 		methodFunc func(r echoopenapi.Router) SingleRouteFunc
 	}{
-		{
-			method:     "GET",
-			path:       "/hello",
-			methodFunc: func(r echoopenapi.Router) SingleRouteFunc { return r.GET },
-		},
-		{
-			method:     "POST",
-			path:       "/hello",
-			methodFunc: func(r echoopenapi.Router) SingleRouteFunc { return r.POST },
-		},
-		{
-			method:     "PUT",
-			path:       "/hello",
-			methodFunc: func(r echoopenapi.Router) SingleRouteFunc { return r.PUT },
-		},
-		{
-			method:     "DELETE",
-			path:       "/hello",
-			methodFunc: func(r echoopenapi.Router) SingleRouteFunc { return r.DELETE },
-		},
-		{
-			method:     "PATCH",
-			path:       "/hello",
-			methodFunc: func(r echoopenapi.Router) SingleRouteFunc { return r.PATCH },
-		},
-		{
-			method:     "HEAD",
-			path:       "/hello",
-			methodFunc: func(r echoopenapi.Router) SingleRouteFunc { return r.HEAD },
-		},
-		{
-			method:     "OPTIONS",
-			path:       "/hello",
-			methodFunc: func(r echoopenapi.Router) SingleRouteFunc { return r.OPTIONS },
-		},
-		{
-			method:     "TRACE",
-			path:       "/hello",
-			methodFunc: func(r echoopenapi.Router) SingleRouteFunc { return r.TRACE },
-		},
-		{
-			method:     "CONNECT",
-			path:       "/hello",
-			methodFunc: func(r echoopenapi.Router) SingleRouteFunc { return r.CONNECT },
-		},
+		{"GET", "/hello", func(r echoopenapi.Router) SingleRouteFunc { return r.GET }},
+		{"POST", "/hello", func(r echoopenapi.Router) SingleRouteFunc { return r.POST }},
+		{"PUT", "/hello", func(r echoopenapi.Router) SingleRouteFunc { return r.PUT }},
+		{"PATCH", "/hello", func(r echoopenapi.Router) SingleRouteFunc { return r.PATCH }},
+		{"DELETE", "/hello", func(r echoopenapi.Router) SingleRouteFunc { return r.DELETE }},
+		{"HEAD", "/hello", func(r echoopenapi.Router) SingleRouteFunc { return r.HEAD }},
+		{"OPTIONS", "/hello", func(r echoopenapi.Router) SingleRouteFunc { return r.OPTIONS }},
+		{"TRACE", "/hello", func(r echoopenapi.Router) SingleRouteFunc { return r.TRACE }},
+		{"CONNECT", "/hello", func(r echoopenapi.Router) SingleRouteFunc { return r.CONNECT }},
 	}
 	for _, tt := range tests {
 		t.Run(tt.method, func(t *testing.T) {
@@ -421,8 +385,8 @@ func TestRouter_Single(t *testing.T) {
 	}
 }
 
-func TestRouter_Use(t *testing.T) {
-	t.Run("should call middleware", func(t *testing.T) {
+func TestRouter(t *testing.T) {
+	t.Run("Use", func(t *testing.T) {
 		totalCalled := 0
 		middleware := func(next echo.HandlerFunc) echo.HandlerFunc {
 			return func(c echo.Context) error {

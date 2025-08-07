@@ -283,57 +283,21 @@ func pingHandler(w http.ResponseWriter, r *http.Request) {
 
 type SingleRouteFunc func(path string, handler http.HandlerFunc) chiopenapi.Route
 
-func TestRouter_Chi_Single(t *testing.T) {
+func TestRouter_Single(t *testing.T) {
 	tests := []struct {
 		method     string
 		path       string
 		methodFunc func(r chiopenapi.Router) SingleRouteFunc
 	}{
-		{
-			method:     "GET",
-			path:       "/ping",
-			methodFunc: func(r chiopenapi.Router) SingleRouteFunc { return r.Get },
-		},
-		{
-			method:     "POST",
-			path:       "/ping",
-			methodFunc: func(r chiopenapi.Router) SingleRouteFunc { return r.Post },
-		},
-		{
-			method:     "PUT",
-			path:       "/ping",
-			methodFunc: func(r chiopenapi.Router) SingleRouteFunc { return r.Put },
-		},
-		{
-			method:     "DELETE",
-			path:       "/ping",
-			methodFunc: func(r chiopenapi.Router) SingleRouteFunc { return r.Delete },
-		},
-		{
-			method:     "HEAD",
-			path:       "/ping",
-			methodFunc: func(r chiopenapi.Router) SingleRouteFunc { return r.Head },
-		},
-		{
-			method:     "OPTIONS",
-			path:       "/ping",
-			methodFunc: func(r chiopenapi.Router) SingleRouteFunc { return r.Options },
-		},
-		{
-			method:     "TRACE",
-			path:       "/ping",
-			methodFunc: func(r chiopenapi.Router) SingleRouteFunc { return r.Trace },
-		},
-		{
-			method:     "PATCH",
-			path:       "/ping",
-			methodFunc: func(r chiopenapi.Router) SingleRouteFunc { return r.Patch },
-		},
-		{
-			method:     "CONNECT",
-			path:       "/ping",
-			methodFunc: func(r chiopenapi.Router) SingleRouteFunc { return r.Connect },
-		},
+		{"GET", "/ping", func(r chiopenapi.Router) SingleRouteFunc { return r.Get }},
+		{"POST", "/ping", func(r chiopenapi.Router) SingleRouteFunc { return r.Post }},
+		{"PUT", "/ping", func(r chiopenapi.Router) SingleRouteFunc { return r.Put }},
+		{"DELETE", "/ping", func(r chiopenapi.Router) SingleRouteFunc { return r.Delete }},
+		{"HEAD", "/ping", func(r chiopenapi.Router) SingleRouteFunc { return r.Head }},
+		{"OPTIONS", "/ping", func(r chiopenapi.Router) SingleRouteFunc { return r.Options }},
+		{"TRACE", "/ping", func(r chiopenapi.Router) SingleRouteFunc { return r.Trace }},
+		{"PATCH", "/ping", func(r chiopenapi.Router) SingleRouteFunc { return r.Patch }},
+		{"CONNECT", "/ping", func(r chiopenapi.Router) SingleRouteFunc { return r.Connect }},
 	}
 	for _, tt := range tests {
 		t.Run(tt.method, func(t *testing.T) {
@@ -466,7 +430,7 @@ func TestRouter_Chi_Single(t *testing.T) {
 	})
 }
 
-func TestRouter_Chi_Group(t *testing.T) {
+func TestRouter_Group(t *testing.T) {
 	c := chi.NewRouter()
 	r := chiopenapi.NewRouter(c)
 	r.Group(func(r chiopenapi.Router) {
@@ -493,7 +457,7 @@ func TestRouter_Chi_Group(t *testing.T) {
 	assert.Contains(t, string(schema), "deprecated", "expected OpenAPI schema to contain deprecated flag for getPing")
 }
 
-func TestRouter_Chi_Middleware(t *testing.T) {
+func TestRouter_Middleware(t *testing.T) {
 	t.Run("Use", func(t *testing.T) {
 		called := false
 		middleware := func(next http.Handler) http.Handler {
@@ -537,7 +501,7 @@ func TestRouter_Chi_Middleware(t *testing.T) {
 	})
 }
 
-func TestRouter_Chi_NotFound(t *testing.T) {
+func TestRouter_NotFound(t *testing.T) {
 	c := chi.NewRouter()
 	r := chiopenapi.NewRouter(c)
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
@@ -555,7 +519,7 @@ func TestRouter_Chi_NotFound(t *testing.T) {
 	assert.Equal(t, "Not Found\n", rr.Body.String(), "expected response body to be 'Not Found'")
 }
 
-func TestRouter_Chi_MethodNotAllowed(t *testing.T) {
+func TestRouter_MethodNotAllowed(t *testing.T) {
 	c := chi.NewRouter()
 	r := chiopenapi.NewRouter(c)
 	r.Get("/ping", pingHandler).With(
@@ -603,7 +567,7 @@ func TestGenerator_Docs(t *testing.T) {
 	})
 }
 
-func TestRouter_Docs_Disabled(t *testing.T) {
+func TestGenerator_DisableDocs(t *testing.T) {
 	c := chi.NewRouter()
 	r := chiopenapi.NewRouter(c, option.WithDisableDocs(true))
 	r.Get("/ping", pingHandler).With(
