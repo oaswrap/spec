@@ -149,21 +149,35 @@ list-adapters: ## List available adapters
 		fi; \
 	done
 
-sync-adapter-deps: ## Sync adapter dependencies to a specific version
+release: ## Release core module with the specified version
 	@if [ -z "$(VERSION)" ]; then \
-		echo "$(RED)Usage: make sync-adapter-deps VERSION=v0.3.0 [NO_TIDY=1]$(NC)"; \
+		echo "$(RED)Usage: make release VERSION=0.3.0$(NC)"; \
 		exit 1; \
 	fi
-	@echo "$(BLUE)🔄 Syncing adapter dependencies to $(VERSION)...$(NC)"
+	@echo "$(BLUE)🚀 Releasing version v$(VERSION)...$(NC)"
+	@git tag -a v$(VERSION) -m "Release v$(VERSION)"
+	@git push origin v$(VERSION)
+
+release-adapters: ## Release all adapters with the specified version
+	@if [ -z "$(VERSION)" ]; then \
+		echo "$(RED)Usage: make release-adapters VERSION=0.3.0$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)🚀 Releasing adapters with version v$(VERSION)...$(NC)"
 	@for a in $(ADAPTERS); do \
-		echo "$(BLUE)📝 Updating adapter/$$a...$(NC)"; \
-		(cd "adapter/$$a" && \
-		$(SED_INPLACE) -E 's#(github.com/oaswrap/spec )v[0-9]+\.[0-9]+\.[^ ]*#\1$(VERSION)#' go.mod); \
-		if [ "$(NO_TIDY)" != "1" ]; then \
-			(cd "adapter/$$a" && go mod tidy); \
-		else \
-			echo "$(YELLOW)⚠️  Skipped go mod tidy for adapter/$$a because NO_TIDY=1$(NC)"; \
-		fi; \
-		echo "$(GREEN)✅ Updated adapter/$$a to $(VERSION)$(NC)"; \
+		echo "$(BLUE)🚀 Releasing adapter $$a...$(NC)"; \
+		(cd "adapter/$$a" && git tag -a v$(VERSION) -m "Release v$(VERSION)" && git push origin v$(VERSION)); \
 	done
-	@echo "$(GREEN)🎉 All adapter synced to $(VERSION)!$(NC)"
+	@echo "$(GREEN)🎉 All adapters released with version v$(VERSION)!$(NC)"
+
+release-modules: ## Release all modules with the specified version
+	@if [ -z "$(VERSION)" ]; then \
+		echo "$(RED)Usage: make release-modules VERSION=0.3.0$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)🚀 Releasing modules with version v$(VERSION)...$(NC)"
+	@for m in $(MODULES); do \
+		echo "$(BLUE)🚀 Releasing module $$m...$(NC)"; \
+		(cd "module/$$m" && git tag -a v$(VERSION) -m "Release v$(VERSION)" && git push origin v$(VERSION)); \
+	done
+	@echo "$(GREEN)🎉 All modules released with version v$(VERSION)!$(NC)"
