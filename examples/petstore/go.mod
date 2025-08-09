@@ -2,7 +2,7 @@ module github.com/oaswrap/spec/examples/petstore
 
 go 1.21
 
-require github.com/oaswrap/spec v0.3.0
+require github.com/oaswrap/spec v0.3.1
 
 require (
 	github.com/swaggest/jsonschema-go v0.3.78 // indirect

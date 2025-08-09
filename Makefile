@@ -8,11 +8,6 @@ COVERAGE_FILE := coverage.out
 ADAPTERS      := chiopenapi echoopenapi fiberopenapi ginopenapi httpopenapi muxopenapi
 MODULES	      := specui
 
-DEP ?= all
-
-# Find all modules (folders containing go.mod)
-ALL_MODULES := $(shell find . -name go.mod -exec dirname {} \;)
-
 # Platform detection for sed compatibility
 # Using an immediately expanded variable for this is good practice.
 UNAME_S := $(shell uname -s)
@@ -217,14 +212,3 @@ endif
 	git tag -d $(TAG)
 	git push origin :refs/tags/$(TAG)
 	@echo "Tag $(TAG) deleted successfully"
-
-update-deps: ## Update module dependencies
-	@if [ "$(DEP)" = "all" ]; then \
-		echo "❌ Please specify DEP=... for update-deps"; \
-		exit 1; \
-	fi
-	@for m in $(ALL_MODULES); do \
-		echo "🔄 Syncing $(DEP) in $$m..."; \
-		cd $$m && go get $(DEP) && go mod tidy; \
-	done
-	@echo "✅ Synced $(DEP) across all modules"
