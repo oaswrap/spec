@@ -7,34 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMethod(t *testing.T) {
-	t.Run("set method", func(t *testing.T) {
-		cfg := &option.OperationConfig{}
-		option.Method("GET")(cfg)
-		assert.Equal(t, "GET", cfg.Method)
-	})
-
-	t.Run("set method with empty string", func(t *testing.T) {
-		cfg := &option.OperationConfig{}
-		option.Method("")(cfg)
-		assert.Empty(t, cfg.Method)
-	})
-}
-
-func TestPath(t *testing.T) {
-	t.Run("set path", func(t *testing.T) {
-		cfg := &option.OperationConfig{}
-		option.Path("/api/v1/users")(cfg)
-		assert.Equal(t, "/api/v1/users", cfg.Path)
-	})
-
-	t.Run("set path with empty string", func(t *testing.T) {
-		cfg := &option.OperationConfig{}
-		option.Path("")(cfg)
-		assert.Empty(t, cfg.Path)
-	})
-}
-
 func TestHidden(t *testing.T) {
 	t.Run("default hidden true", func(t *testing.T) {
 		cfg := &option.OperationConfig{}
@@ -217,8 +189,6 @@ func TestResponse(t *testing.T) {
 func TestOperationConfig(t *testing.T) {
 	t.Run("default values", func(t *testing.T) {
 		cfg := &option.OperationConfig{}
-		assert.Empty(t, cfg.Method)
-		assert.Empty(t, cfg.Path)
 		assert.False(t, cfg.Hide)
 		assert.Empty(t, cfg.OperationID)
 		assert.Empty(t, cfg.Description)

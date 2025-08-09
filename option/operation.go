@@ -7,8 +7,6 @@ import (
 
 // OperationConfig holds configuration for an OpenAPI operation.
 type OperationConfig struct {
-	Method      string
-	Path        string
 	Hide        bool
 	OperationID string
 	Description string
@@ -29,20 +27,6 @@ type OperationSecurityConfig struct {
 
 // OperationOption applies configuration to an OpenAPI operation.
 type OperationOption func(*OperationConfig)
-
-// Method sets the HTTP method for the OpenAPI operation.
-func Method(method string) OperationOption {
-	return func(cfg *OperationConfig) {
-		cfg.Method = method
-	}
-}
-
-// Path sets the HTTP path for the OpenAPI operation.
-func Path(path string) OperationOption {
-	return func(cfg *OperationConfig) {
-		cfg.Path = path
-	}
-}
 
 // Hidden marks the operation as hidden in the OpenAPI documentation.
 //

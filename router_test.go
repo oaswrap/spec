@@ -596,17 +596,13 @@ func TestRouter(t *testing.T) {
 			setup: func(r spec.Router) {
 				api := r.Group("api")
 				v1 := api.Group("v1")
-				v1.NewRoute(
-					option.Method("POST"),
-					option.Path("/login"),
+				v1.NewRoute().Method("POST").Path("/login").With(
 					option.Summary("User Login v1"),
 					option.Request(new(LoginRequest)),
 					option.Response(200, new(Token)),
 				)
 				auth := v1.Group("/", option.GroupSecurity("bearerAuth"))
-				auth.NewRoute(
-					option.Method("GET"),
-					option.Path("/profile"),
+				auth.NewRoute().Method("GET").Path("/profile").With(
 					option.Summary("Get Profile v1"),
 					option.Response(200, new(User)),
 				)

@@ -77,6 +77,10 @@ type Router interface {
 
 // Route represents a single API route in the OpenAPI specification.
 type Route interface {
+	// Method sets the HTTP method for the route.
+	Method(method string) Route
+	// Path sets the HTTP path for the route.
+	Path(path string) Route
 	// With applies additional operation options to the route.
 	With(opts ...option.OperationOption) Route
 }

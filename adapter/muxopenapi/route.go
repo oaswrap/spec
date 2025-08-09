@@ -61,7 +61,7 @@ func (r *route) Host(tpl string) Route {
 func (r *route) Methods(methods ...string) Route {
 	r.muxRoute.Methods(methods...)
 	if len(methods) > 0 {
-		r.specRoute.With(option.Method(methods[0]))
+		r.specRoute.Method(methods[0])
 	}
 	return r
 }
@@ -73,7 +73,7 @@ func (r *route) Name(name string) Route {
 
 func (r *route) Path(tpl string) Route {
 	r.muxRoute.Path(tpl)
-	r.specRoute.With(option.Path(tpl))
+	r.specRoute.Path(tpl)
 	return r
 }
 
