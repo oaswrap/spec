@@ -3,8 +3,8 @@ module github.com/oaswrap/spec/adapter/httpopenapi
 go 1.22
 
 require (
-	github.com/oaswrap/spec v0.3.0
-	github.com/oaswrap/spec/module/specui v0.3.0
+	github.com/oaswrap/spec v0.3.1
+	github.com/oaswrap/spec/module/specui v0.3.1
 	github.com/stretchr/testify v1.10.0
 )
 

@@ -4,8 +4,8 @@ go 1.21
 
 require (
 	github.com/go-chi/chi/v5 v5.2.2
-	github.com/oaswrap/spec v0.3.0
-	github.com/oaswrap/spec/module/specui v0.3.0
+	github.com/oaswrap/spec v0.3.1
+	github.com/oaswrap/spec/module/specui v0.3.1
 	github.com/stretchr/testify v1.10.0
 )
 
