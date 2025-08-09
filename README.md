@@ -95,14 +95,14 @@ type User struct {
 
 For seamless HTTP server integration, use one of our framework adapters:
 
-| Framework | Package | Status |
-|-----------|---------|---------|
-| **Chi** | [`chiopenapi`](/adapter/chiopenapi) | ✅ Stable |
-| **Echo** | [`echoopenapi`](/adapter/echoopenapi) | ✅ Stable |
-| **Gin** | [`ginopenapi`](/adapter/ginopenapi) | ✅ Stable |
-| **Fiber** | [`fiberopenapi`](/adapter/fiberopenapi) | ✅ Stable |
-| **HTTP** | [`httpopenapi`](/adapter/httpopenapi) | ✅ Stable |
-| **Mux** | Coming soon | 🚧 Planned |
+| Framework | Package |
+|-----------|---------|
+| **Chi** | [`chiopenapi`](/adapter/chiopenapi) |
+| **Echo** | [`echoopenapi`](/adapter/echoopenapi) |
+| **Gin** | [`ginopenapi`](/adapter/ginopenapi) |
+| **Fiber** | [`fiberopenapi`](/adapter/fiberopenapi) |
+| **HTTP** | [`httpopenapi`](/adapter/httpopenapi) |
+| **Mux** | [`muxopenapi`](/adapter/muxopenapi) |
 
 Each adapter provides:
 - ✅ Automatic spec generation from your routes
@@ -310,7 +310,6 @@ A: Define security schemes using `option.WithSecurity()` and apply them to route
 
 ## Roadmap
 
-- [ ] Mux adapter
 - [ ] Redoc UI support  
 - [ ] Stoplight Elements integration
 

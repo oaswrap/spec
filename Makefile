@@ -5,7 +5,7 @@
 PKG           := ./...
 COVERAGE_DIR  := coverage
 COVERAGE_FILE := coverage.out
-ADAPTERS      := chiopenapi echoopenapi fiberopenapi ginopenapi httpopenapi
+ADAPTERS      := chiopenapi echoopenapi fiberopenapi ginopenapi httpopenapi muxopenapi
 MODULES	      := specui
 
 # Platform detection for sed compatibility
