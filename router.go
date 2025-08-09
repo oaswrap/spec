@@ -228,10 +228,10 @@ func (g *generator) build() []*route {
 			for _, opt := range r.opts {
 				opt(cfg)
 			}
-			if r.method == "" {
+			if r.method == "" && cfg.Method != "" {
 				r.method = cfg.Method
 			}
-			if r.path == "" {
+			if r.path == "" && cfg.Path != "" {
 				r.path = g.joinPath(cfg.Path)
 			}
 			if r.method == "" || r.path == "" {

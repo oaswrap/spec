@@ -1,0 +1,80 @@
+openapi: 3.0.3
+info:
+  description: This is the API documentation for Mux Route
+  title: 'API Doc: Mux Route'
+  version: 1.0.0
+paths:
+  api/v1/login:
+    post:
+      description: User Login v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpecTestLoginRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecTestToken'
+          description: OK
+      summary: User Login v1
+  api/v1/profile:
+    get:
+      description: Get Profile v1
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecTestUser'
+          description: OK
+      security:
+      - bearerAuth: []
+      summary: Get Profile v1
+components:
+  schemas:
+    SpecTestLoginRequest:
+      properties:
+        password:
+          example: password123
+          type: string
+        username:
+          example: john_doe
+          type: string
+      required:
+      - username
+      - password
+      type: object
+    SpecTestNullString:
+      type: object
+    SpecTestNullTime:
+      type: object
+    SpecTestToken:
+      properties:
+        token:
+          example: abc123
+          type: string
+      type: object
+    SpecTestUser:
+      properties:
+        age:
+          nullable: true
+          type: integer
+        created_at:
+          format: date-time
+          type: string
+        email:
+          $ref: '#/components/schemas/SpecTestNullString'
+        id:
+          type: integer
+        updated_at:
+          $ref: '#/components/schemas/SpecTestNullTime'
+        username:
+          type: string
+      type: object
+  securitySchemes:
+    bearerAuth:
+      scheme: Bearer
+      type: http
