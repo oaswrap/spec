@@ -129,7 +129,7 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 ## Documentation Features
 
 ### Built-in Endpoints
-When you create a httpopenapi router, the following endpoints are automatically available:
+When you create a muxopenapi router, the following endpoints are automatically available:
 
 - **`/docs`** — Interactive Swagger UI documentation
 - **`/docs/openapi.yaml`** — Raw OpenAPI specification in YAML format
@@ -137,7 +137,7 @@ When you create a httpopenapi router, the following endpoints are automatically 
 If you want to disable the built-in UI, you can do so by passing `option.WithDisableDocs()` when creating the router:
 
 ```go
-r := httpopenapi.NewRouter(c,
+r := muxopenapi.NewRouter(c,
     option.WithTitle("My API"),
     option.WithVersion("1.0.0"),
     option.WithDisableDocs(),
