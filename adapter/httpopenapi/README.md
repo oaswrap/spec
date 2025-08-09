@@ -161,7 +161,7 @@ For more struct tag options, see the [swaggest/openapi-go](https://github.com/sw
 ## Examples
 
 Check out complete examples in the main repository:
-- [Basic HTTP Example](https://github.com/oaswrap/spec/tree/main/examples/adapter/httpopenapi/basic)
+- [Basic](https://github.com/oaswrap/spec/tree/main/examples/adapter/httpopenapi/basic)
 
 ## Best Practices
 

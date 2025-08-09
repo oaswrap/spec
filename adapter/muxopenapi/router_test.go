@@ -1,7 +1,10 @@
 package muxopenapi_test
 
 import (
+	"encoding/json"
 	"flag"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
@@ -274,4 +277,311 @@ func TestRouter_Spec(t *testing.T) {
 			testutil.EqualYAML(t, want, schema)
 		})
 	}
+}
+
+func PingHandler(w http.ResponseWriter, r *http.Request) {
+	_ = json.NewEncoder(w).Encode(map[string]string{"message": "pong"})
+}
+
+func TestRouter_HandleFunc(t *testing.T) {
+	methods := []string{"GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "TRACE", "CONNECT"}
+	for _, method := range methods {
+		t.Run(method, func(t *testing.T) {
+			mux := mux.NewRouter()
+			r := muxopenapi.NewRouter(mux)
+
+			route := r.HandleFunc("/ping", PingHandler).Methods(method).With(
+				option.Summary("Ping endpoint"),
+			).Name("ping")
+
+			assert.NotNil(t, r.Get("ping"))
+			assert.NotNil(t, r.GetRoute("ping"))
+			assert.NotNil(t, route.GetHandler())
+			assert.Equal(t, "ping", route.GetName())
+			assert.Nil(t, route.GetError())
+
+			// Test the /ping endpoint
+			req := httptest.NewRequest(method, "/ping", nil)
+			rec := httptest.NewRecorder()
+			mux.ServeHTTP(rec, req)
+
+			assert.Equal(t, http.StatusOK, rec.Code)
+			assert.JSONEq(t, `{"message": "pong"}`, rec.Body.String())
+
+			schema, err := r.GenerateSchema()
+			require.NoError(t, err)
+
+			assert.NotNil(t, schema)
+
+			if method == "CONNECT" {
+				assert.NotContains(t, string(schema), "/ping")
+				return
+			}
+
+			assert.Contains(t, string(schema), "/ping")
+		})
+	}
+}
+
+func TestRouter_Handle(t *testing.T) {
+	methods := []string{"GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "TRACE", "CONNECT"}
+	for _, method := range methods {
+		t.Run(method, func(t *testing.T) {
+			mux := mux.NewRouter()
+			r := muxopenapi.NewRouter(mux)
+
+			route := r.Handle("/ping", http.HandlerFunc(PingHandler)).Methods(method).With(
+				option.Summary("Ping endpoint"),
+			).Name("ping")
+
+			assert.NotNil(t, r.Get("ping"))
+			assert.NotNil(t, r.GetRoute("ping"))
+			assert.NotNil(t, route.GetHandler())
+			assert.Equal(t, "ping", route.GetName())
+			assert.Nil(t, route.GetError())
+
+			// Test the /ping endpoint
+			req := httptest.NewRequest(method, "/ping", nil)
+			rec := httptest.NewRecorder()
+			mux.ServeHTTP(rec, req)
+
+			assert.Equal(t, http.StatusOK, rec.Code)
+			assert.JSONEq(t, `{"message": "pong"}`, rec.Body.String())
+
+			schema, err := r.GenerateSchema()
+			require.NoError(t, err)
+
+			assert.NotNil(t, schema)
+
+			if method == "CONNECT" {
+				assert.NotContains(t, string(schema), "/ping")
+				return
+			}
+
+			assert.Contains(t, string(schema), "/ping")
+		})
+	}
+}
+
+func TestRouter_Queries(t *testing.T) {
+	mux := mux.NewRouter()
+	r := muxopenapi.NewRouter(mux)
+
+	r.Queries("foo", "bar").Methods("GET").Path("/ping").HandlerFunc(PingHandler).With(
+		option.Summary("Ping endpoint"),
+	)
+	t.Run("when match should return 200", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/ping?foo=bar", nil)
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.JSONEq(t, `{"message": "pong"}`, rec.Body.String())
+	})
+	t.Run("when not match should return 404", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/ping?foo=baz", nil)
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusNotFound, rec.Code)
+	})
+}
+
+func TestRouter_Headers(t *testing.T) {
+	mux := mux.NewRouter()
+	r := muxopenapi.NewRouter(mux)
+
+	r.Headers("X-Foo", "bar").Methods("GET").Path("/ping").HandlerFunc(PingHandler).With(
+		option.Summary("Ping endpoint"),
+	)
+
+	t.Run("when match should return 200", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/ping", nil)
+		req.Header.Set("X-Foo", "bar")
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.JSONEq(t, `{"message": "pong"}`, rec.Body.String())
+	})
+	t.Run("when not match should return 404", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/ping", nil)
+		req.Header.Set("X-Foo", "baz")
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusNotFound, rec.Code)
+	})
+}
+
+func TestRouter_Subrouter(t *testing.T) {
+	mux := mux.NewRouter()
+	r := muxopenapi.NewRouter(mux)
+
+	api := r.PathPrefix("/api").Subrouter()
+	api.HandleFunc("/ping", PingHandler).Methods("GET").With(
+		option.Summary("Ping API endpoint"),
+	)
+
+	// Test the /api/ping endpoint
+	req := httptest.NewRequest("GET", "/api/ping", nil)
+
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusOK, rr.Code)
+	assert.JSONEq(t, `{"message": "pong"}`, rr.Body.String())
+
+	schema, err := r.GenerateSchema()
+	require.NoError(t, err)
+
+	assert.NotNil(t, schema)
+	assert.Contains(t, string(schema), "/api/ping")
+}
+
+func TestRouter_Middleware(t *testing.T) {
+	t.Run("Use", func(t *testing.T) {
+		called := false
+		middleware := func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				called = true
+				next.ServeHTTP(w, r)
+			})
+		}
+		mux := mux.NewRouter()
+		r := muxopenapi.NewRouter(mux)
+		r.Use(middleware)
+		r.HandleFunc("/ping", PingHandler).Methods("GET").With(
+			option.Summary("Ping endpoint"),
+		)
+
+		req := httptest.NewRequest("GET", "/ping", nil)
+		rec := httptest.NewRecorder()
+		r.ServeHTTP(rec, req)
+
+		assert.True(t, called)
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.JSONEq(t, `{"message": "pong"}`, rec.Body.String())
+	})
+}
+
+func TestGenerator_Docs(t *testing.T) {
+	mux := mux.NewRouter()
+	r := muxopenapi.NewRouter(mux)
+
+	r.HandleFunc("/ping", PingHandler).Methods("GET").With(
+		option.Summary("Ping endpoint"),
+	)
+
+	t.Run("should serve docs", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/docs", nil)
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Contains(t, rec.Body.String(), "Mux OpenAPI")
+	})
+	t.Run("should serve docs/openapi.yaml", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/docs/openapi.yaml", nil)
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Contains(t, rec.Body.String(), "/ping")
+	})
+}
+
+func TestGenerator_DisableDocs(t *testing.T) {
+	mux := mux.NewRouter()
+	r := muxopenapi.NewRouter(mux, option.WithDisableDocs(true))
+
+	r.HandleFunc("/ping", PingHandler).Methods("GET").With(
+		option.Summary("Ping endpoint"),
+	)
+
+	t.Run("should not serve docs", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/docs", nil)
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusNotFound, rec.Code)
+	})
+
+	t.Run("should not serve docs/openapi.yaml", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/docs/openapi.yaml", nil)
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusNotFound, rec.Code)
+	})
+}
+
+func TestGenerator_MarshalJSON(t *testing.T) {
+	mux := mux.NewRouter()
+	r := muxopenapi.NewRouter(mux)
+
+	r.HandleFunc("/ping", PingHandler).Methods("GET").With(
+		option.Summary("Ping endpoint"),
+	)
+
+	schema, err := r.GenerateSchema()
+	require.NoError(t, err)
+
+	assert.NotNil(t, schema)
+
+	// Test JSON marshaling
+	jsonData, err := r.MarshalJSON()
+	require.NoError(t, err)
+
+	assert.NotNil(t, jsonData)
+	assert.Contains(t, string(jsonData), "/ping")
+}
+
+func TestGenerator_MarshalYAML(t *testing.T) {
+	mux := mux.NewRouter()
+	r := muxopenapi.NewRouter(mux)
+
+	r.HandleFunc("/ping", PingHandler).Methods("GET").With(
+		option.Summary("Ping endpoint"),
+	)
+
+	schema, err := r.GenerateSchema()
+	require.NoError(t, err)
+
+	assert.NotNil(t, schema)
+
+	// Test YAML marshaling
+	yamlData, err := r.MarshalYAML()
+	require.NoError(t, err)
+
+	assert.NotNil(t, yamlData)
+	assert.Contains(t, string(yamlData), "/ping")
+}
+
+func TestGenerator_WriteSchemaTo(t *testing.T) {
+	mux := mux.NewRouter()
+	r := muxopenapi.NewRouter(mux)
+
+	r.HandleFunc("/ping", PingHandler).Methods("GET").With(
+		option.Summary("Ping endpoint"),
+	)
+
+	schema, err := r.GenerateSchema()
+	require.NoError(t, err)
+
+	assert.NotNil(t, schema)
+
+	tempDir := t.TempDir()
+	filePath := filepath.Join(tempDir, "openapi.yaml")
+
+	err = r.WriteSchemaTo(filePath)
+	require.NoError(t, err, "failed to write schema to file")
+	defer func() {
+		_ = os.Remove(filePath)
+	}()
+
+	want, err := os.ReadFile(filePath)
+	require.NoError(t, err, "failed to read schema from file")
+
+	testutil.EqualYAML(t, want, schema)
 }

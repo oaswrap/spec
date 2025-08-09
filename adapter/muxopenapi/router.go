@@ -19,10 +19,16 @@ type router struct {
 
 var _ Generator = (*router)(nil)
 
+// NewRouter creates a new OpenAPI router with the provided mux.Router instance and options.
+//
+// It initializes the OpenAPI configuration and sets up the necessary routes for serving
 func NewRouter(mux *mux.Router, opts ...option.OpenAPIOption) Generator {
 	return NewGenerator(mux, opts...)
 }
 
+// NewGenerator creates a new OpenAPI router with the provided mux.Router instance and options.
+//
+// It initializes the OpenAPI configuration and sets up the necessary routes for serving
 func NewGenerator(mux *mux.Router, opts ...option.OpenAPIOption) Generator {
 	defaultOpts := []option.OpenAPIOption{
 		option.WithTitle(constant.DefaultTitle),

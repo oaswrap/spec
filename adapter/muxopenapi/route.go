@@ -26,14 +26,6 @@ func (r *route) GetHandler() http.Handler {
 	return r.muxRoute.GetHandler()
 }
 
-func (r *route) GetHostTemplate() (string, error) {
-	return r.muxRoute.GetHostTemplate()
-}
-
-func (r *route) GetMethods() ([]string, error) {
-	return r.muxRoute.GetMethods()
-}
-
 func (r *route) GetName() string {
 	return r.muxRoute.GetName()
 }
@@ -60,7 +52,7 @@ func (r *route) Host(tpl string) Route {
 
 func (r *route) Methods(methods ...string) Route {
 	r.muxRoute.Methods(methods...)
-	if len(methods) > 0 {
+	if len(methods) > 0 && methods[0] != http.MethodConnect {
 		r.specRoute.Method(methods[0])
 	}
 	return r

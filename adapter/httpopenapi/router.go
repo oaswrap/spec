@@ -8,9 +8,9 @@ import (
 	"github.com/oaswrap/spec"
 	"github.com/oaswrap/spec/adapter/httpopenapi/internal/constant"
 	"github.com/oaswrap/spec/adapter/httpopenapi/internal/parser"
+	"github.com/oaswrap/spec/module/specui"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
-	"github.com/oaswrap/spec/module/specui"
 )
 
 type router struct {
@@ -21,10 +21,16 @@ type router struct {
 
 var _ Router = (*router)(nil)
 
+// NewRouter creates a new OpenAPI router with the specified http router and options.
+//
+// It initializes the OpenAPI generator and sets up the necessary handlers for OpenAPI documentation.
 func NewRouter(mux *http.ServeMux, opts ...option.OpenAPIOption) Generator {
 	return NewGenerator(mux, opts...)
 }
 
+// NewGenerator creates a new OpenAPI router with the specified http router and options.
+//
+// It initializes the OpenAPI generator and sets up the necessary handlers for OpenAPI documentation.
 func NewGenerator(mux *http.ServeMux, opts ...option.OpenAPIOption) Generator {
 	defaultOpts := []option.OpenAPIOption{
 		option.WithTitle(constant.DefaultTitle),

@@ -38,7 +38,6 @@ func main() {
 	mux := mux.NewRouter()
 	r := muxopenapi.NewRouter(mux,
 		option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
-		option.WithDebug(true),
 	)
 
 	api := r.PathPrefix("/api").Subrouter()
@@ -164,7 +163,7 @@ For more struct tag options, see the [swaggest/openapi-go](https://github.com/sw
 ## Examples
 
 Check out complete examples in the main repository:
-- [Basic Example](https://github.com/oaswrap/spec/tree/main/examples/adapter/muxopenapi/basic)
+- [Basic](https://github.com/oaswrap/spec/tree/main/examples/adapter/muxopenapi/basic)
 
 ## Best Practices
 

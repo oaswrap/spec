@@ -14,7 +14,6 @@ func main() {
 	mux := mux.NewRouter()
 	r := muxopenapi.NewRouter(mux,
 		option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
-		option.WithDebug(true),
 	)
 
 	api := r.PathPrefix("/api").Subrouter()
