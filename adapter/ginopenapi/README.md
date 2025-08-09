@@ -144,7 +144,7 @@ For more struct tag options, see the [swaggest/openapi-go](https://github.com/sw
 ## Examples
 
 Check out complete examples in the main repository:
-- [Basic Gin Example](https://github.com/oaswrap/spec/tree/main/examples/adapter/ginopenapi/basic)
+- [Basic](https://github.com/oaswrap/spec/tree/main/examples/adapter/ginopenapi/basic)
 
 ## Best Practices
 

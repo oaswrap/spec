@@ -61,6 +61,9 @@ type Router interface {
 	// Add registers an operation for the given HTTP method, path, and options.
 	Add(method, path string, opts ...option.OperationOption) Route
 
+	// NewRoute creates a new route with the given options.
+	NewRoute(opts ...option.OperationOption) Route
+
 	// Route registers a nested route under the given pattern.
 	// The provided function receives a Router to define sub-routes.
 	Route(pattern string, fn func(router Router), opts ...option.GroupOption) Router
@@ -74,6 +77,10 @@ type Router interface {
 
 // Route represents a single API route in the OpenAPI specification.
 type Route interface {
+	// Method sets the HTTP method for the route.
+	Method(method string) Route
+	// Path sets the HTTP path for the route.
+	Path(path string) Route
 	// With applies additional operation options to the route.
 	With(opts ...option.OperationOption) Route
 }

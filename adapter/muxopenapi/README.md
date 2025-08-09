@@ -1,12 +1,12 @@
-# httpopenapi
+# muxopenapi
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/oaswrap/spec/adapter/httpopenapi.svg)](https://pkg.go.dev/github.com/oaswrap/spec/adapter/httpopenapi)
+[![Go Reference](https://pkg.go.dev/badge/github.com/oaswrap/spec/adapter/muxopenapi.svg)](https://pkg.go.dev/github.com/oaswrap/spec/adapter/muxopenapi)
 
-A lightweight adapter for the [net/http](https://pkg.go.dev/net/http) package that automatically generates OpenAPI 3.x specifications from your routes using [`oaswrap/spec`](https://github.com/oaswrap/spec).
+A lightweight adapter for the [gorilla/mux](https://pkg.go.dev/github.com/gorilla/mux) package that automatically generates OpenAPI 3.x specifications from your routes using [`oaswrap/spec`](https://github.com/oaswrap/spec).
 
 ## Features
 
-- **⚡ Seamless Integration** — Works with your existing net/http routes and handlers
+- **⚡ Seamless Integration** — Works with your existing gorilla/mux routes and handlers
 - **📝 Automatic Documentation** — Generate OpenAPI specs from route definitions and struct tags
 - **🎯 Type Safety** — Full Go type safety for OpenAPI configuration
 - **🔧 Built-in UI** — Swagger UI served automatically at `/docs`
@@ -16,7 +16,7 @@ A lightweight adapter for the [net/http](https://pkg.go.dev/net/http) package th
 ## Installation
 
 ```bash
-go get github.com/oaswrap/spec/adapter/httpopenapi
+go get github.com/oaswrap/spec/adapter/muxopenapi
 ```
 
 ## Quick Start
@@ -29,33 +29,34 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/oaswrap/spec/adapter/httpopenapi"
+	"github.com/gorilla/mux"
+	"github.com/oaswrap/spec/adapter/muxopenapi"
 	"github.com/oaswrap/spec/option"
 )
 
 func main() {
-	mainMux := http.NewServeMux()
-	r := httpopenapi.NewGenerator(mainMux,
-		option.WithTitle("My API"),
-		option.WithVersion("1.0.0"),
+	mux := mux.NewRouter()
+	r := muxopenapi.NewRouter(mux,
 		option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
 	)
 
-	r.Route("/api/v1", func(r httpopenapi.Router) {
-		r.HandleFunc("POST /login", LoginHandler).With(
-			option.Summary("User login"),
-			option.Request(new(LoginRequest)),
-			option.Response(200, new(LoginResponse)),
-		)
-		auth := r.Group("/", AuthMiddleware).With(
-			option.GroupSecurity("bearerAuth"),
-		)
-		auth.HandleFunc("GET /users/{id}", GetUserHandler).With(
-			option.Summary("Get user by ID"),
-			option.Request(new(GetUserRequest)),
-			option.Response(200, new(User)),
-		)
-	})
+	api := r.PathPrefix("/api").Subrouter()
+	v1 := api.PathPrefix("/v1").Subrouter()
+
+	v1.HandleFunc("/login", LoginHandler).Methods("POST").With(
+		option.Summary("User Login"),
+		option.Request(new(LoginRequest)),
+		option.Response(200, new(LoginResponse)),
+	)
+	auth := v1.PathPrefix("/").Subrouter().With(
+		option.GroupSecurity("bearerAuth"),
+	)
+	auth.Use(AuthMiddleware)
+	auth.HandleFunc("/users/{id}", GetUserHandler).Methods("GET").With(
+		option.Summary("Get User by ID"),
+		option.Request(new(GetUserRequest)),
+		option.Response(200, new(User)),
+	)
 
 	// Generate OpenAPI spec
 	if err := r.WriteSchemaTo("openapi.yaml"); err != nil {
@@ -65,7 +66,7 @@ func main() {
 	log.Printf("🚀 OpenAPI docs available at: %s", "http://localhost:3000/docs")
 
 	// Start the server
-	if err := http.ListenAndServe(":3000", mainMux); err != nil {
+	if err := http.ListenAndServe(":3000", mux); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -112,7 +113,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	var req GetUserRequest
-	id := r.PathValue("id")
+	vars := mux.Vars(r)
+	id := vars["id"]
 	if id == "" {
 		http.Error(w, "User ID is required", http.StatusBadRequest)
 		return
@@ -136,9 +138,9 @@ If you want to disable the built-in UI, you can do so by passing `option.WithDis
 
 ```go
 r := httpopenapi.NewRouter(c,
-	option.WithTitle("My API"),
-	option.WithVersion("1.0.0"),
-	option.WithDisableDocs(),
+    option.WithTitle("My API"),
+    option.WithVersion("1.0.0"),
+    option.WithDisableDocs(),
 )
 ```
 
@@ -147,12 +149,12 @@ Use struct tags to generate detailed OpenAPI schemas:
 
 ```go
 type CreateProductRequest struct {
-	Name        string   `json:"name" required:"true" minLength:"1" maxLength:"100"`
-	Description string   `json:"description" maxLength:"500"`
-	Price       float64  `json:"price" required:"true" minimum:"0" maximum:"999999.99"`
-	Category    string   `json:"category" required:"true" enum:"electronics,books,clothing"`
-	Tags        []string `json:"tags" maxItems:"10"`
-	InStock     bool     `json:"in_stock" default:"true"`
+    Name        string   `json:"name" required:"true" minLength:"1" maxLength:"100"`
+    Description string   `json:"description" maxLength:"500"`
+    Price       float64  `json:"price" required:"true" minimum:"0" maximum:"999999.99"`
+    Category    string   `json:"category" required:"true" enum:"electronics,books,clothing"`
+    Tags        []string `json:"tags" maxItems:"10"`
+    InStock     bool     `json:"in_stock" default:"true"`
 }
 ```
 
@@ -161,7 +163,7 @@ For more struct tag options, see the [swaggest/openapi-go](https://github.com/sw
 ## Examples
 
 Check out complete examples in the main repository:
-- [Basic](https://github.com/oaswrap/spec/tree/main/examples/adapter/httpopenapi/basic)
+- [Basic](https://github.com/oaswrap/spec/tree/main/examples/adapter/muxopenapi/basic)
 
 ## Best Practices
 
@@ -175,7 +177,7 @@ Check out complete examples in the main repository:
 ## API Reference
 
 - **Spec**: [pkg.go.dev/github.com/oaswrap/spec](https://pkg.go.dev/github.com/oaswrap/spec)
-- **HTTP Adapter**: [pkg.go.dev/github.com/oaswrap/spec/adapter/httpopenapi](https://pkg.go.dev/github.com/oaswrap/spec/adapter/httpopenapi)
+- **Mux Adapter**: [pkg.go.dev/github.com/oaswrap/spec/adapter/muxopenapi](https://pkg.go.dev/github.com/oaswrap/spec/adapter/muxopenapi)
 - **Options**: [pkg.go.dev/github.com/oaswrap/spec/option](https://pkg.go.dev/github.com/oaswrap/spec/option)
 
 ## Contributing

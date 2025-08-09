@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
-	stdpath "path"
 	"strings"
 	"sync"
 
@@ -60,52 +60,64 @@ func (g *generator) Config() *openapi.Config {
 
 // Get registers a GET operation for the given path and options.
 func (g *generator) Get(path string, opts ...option.OperationOption) Route {
-	return g.Add("GET", path, opts...)
+	return g.Add(http.MethodGet, path, opts...)
 }
 
 // Post registers a POST operation for the given path and options.
 func (g *generator) Post(path string, opts ...option.OperationOption) Route {
-	return g.Add("POST", path, opts...)
+	return g.Add(http.MethodPost, path, opts...)
 }
 
 // Put registers a PUT operation for the given path and options.
 func (g *generator) Put(path string, opts ...option.OperationOption) Route {
-	return g.Add("PUT", path, opts...)
+	return g.Add(http.MethodPut, path, opts...)
 }
 
 // Delete registers a DELETE operation for the given path and options.
 func (g *generator) Delete(path string, opts ...option.OperationOption) Route {
-	return g.Add("DELETE", path, opts...)
+	return g.Add(http.MethodDelete, path, opts...)
 }
 
 // Patch registers a PATCH operation for the given path and options.
 func (g *generator) Patch(path string, opts ...option.OperationOption) Route {
-	return g.Add("PATCH", path, opts...)
+	return g.Add(http.MethodPatch, path, opts...)
 }
 
 // Options registers an OPTIONS operation for the given path and options.
 func (g *generator) Options(path string, opts ...option.OperationOption) Route {
-	return g.Add("OPTIONS", path, opts...)
+	return g.Add(http.MethodOptions, path, opts...)
 }
 
 // Trace registers a TRACE operation for the given path and options.
 func (g *generator) Trace(path string, opts ...option.OperationOption) Route {
-	return g.Add("TRACE", path, opts...)
+	return g.Add(http.MethodTrace, path, opts...)
 }
 
 // Head registers a HEAD operation for the given path and options.
 func (g *generator) Head(path string, opts ...option.OperationOption) Route {
-	return g.Add("HEAD", path, opts...)
+	return g.Add(http.MethodHead, path, opts...)
 }
 
 // Add registers an operation for the given HTTP method, path, and options.
 func (g *generator) Add(method, path string, opts ...option.OperationOption) Route {
 	if g.prefix != "" {
-		path = g.cleanPath(path)
+		path = util.JoinPath(g.prefix, path)
 	}
 	route := &route{
+		prefix: g.prefix,
 		method: method,
 		path:   path,
+		opts:   opts,
+	}
+	g.routes = append(g.routes, route)
+
+	return route
+}
+
+// NewRoute creates a new route with the given options.
+func (g *generator) NewRoute(opts ...option.OperationOption) Route {
+	route := &route{
+		prefix: g.prefix,
 		opts:   opts,
 	}
 	g.routes = append(g.routes, route)
@@ -123,7 +135,7 @@ func (g *generator) Route(pattern string, fn func(router Router), opts ...option
 // Group creates a new sub-router with the given path prefix and group options.
 func (g *generator) Group(pattern string, opts ...option.GroupOption) Router {
 	group := &generator{
-		prefix:    g.cleanPath(pattern),
+		prefix:    util.JoinPath(g.prefix, pattern),
 		reflector: g.reflector,
 		cfg:       g.cfg,
 		opts:      opts,
@@ -213,6 +225,10 @@ func (g *generator) build() []*route {
 	for _, r := range g.routes {
 		var opts []option.OperationOption
 
+		if r.method == "" || r.path == "" {
+			continue // Skip incomplete routes
+		}
+
 		if len(g.opts) > 0 {
 			cfg := &option.GroupConfig{}
 			for _, opt := range g.opts {
@@ -246,13 +262,8 @@ func (g *generator) build() []*route {
 	return routes
 }
 
-func (g *generator) cleanPath(path string) string {
-	cleaned := stdpath.Join(g.prefix, path)
-	cleaned = stdpath.Clean(cleaned)
-	return cleaned
-}
-
 type route struct {
+	prefix string // Path prefix for the route
 	method string
 	path   string
 	opts   []option.OperationOption
@@ -262,5 +273,18 @@ var _ Route = (*route)(nil)
 
 func (r *route) With(opts ...option.OperationOption) Route {
 	r.opts = append(r.opts, opts...)
+	return r
+}
+
+func (r *route) Method(method string) Route {
+	r.method = method
+	return r
+}
+
+func (r *route) Path(path string) Route {
+	if r.prefix != "" {
+		path = util.JoinPath(r.prefix, path)
+	}
+	r.path = path
 	return r
 }

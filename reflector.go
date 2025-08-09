@@ -8,7 +8,6 @@ import (
 	"github.com/oaswrap/spec/internal/errors"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
-	"github.com/swaggest/jsonschema-go"
 )
 
 var (
@@ -26,37 +25,37 @@ func newReflector(cfg *openapi.Config) reflector {
 	}
 
 	logger.Printf("Unsupported OpenAPI version: %s", cfg.OpenAPIVersion)
-	return newNoopReflector(fmt.Errorf("unsupported OpenAPI version: %s", cfg.OpenAPIVersion))
+	return newInvalidReflector(fmt.Errorf("unsupported OpenAPI version: %s", cfg.OpenAPIVersion))
 }
 
-type noopReflector struct {
+type invalidReflector struct {
 	spec   *noopSpec
 	errors *errors.SpecError
 }
 
-var _ reflector = (*noopReflector)(nil)
+func newInvalidReflector(err error) reflector {
+	errors := &errors.SpecError{}
+	errors.Add(err)
 
-func (r *noopReflector) Spec() spec {
+	return &invalidReflector{
+		errors: errors,
+		spec:   &noopSpec{},
+	}
+}
+
+var _ reflector = (*invalidReflector)(nil)
+
+func (r *invalidReflector) Spec() spec {
 	return r.spec
 }
 
-func (r *noopReflector) Add(method, path string, opts ...option.OperationOption) {}
+func (r *invalidReflector) Add(method, path string, opts ...option.OperationOption) {}
 
-func (r *noopReflector) Validate() error {
+func (r *invalidReflector) Validate() error {
 	if r.errors.HasErrors() {
 		return r.errors
 	}
 	return nil
-}
-
-func newNoopReflector(err error) reflector {
-	errors := &errors.SpecError{}
-	errors.Add(err)
-
-	return &noopReflector{
-		errors: errors,
-		spec:   &noopSpec{},
-	}
 }
 
 type noopSpec struct{}
@@ -67,57 +66,4 @@ func (s *noopSpec) MarshalYAML() ([]byte, error) {
 
 func (s *noopSpec) MarshalJSON() ([]byte, error) {
 	return nil, nil
-}
-
-func getJSONSchemaOpts(cfg *openapi.ReflectorConfig, logger *debuglog.Logger) []func(*jsonschema.ReflectContext) {
-	var opts []func(*jsonschema.ReflectContext)
-
-	if cfg.InlineRefs {
-		opts = append(opts, jsonschema.InlineRefs)
-		logger.Printf("set inline references to true")
-	}
-	if cfg.RootRef {
-		opts = append(opts, jsonschema.RootRef)
-		logger.Printf("set root reference to true")
-	}
-	if cfg.RootNullable {
-		opts = append(opts, jsonschema.RootNullable)
-		logger.Printf("set root nullable to true")
-	}
-	if len(cfg.StripDefNamePrefix) > 0 {
-		opts = append(opts, jsonschema.StripDefinitionNamePrefix(cfg.StripDefNamePrefix...))
-		logger.LogAction("set strip definition name prefix", fmt.Sprintf("%v", cfg.StripDefNamePrefix))
-	}
-	if cfg.InterceptDefNameFunc != nil {
-		opts = append(opts, jsonschema.InterceptDefName(cfg.InterceptDefNameFunc))
-		logger.Printf("set custom intercept definition name function")
-	}
-	if cfg.InterceptPropFunc != nil {
-		opts = append(opts, jsonschema.InterceptProp(func(params jsonschema.InterceptPropParams) error {
-			return cfg.InterceptPropFunc(openapi.InterceptPropParams{
-				Context:        params.Context,
-				Path:           params.Path,
-				Name:           params.Name,
-				Field:          params.Field,
-				PropertySchema: params.PropertySchema,
-				ParentSchema:   params.ParentSchema,
-				Processed:      params.Processed,
-			})
-		}))
-		logger.Printf("set custom intercept property function")
-	}
-	if cfg.InterceptSchemaFunc != nil {
-		opts = append(opts, jsonschema.InterceptSchema(func(params jsonschema.InterceptSchemaParams) (stop bool, err error) {
-			stop, err = cfg.InterceptSchemaFunc(openapi.InterceptSchemaParams{
-				Context:   params.Context,
-				Value:     params.Value,
-				Schema:    params.Schema,
-				Processed: params.Processed,
-			})
-			return stop, err
-		}))
-		logger.Printf("set custom intercept schema function")
-	}
-
-	return opts
 }

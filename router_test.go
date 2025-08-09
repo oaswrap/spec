@@ -588,6 +588,27 @@ func TestRouter(t *testing.T) {
 			},
 		},
 		{
+			name:   "Mux Route",
+			golden: "mux_route",
+			opts: []option.OpenAPIOption{
+				option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
+			},
+			setup: func(r spec.Router) {
+				api := r.Group("api")
+				v1 := api.Group("v1")
+				v1.NewRoute().Method("POST").Path("/login").With(
+					option.Summary("User Login v1"),
+					option.Request(new(LoginRequest)),
+					option.Response(200, new(Token)),
+				)
+				auth := v1.Group("/", option.GroupSecurity("bearerAuth"))
+				auth.NewRoute().Method("GET").Path("/profile").With(
+					option.Summary("Get Profile v1"),
+					option.Response(200, new(User)),
+				)
+			},
+		},
+		{
 			name: "Invalid OpenAPI Version",
 			opts: []option.OpenAPIOption{
 				option.WithOpenAPIVersion("2.0.0"), // Invalid version for OpenAPI 3.x

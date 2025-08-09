@@ -6,7 +6,7 @@ import (
 	"github.com/oaswrap/spec/option"
 )
 
-// Generator is an interface that defines methods for generating OpenAPI schemas
+// Generator is an interface that defines methods for generating OpenAPI schemas.
 type Generator interface {
 	Router
 
@@ -74,7 +74,7 @@ type Router interface {
 	UseOptions(opts ...option.GroupOption) Router
 }
 
-// Route represents a single Echo route with OpenAPI metadata.
+// Route represents a single Chi route with OpenAPI metadata.
 type Route interface {
 	// With applies OpenAPI operation options to this route.
 	With(opts ...option.OperationOption) Route
