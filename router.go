@@ -101,12 +101,22 @@ func (g *generator) Head(path string, opts ...option.OperationOption) Route {
 // Add registers an operation for the given HTTP method, path, and options.
 func (g *generator) Add(method, path string, opts ...option.OperationOption) Route {
 	if g.prefix != "" {
-		path = g.cleanPath(path)
+		path = g.joinPath(path)
 	}
 	route := &route{
 		method: method,
 		path:   path,
 		opts:   opts,
+	}
+	g.routes = append(g.routes, route)
+
+	return route
+}
+
+// NewRoute creates a new route with the given options.
+func (g *generator) NewRoute(opts ...option.OperationOption) Route {
+	route := &route{
+		opts: opts,
 	}
 	g.routes = append(g.routes, route)
 
@@ -123,7 +133,7 @@ func (g *generator) Route(pattern string, fn func(router Router), opts ...option
 // Group creates a new sub-router with the given path prefix and group options.
 func (g *generator) Group(pattern string, opts ...option.GroupOption) Router {
 	group := &generator{
-		prefix:    g.cleanPath(pattern),
+		prefix:    g.joinPath(pattern),
 		reflector: g.reflector,
 		cfg:       g.cfg,
 		opts:      opts,
@@ -213,6 +223,22 @@ func (g *generator) build() []*route {
 	for _, r := range g.routes {
 		var opts []option.OperationOption
 
+		if r.method == "" || r.path == "" {
+			cfg := &option.OperationConfig{}
+			for _, opt := range r.opts {
+				opt(cfg)
+			}
+			if r.method == "" {
+				r.method = cfg.Method
+			}
+			if r.path == "" {
+				r.path = g.joinPath(cfg.Path)
+			}
+			if r.method == "" || r.path == "" {
+				continue // Skip incomplete routes
+			}
+		}
+
 		if len(g.opts) > 0 {
 			cfg := &option.GroupConfig{}
 			for _, opt := range g.opts {
@@ -246,10 +272,10 @@ func (g *generator) build() []*route {
 	return routes
 }
 
-func (g *generator) cleanPath(path string) string {
-	cleaned := stdpath.Join(g.prefix, path)
-	cleaned = stdpath.Clean(cleaned)
-	return cleaned
+func (g *generator) joinPath(path string) string {
+	joined := stdpath.Join(g.prefix, path)
+	joined = stdpath.Clean(joined)
+	return joined
 }
 
 type route struct {

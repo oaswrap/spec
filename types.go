@@ -61,6 +61,9 @@ type Router interface {
 	// Add registers an operation for the given HTTP method, path, and options.
 	Add(method, path string, opts ...option.OperationOption) Route
 
+	// NewRoute creates a new route with the given options.
+	NewRoute(opts ...option.OperationOption) Route
+
 	// Route registers a nested route under the given pattern.
 	// The provided function receives a Router to define sub-routes.
 	Route(pattern string, fn func(router Router), opts ...option.GroupOption) Router
