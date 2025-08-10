@@ -22,20 +22,23 @@ func TestWithOpenAPIConfig(t *testing.T) {
 			validate: func(t *testing.T, config *openapi.Config) {
 				assert.Equal(t, "3.0.3", config.OpenAPIVersion)
 				assert.Equal(t, "API Documentation", config.Title)
+				assert.Equal(t, "/docs", config.DocsPath)
+				assert.Equal(t, "/docs/openapi.yaml", config.SpecPath)
 				assert.Nil(t, config.Description)
 				assert.NotNil(t, config.Logger)
-				assert.Empty(t, config.BaseURL)
 				assert.Empty(t, config.Version)
 				assert.Nil(t, config.Contact)
 				assert.Nil(t, config.License)
+				assert.Empty(t, config.TermsOfService)
 				assert.Empty(t, config.Tags)
 				assert.Empty(t, config.Servers)
 				assert.Nil(t, config.ExternalDocs)
 				assert.Nil(t, config.SecuritySchemes)
 				assert.Nil(t, config.ReflectorConfig)
 				assert.False(t, config.DisableDocs)
-				assert.Empty(t, config.DocsPath)
-				assert.Nil(t, config.SwaggerConfig)
+				assert.Nil(t, config.SwaggerUIConfig)
+				assert.Nil(t, config.StoplightElementsConfig)
+				assert.Nil(t, config.RedocConfig)
 				assert.Nil(t, config.PathParser)
 			},
 		},
@@ -58,13 +61,11 @@ func TestWithOpenAPIConfig(t *testing.T) {
 				option.WithTitle("Advanced API"),
 				option.WithVersion("2.0.0"),
 				option.WithDescription("A comprehensive API"),
-				option.WithBaseURL("https://api.example.com"),
 			},
 			validate: func(t *testing.T, config *openapi.Config) {
 				assert.Equal(t, "3.1.0", config.OpenAPIVersion)
 				assert.Equal(t, "Advanced API", config.Title)
 				assert.Equal(t, "2.0.0", config.Version)
-				assert.Equal(t, "https://api.example.com", config.BaseURL)
 				require.NotNil(t, config.Description)
 				assert.Equal(t, "A comprehensive API", *config.Description)
 			},
@@ -88,6 +89,7 @@ func TestWithOpenAPIConfig(t *testing.T) {
 					Name:        "users",
 					Description: "User operations",
 				}),
+				option.WithTermsOfService("https://example.com/terms"),
 				option.WithDebug(true),
 				option.WithDisableDocs(false),
 			},
@@ -107,6 +109,7 @@ func TestWithOpenAPIConfig(t *testing.T) {
 				require.Len(t, config.Tags, 1)
 				assert.Equal(t, "users", config.Tags[0].Name)
 				assert.Equal(t, "User operations", config.Tags[0].Description)
+				assert.Equal(t, "https://example.com/terms", *config.TermsOfService)
 				assert.NotNil(t, config.Logger)
 				assert.False(t, config.DisableDocs)
 			},
@@ -166,14 +169,6 @@ func TestWithDisableDocs(t *testing.T) {
 			assert.Equal(t, tt.expected, config.DisableDocs)
 		})
 	}
-}
-
-func TestWithBaseURL(t *testing.T) {
-	config := &openapi.Config{}
-	opt := option.WithBaseURL("https://api.example.com")
-	opt(config)
-
-	assert.Equal(t, "https://api.example.com", config.BaseURL)
 }
 
 func TestWithTitle(t *testing.T) {
@@ -353,24 +348,31 @@ func TestWithSecurity(t *testing.T) {
 	}
 }
 
-func TestWithSwaggerConfig(t *testing.T) {
+func TestWithSwaggerUI(t *testing.T) {
 	tests := []struct {
 		name     string
-		cfg      openapi.SwaggerConfig
-		expected *openapi.SwaggerConfig
+		cfgs     []openapi.SwaggerUIConfig
+		expected *openapi.SwaggerUIConfig
 	}{
 		{
 			name:     "no config",
-			cfg:      openapi.SwaggerConfig{},
-			expected: &openapi.SwaggerConfig{},
+			cfgs:     []openapi.SwaggerUIConfig{},
+			expected: &openapi.SwaggerUIConfig{},
+		},
+		{
+			name:     "empty config",
+			cfgs:     []openapi.SwaggerUIConfig{{}},
+			expected: &openapi.SwaggerUIConfig{},
 		},
 		{
 			name: "valid config",
-			cfg: openapi.SwaggerConfig{
-				ShowTopBar: true,
-				HideCurl:   false,
+			cfgs: []openapi.SwaggerUIConfig{
+				{
+					ShowTopBar: true,
+					HideCurl:   false,
+				},
 			},
-			expected: &openapi.SwaggerConfig{
+			expected: &openapi.SwaggerUIConfig{
 				ShowTopBar: true,
 				HideCurl:   false,
 			},
@@ -380,10 +382,102 @@ func TestWithSwaggerConfig(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			config := &openapi.Config{}
-			opt := option.WithSwaggerConfig(tt.cfg)
+			opt := option.WithSwaggerUI(tt.cfgs...)
 			opt(config)
 
-			assert.Equal(t, tt.expected, config.SwaggerConfig)
+			assert.Equal(t, tt.expected, config.SwaggerUIConfig)
+		})
+	}
+}
+
+func TestWithStoplightElements(t *testing.T) {
+	tests := []struct {
+		name     string
+		cfgs     []openapi.StoplightElementsConfig
+		expected *openapi.StoplightElementsConfig
+	}{
+		{
+			name:     "no config",
+			cfgs:     []openapi.StoplightElementsConfig{},
+			expected: &openapi.StoplightElementsConfig{},
+		},
+		{
+			name:     "empty config",
+			cfgs:     []openapi.StoplightElementsConfig{{}},
+			expected: &openapi.StoplightElementsConfig{},
+		},
+		{
+			name: "valid config",
+			cfgs: []openapi.StoplightElementsConfig{
+				{
+					HideExport:  true,
+					HideSchemas: true,
+					Logo:        "https://example.com/logo.png",
+					Layout:      "sidebar",
+					Router:      "hash",
+				},
+			},
+			expected: &openapi.StoplightElementsConfig{
+				HideExport:  true,
+				HideSchemas: true,
+				Logo:        "https://example.com/logo.png",
+				Layout:      "sidebar",
+				Router:      "hash",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := &openapi.Config{}
+			opt := option.WithStoplightElements(tt.cfgs...)
+			opt(config)
+
+			assert.Equal(t, tt.expected, config.StoplightElementsConfig)
+		})
+	}
+}
+
+func TestWithRedoc(t *testing.T) {
+	tests := []struct {
+		name     string
+		cfgs     []openapi.RedocConfig
+		expected *openapi.RedocConfig
+	}{
+		{
+			name:     "no config",
+			cfgs:     []openapi.RedocConfig{},
+			expected: &openapi.RedocConfig{},
+		},
+		{
+			name:     "empty config",
+			cfgs:     []openapi.RedocConfig{},
+			expected: &openapi.RedocConfig{},
+		},
+		{
+			name: "valid config",
+			cfgs: []openapi.RedocConfig{
+				{
+					DisableSearch:    true,
+					HideDownload:     true,
+					HideSchemaTitles: true,
+				},
+			},
+			expected: &openapi.RedocConfig{
+				DisableSearch:    true,
+				HideDownload:     true,
+				HideSchemaTitles: true,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := &openapi.Config{}
+			opt := option.WithRedoc(tt.cfgs...)
+			opt(config)
+
+			assert.Equal(t, tt.expected, config.RedocConfig)
 		})
 	}
 }
@@ -625,17 +719,20 @@ func TestOpenAPIConfigDefaults(t *testing.T) {
 	// Test that default values are properly set
 	assert.Empty(t, config.OpenAPIVersion)
 	assert.False(t, config.DisableDocs)
-	assert.Empty(t, config.BaseURL)
 	assert.Empty(t, config.Title)
 	assert.Empty(t, config.Version)
 	assert.Nil(t, config.Description)
 	assert.Empty(t, config.Servers)
 	assert.Empty(t, config.DocsPath)
+	assert.Empty(t, config.SpecPath)
 	assert.Nil(t, config.SecuritySchemes)
-	assert.Nil(t, config.SwaggerConfig)
+	assert.Nil(t, config.SwaggerUIConfig)
+	assert.Nil(t, config.StoplightElementsConfig)
+	assert.Nil(t, config.RedocConfig)
 	assert.Nil(t, config.Logger)
 	assert.Nil(t, config.Contact)
 	assert.Nil(t, config.License)
 	assert.Empty(t, config.Tags)
+	assert.Empty(t, config.TermsOfService)
 	assert.Nil(t, config.PathParser)
 }

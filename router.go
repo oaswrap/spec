@@ -9,6 +9,8 @@ import (
 	"strings"
 	"sync"
 
+	specui "github.com/oaswrap/spec-ui"
+	"github.com/oaswrap/spec/internal/mapper"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 	"github.com/oaswrap/spec/pkg/util"
@@ -19,6 +21,7 @@ type generator struct {
 	reflector reflector
 	spec      spec
 	cfg       *openapi.Config
+	handler   *specui.Handler
 
 	prefix string
 	groups []*generator
@@ -46,16 +49,32 @@ func NewGenerator(opts ...option.OpenAPIOption) Generator {
 
 	reflector := newReflector(cfg)
 
-	return &generator{
+	generator := &generator{
 		reflector: reflector,
 		spec:      reflector.Spec(),
 		cfg:       cfg,
 	}
+	specuiOpts := mapper.SpecUIOpts(cfg)
+	specuiOpts = append(specuiOpts, specui.WithSpecGenerator(generator))
+
+	generator.handler = specui.NewHandler(specuiOpts...)
+
+	return generator
 }
 
 // Config returns the OpenAPI configuration used by the Generator.
 func (g *generator) Config() *openapi.Config {
 	return g.cfg
+}
+
+// DocsHandler returns the documentation handler for the Generator.
+func (g *generator) DocsHandlerFunc() http.HandlerFunc {
+	return g.handler.DocsFunc()
+}
+
+// SpecHandler returns the specification handler for the Generator.
+func (g *generator) SpecHandlerFunc() http.HandlerFunc {
+	return g.handler.SpecFunc()
 }
 
 // Get registers a GET operation for the given path and options.

@@ -22,12 +22,16 @@ type Config struct {
 
 	ReflectorConfig *ReflectorConfig // Configuration for schema reflection.
 
-	BaseURL       string         // Base URL of the API.
-	DocsPath      string         // Path where the documentation will be served.
-	DisableDocs   bool           // If true, disables serving OpenAPI docs.
-	Logger        Logger         // Logger for diagnostic output.
-	SwaggerConfig *SwaggerConfig // Configuration for embedded Swagger UI.
-	PathParser    PathParser     // Path parser for framework-specific path conversions.
+	DocsPath    string     // Path where the documentation will be served.
+	SpecPath    string     // Path for the OpenAPI specification JSON or YAML.
+	DisableDocs bool       // If true, disables serving OpenAPI docs.
+	Logger      Logger     // Logger for diagnostic output.
+	PathParser  PathParser // Path parser for framework-specific path conversions.
+
+	UIProvider              UIProvider               // UI provider for the OpenAPI documentation.
+	SwaggerUIConfig         *SwaggerUIConfig         // Configuration for embedded Swagger UI.
+	StoplightElementsConfig *StoplightElementsConfig // Configuration for Stoplight Elements.
+	RedocConfig             *RedocConfig             // Configuration for Redoc.
 }
 
 // ReflectorConfig holds advanced options for schema reflection.
@@ -46,24 +50,6 @@ type ReflectorConfig struct {
 type TypeMapping struct {
 	Src any // Source type.
 	Dst any // Destination type.
-}
-
-// SwaggerConfig defines settings for embedding Swagger UI.
-type SwaggerConfig struct {
-	ShowTopBar bool // If true, shows the top bar in Swagger UI.
-	HideCurl   bool // If true, hides curl command snippets.
-	JsonEditor bool // If true, enables the JSON editor mode.
-
-	// PreAuthorizeApiKey sets initial API key values for authorization.
-	PreAuthorizeApiKey map[string]string
-
-	// SettingsUI overrides Swagger UI configuration options.
-	// See: https://swagger.io/docs/open-source-tools/swagger-ui/usage/configuration/
-	SettingsUI map[string]string
-
-	// Proxy enables proxying requests through the Swagger UI handler.
-	// Useful for avoiding CORS issues when the API server is not directly accessible.
-	Proxy bool
 }
 
 // InterceptDefNameFunc allows customizing schema definition names.

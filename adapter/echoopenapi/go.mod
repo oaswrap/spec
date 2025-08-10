@@ -5,7 +5,6 @@ go 1.23.0
 require (
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/oaswrap/spec v0.3.1
-	github.com/oaswrap/spec/module/specui v0.3.1
 	github.com/stretchr/testify v1.10.0
 )
 
@@ -19,7 +18,6 @@ require (
 	github.com/swaggest/jsonschema-go v0.3.78 // indirect
 	github.com/swaggest/openapi-go v0.2.59 // indirect
 	github.com/swaggest/refl v1.4.0 // indirect
-	github.com/swaggest/swgui v1.8.4 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	golang.org/x/crypto v0.38.0 // indirect

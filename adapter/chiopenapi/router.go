@@ -6,8 +6,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/oaswrap/spec"
 	"github.com/oaswrap/spec/adapter/chiopenapi/internal/constant"
-	"github.com/oaswrap/spec/module/specui"
-	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 )
 
@@ -34,8 +32,6 @@ func NewGenerator(r chi.Router, opts ...option.OpenAPIOption) Generator {
 		option.WithTitle(constant.DefaultTitle),
 		option.WithDescription(constant.DefaultDescription),
 		option.WithVersion(constant.DefaultVersion),
-		option.WithDocsPath(constant.DefaultDocsPath),
-		option.WithSwaggerConfig(openapi.SwaggerConfig{}),
 	}
 	opts = append(defaultOpts, opts...)
 	gen := spec.NewRouter(opts...)
@@ -51,9 +47,8 @@ func NewGenerator(r chi.Router, opts ...option.OpenAPIOption) Generator {
 		return rr
 	}
 
-	handler := specui.NewHandler(gen)
-	r.Get(handler.DocsPath(), handler.DocsFunc())
-	r.Get(handler.DocsFilePath(), handler.DocsFileFunc())
+	r.Get(cfg.DocsPath, gen.DocsHandlerFunc())
+	r.Get(cfg.SpecPath, gen.SpecHandlerFunc())
 
 	return rr
 }

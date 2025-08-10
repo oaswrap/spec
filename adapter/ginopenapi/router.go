@@ -6,8 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/oaswrap/spec"
 	"github.com/oaswrap/spec/adapter/ginopenapi/internal/constant"
-	"github.com/oaswrap/spec/adapter/ginopenapi/internal/handler"
-	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 	"github.com/oaswrap/spec/pkg/parser"
 )
@@ -27,8 +25,6 @@ func NewRouter(ginRouter gin.IRouter, opts ...option.OpenAPIOption) Generator {
 		option.WithTitle(constant.DefaultTitle),
 		option.WithDescription(constant.DefaultDescription),
 		option.WithVersion(constant.DefaultVersion),
-		option.WithDocsPath(constant.DefaultDocsPath),
-		option.WithSwaggerConfig(openapi.SwaggerConfig{}),
 		option.WithPathParser(parser.NewColonParamParser()),
 	}
 	opts = append(defaultOpts, opts...)
@@ -44,10 +40,8 @@ func NewRouter(ginRouter gin.IRouter, opts ...option.OpenAPIOption) Generator {
 		return rr
 	}
 
-	handler := handler.NewHandler(gen)
-
-	ginRouter.GET(handler.DocsFilePath(), handler.DocsFile)
-	ginRouter.GET(handler.DocsPath(), handler.Docs)
+	ginRouter.GET(cfg.DocsPath, gin.WrapF(gen.DocsHandlerFunc()))
+	ginRouter.GET(cfg.SpecPath, gin.WrapF(gen.SpecHandlerFunc()))
 
 	return rr
 }

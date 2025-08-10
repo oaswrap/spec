@@ -15,6 +15,6 @@ use (
 	./adapter/muxopenapi
 	./adapter/muxopenapi/examples/basic
 	./examples/basic
+	./examples/basic-http
 	./examples/petstore
-	./module/specui
 )

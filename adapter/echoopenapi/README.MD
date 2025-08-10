@@ -9,7 +9,7 @@ A lightweight adapter for the [Echo](https://github.com/labstack/echo) web frame
 - **⚡ Seamless Integration** — Works with your existing Echo routes and handlers
 - **📝 Automatic Documentation** — Generate OpenAPI specs from route definitions and struct tags
 - **🎯 Type Safety** — Full Go type safety for OpenAPI configuration
-- **🔧 Built-in UI** — Swagger UI served automatically at `/docs`
+- **🔧 Multiple UI Options** — Swagger UI, Redoc, and Stoplight Elements served automatically at `/docs`
 - **📄 YAML Export** — OpenAPI spec available at `/docs/openapi.yaml`
 - **🚀 Zero Overhead** — Minimal performance impact on your API
 
@@ -111,7 +111,7 @@ func GetUserHandler(c echo.Context) error {
 ### Built-in Endpoints
 When you create a echoopenapi router, the following endpoints are automatically available:
 
-- **`/docs`** — Interactive Swagger UI documentation
+- **`/docs`** — Interactive UI documentation
 - **`/docs/openapi.yaml`** — Raw OpenAPI specification in YAML format
 
 If you want to disable the built-in UI, you can do so by passing `option.WithDisableDocs()` when creating the router:

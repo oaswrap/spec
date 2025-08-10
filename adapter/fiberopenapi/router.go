@@ -2,10 +2,9 @@ package fiberopenapi
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/oaswrap/spec"
 	"github.com/oaswrap/spec/adapter/fiberopenapi/internal/constant"
-	"github.com/oaswrap/spec/adapter/fiberopenapi/internal/handler"
-	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 	"github.com/oaswrap/spec/pkg/parser"
 )
@@ -25,8 +24,6 @@ func NewRouter(r fiber.Router, opts ...option.OpenAPIOption) Generator {
 		option.WithTitle(constant.DefaultTitle),
 		option.WithDescription(constant.DefaultDescription),
 		option.WithVersion(constant.DefaultVersion),
-		option.WithDocsPath(constant.DefaultDocsPath),
-		option.WithSwaggerConfig(openapi.SwaggerConfig{}),
 		option.WithPathParser(parser.NewColonParamParser()),
 	}
 	opts = append(defaultOpts, opts...)
@@ -44,10 +41,8 @@ func NewRouter(r fiber.Router, opts ...option.OpenAPIOption) Generator {
 		return rr
 	}
 
-	handler := handler.NewHandler(gen)
-
-	r.Get(handler.DocsFilePath(), handler.DocsFile)
-	r.Get(handler.DocsPath(), handler.Docs)
+	r.Get(cfg.SpecPath, adaptor.HTTPHandlerFunc(gen.SpecHandlerFunc()))
+	r.Get(cfg.DocsPath, adaptor.HTTPHandlerFunc(gen.DocsHandlerFunc()))
 
 	return rr
 }
