@@ -3,11 +3,12 @@ module github.com/oaswrap/spec/adapter/httpopenapi/examples/basic
 go 1.22
 
 require (
-	github.com/oaswrap/spec v0.3.1
+	github.com/oaswrap/spec v0.3.2
 	github.com/oaswrap/spec/adapter/httpopenapi v0.0.0
 )
 
 require (
+	github.com/oaswrap/spec-ui v0.1.1 // indirect
 	github.com/swaggest/jsonschema-go v0.3.78 // indirect
 	github.com/swaggest/openapi-go v0.2.59 // indirect
 	github.com/swaggest/refl v1.4.0 // indirect

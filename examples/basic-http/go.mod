@@ -2,7 +2,7 @@ module github.com/oaswrap/spec/examples/basic-http
 
 go 1.22
 
-require github.com/oaswrap/spec v0.3.1
+require github.com/oaswrap/spec v0.3.2
 
 require (
 	github.com/oaswrap/spec-ui v0.1.1 // indirect

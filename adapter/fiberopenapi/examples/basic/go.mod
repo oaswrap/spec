@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/gofiber/fiber/v2 v2.52.9
-	github.com/oaswrap/spec v0.3.1
+	github.com/oaswrap/spec v0.3.2
 	github.com/oaswrap/spec/adapter/fiberopenapi v0.0.0
 )
 
@@ -15,6 +15,7 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
+	github.com/oaswrap/spec-ui v0.1.1 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/swaggest/jsonschema-go v0.3.78 // indirect
 	github.com/swaggest/openapi-go v0.2.59 // indirect

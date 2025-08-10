@@ -3,13 +3,14 @@ module github.com/oaswrap/spec/adapter/httpopenapi
 go 1.22
 
 require (
-	github.com/oaswrap/spec v0.3.1
+	github.com/oaswrap/spec v0.3.2
 	github.com/stretchr/testify v1.10.0
 )
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
+	github.com/oaswrap/spec-ui v0.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/swaggest/jsonschema-go v0.3.78 // indirect
 	github.com/swaggest/openapi-go v0.2.59 // indirect
