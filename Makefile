@@ -6,7 +6,6 @@ PKG           := ./...
 COVERAGE_DIR  := coverage
 COVERAGE_FILE := coverage.out
 ADAPTERS      := chiopenapi echoopenapi fiberopenapi ginopenapi httpopenapi muxopenapi
-MODULES	      := specui
 
 # Platform detection for sed compatibility
 # Using an immediately expanded variable for this is good practice.
@@ -26,7 +25,7 @@ NC     := \033[0m # No Color
 
 # Ensure all targets are marked as phony to avoid conflicts with filenames.
 .PHONY: test test-adapter test-update testcov testcov-html
-.PHONY: tidy sync lint check
+.PHONY: tidy sync lint check tidy-all
 .PHONY: install-tools
 .PHONY: list-adapters adapter-status
 .PHONY: sync-adapter-deps
@@ -43,11 +42,6 @@ test: ## Run all tests (core + adapters)
 	@for a in $(ADAPTERS); do \
 		echo "$(BLUE)🔍 Testing adapter $$a...$(NC)"; \
 		(cd "adapter/$$a" && gotestsum --format standard-quiet -- ./...) || (echo "$(RED)❌ Adapter $$a tests failed$(NC)" && exit 1); \
-	done
-	@echo "$(BLUE)📋 Running additional tests...$(NC)"
-	@for m in $(MODULES); do \
-		echo "$(BLUE)🔍 Testing module $$m...$(NC)"; \
-		(cd "module/$$m" && gotestsum --format standard-quiet -- ./...) || (echo "$(RED)❌ Module $$m tests failed$(NC)" && exit 1); \
 	done
 	@echo "$(GREEN)🎉 All tests passed!$(NC)"
 
@@ -81,14 +75,6 @@ testcov: ## Run tests with coverage and generate reports
 		fi; \
 	done
 
-	@for m in $(MODULES); do \
-		echo "$(BLUE)📈 Module $$m coverage:$(NC)"; \
-		(cd "module/$$m" && gotestsum --format standard-quiet -- -covermode=atomic -coverprofile="../../$(COVERAGE_DIR)/$$m-$(COVERAGE_FILE)" ./...); \
-		if [ -f $(COVERAGE_DIR)/$$m-$(COVERAGE_FILE) ]; then \
-			tail -n +2 $(COVERAGE_DIR)/$$m-$(COVERAGE_FILE) >> $(COVERAGE_DIR)/coverage.out; \
-		fi; \
-	done
-
 	@echo "$(BLUE)📊 Combined coverage report saved to $(COVERAGE_DIR)/$(COVERAGE_FILE)$(NC)"
 	@go tool cover -func="$(COVERAGE_DIR)/$(COVERAGE_FILE)"
 
@@ -105,11 +91,12 @@ tidy: ## Tidy up Go modules for core and adapters
 		echo "$(BLUE)🧹 Tidying adapter/$$a...$(NC)"; \
 		(cd "adapter/$$a" && go mod tidy); \
 	done
-	@for m in $(MODULES); do \
-		echo "$(BLUE)🧹 Tidying module/$$m...$(NC)"; \
-		(cd "module/$$m" && go mod tidy); \
-	done
 	@echo "$(GREEN)✅ All modules tidied!$(NC)"
+
+tidy-all: ## Tidy up Go modules for all submodules
+	@echo "🧹 Running go mod tidy in all modules..."
+	@find . -name "go.mod" -execdir sh -c 'echo "📦 Tidying $$(pwd)" && go mod tidy' \;
+	@echo "✅ All modules tidied."
 
 sync: ## Sync Go workspace
 	@echo "$(BLUE)🔗 Syncing workspace...$(NC)"
@@ -123,10 +110,6 @@ lint: ## Run linting
 	@for a in $(ADAPTERS); do \
 		echo "$(BLUE)🔍 Linting adapter/$$a...$(NC)"; \
 		(cd "adapter/$$a" && golangci-lint run) || (echo "$(RED)❌ Adapter $$a linting failed$(NC)" && exit 1); \
-	done
-	@for m in $(MODULES); do \
-		echo "$(BLUE)🔍 Linting module/$$m...$(NC)"; \
-		(cd "module/$$m" && golangci-lint run) || (echo "$(RED)❌ Module $$m linting failed$(NC)" && exit 1); \
 	done
 	@echo "$(GREEN)🎉 All linting passed!$(NC)"
 
@@ -192,17 +175,6 @@ release-modules: ## Release all modules with the specified version
 		(cd "module/$$m" && git tag -a module/$$m/v$(VERSION) -m "Release module/$$m/v$(VERSION)" && git push origin module/$$m/v$(VERSION)); \
 	done
 	@echo "$(GREEN)🎉 All modules released with version v$(VERSION)!$(NC)"
-
-release-modules-dry-run: ## Dry run for releasing modules
-	@echo "$(YELLOW)🔍 Dry run for releasing modules with version v$(VERSION)...$(NC)"
-	@if [ -z "$(VERSION)" ]; then \
-		echo "$(RED)Usage: make release-modules-dry-run VERSION=0.3.0$(NC)"; \
-		exit 1; \
-	fi
-	@for m in $(MODULES); do \
-		echo "$(BLUE)🚀 Would release module $$m with version module/$$m/v$(VERSION)$(NC)"; \
-	done
-	@echo "$(GREEN)🎉 Dry run complete! No changes made.$(NC)"
 
 delete-tag: ## Delete a Git tag
 ifndef TAG

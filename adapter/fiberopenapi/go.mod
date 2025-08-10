@@ -5,7 +5,6 @@ go 1.21
 require (
 	github.com/gofiber/fiber/v2 v2.52.9
 	github.com/oaswrap/spec v0.3.1
-	github.com/oaswrap/spec/module/specui v0.3.1
 	github.com/stretchr/testify v1.10.0
 )
 
@@ -23,7 +22,6 @@ require (
 	github.com/swaggest/jsonschema-go v0.3.78 // indirect
 	github.com/swaggest/openapi-go v0.2.59 // indirect
 	github.com/swaggest/refl v1.4.0 // indirect
-	github.com/swaggest/swgui v1.8.4 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.51.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect

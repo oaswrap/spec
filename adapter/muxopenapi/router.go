@@ -6,8 +6,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/oaswrap/spec"
 	"github.com/oaswrap/spec/adapter/muxopenapi/internal/constant"
-	"github.com/oaswrap/spec/module/specui"
-	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 )
 
@@ -34,8 +32,6 @@ func NewGenerator(mux *mux.Router, opts ...option.OpenAPIOption) Generator {
 		option.WithTitle(constant.DefaultTitle),
 		option.WithDescription(constant.DefaultDescription),
 		option.WithVersion(constant.DefaultVersion),
-		option.WithDocsPath(constant.DefaultDocsPath),
-		option.WithSwaggerConfig(openapi.SwaggerConfig{}),
 	}
 	opts = append(defaultOpts, opts...)
 	gen := spec.NewRouter(opts...)
@@ -49,9 +45,8 @@ func NewGenerator(mux *mux.Router, opts ...option.OpenAPIOption) Generator {
 		return rr
 	}
 
-	handler := specui.NewHandler(gen)
-	mux.Handle(handler.DocsFilePath(), handler.DocsFile()).Methods(http.MethodGet)
-	mux.Handle(handler.DocsPath(), handler.Docs()).Methods(http.MethodGet)
+	mux.HandleFunc(cfg.DocsPath, gen.DocsHandlerFunc()).Methods(http.MethodGet)
+	mux.HandleFunc(cfg.SpecPath, gen.SpecHandlerFunc()).Methods(http.MethodGet)
 
 	return rr
 }

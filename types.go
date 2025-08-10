@@ -1,6 +1,8 @@
 package spec
 
 import (
+	"net/http"
+
 	specopenapi "github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 	"github.com/swaggest/openapi-go"
@@ -29,6 +31,12 @@ type Generator interface {
 	// WriteSchemaTo writes the OpenAPI schema to a file.
 	// The format is inferred from the file extension: ".yaml" for YAML, ".json" for JSON.
 	WriteSchemaTo(path string) error
+
+	// DocsHandlerFunc returns a handler for serving the OpenAPI documentation.
+	DocsHandlerFunc() http.HandlerFunc
+
+	// SpecHandlerFunc returns a handler for serving the OpenAPI specification.
+	SpecHandlerFunc() http.HandlerFunc
 }
 
 // Router defines methods for registering API routes and operations

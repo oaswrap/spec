@@ -18,6 +18,8 @@ func WithOpenAPIConfig(opts ...OpenAPIOption) *openapi.Config {
 		Title:          "API Documentation",
 		Description:    nil,
 		Logger:         &noopLogger{},
+		DocsPath:       "/docs",
+		SpecPath:       "/docs/openapi.yaml",
 	}
 
 	for _, opt := range opts {
@@ -34,13 +36,6 @@ func WithOpenAPIConfig(opts ...OpenAPIOption) *openapi.Config {
 func WithOpenAPIVersion(version string) OpenAPIOption {
 	return func(c *openapi.Config) {
 		c.OpenAPIVersion = version
-	}
-}
-
-// WithBaseURL sets the base URL for the OpenAPI documentation.
-func WithBaseURL(baseURL string) OpenAPIOption {
-	return func(c *openapi.Config) {
-		c.BaseURL = baseURL
 	}
 }
 
@@ -183,12 +178,52 @@ func WithDocsPath(path string) OpenAPIOption {
 	}
 }
 
-// WithSwaggerConfig sets the configuration for Swagger UI.
+// WithSpecPath sets the path for the OpenAPI specification.
 //
-// This allows customization of the Swagger UI appearance and behavior.
-func WithSwaggerConfig(cfg openapi.SwaggerConfig) OpenAPIOption {
+// This is the path where the OpenAPI specification will be served.
+// The default is "/docs/openapi.yaml"
+func WithSpecPath(path string) OpenAPIOption {
 	return func(c *openapi.Config) {
-		c.SwaggerConfig = &cfg
+		c.SpecPath = path
+	}
+}
+
+// WithSwaggerUI sets the UI documentation to Swagger UI.
+func WithSwaggerUI(cfg ...openapi.SwaggerUIConfig) OpenAPIOption {
+	return func(c *openapi.Config) {
+		c.UIProvider = openapi.UIProviderSwaggerUI
+		if len(cfg) > 0 {
+			c.SwaggerUIConfig = &cfg[0]
+		}
+		if c.SwaggerUIConfig == nil {
+			c.SwaggerUIConfig = &openapi.SwaggerUIConfig{}
+		}
+	}
+}
+
+// WithStoplightElements sets the UI documentation to Stoplight Elements.
+func WithStoplightElements(cfg ...openapi.StoplightElementsConfig) OpenAPIOption {
+	return func(c *openapi.Config) {
+		c.UIProvider = openapi.UIProviderStoplightElements
+		if len(cfg) > 0 {
+			c.StoplightElementsConfig = &cfg[0]
+		}
+		if c.StoplightElementsConfig == nil {
+			c.StoplightElementsConfig = &openapi.StoplightElementsConfig{}
+		}
+	}
+}
+
+// WithRedoc sets the UI documentation to Redoc.
+func WithRedoc(cfg ...openapi.RedocConfig) OpenAPIOption {
+	return func(c *openapi.Config) {
+		c.UIProvider = openapi.UIProviderRedoc
+		if len(cfg) > 0 {
+			c.RedocConfig = &cfg[0]
+		}
+		if c.RedocConfig == nil {
+			c.RedocConfig = &openapi.RedocConfig{}
+		}
 	}
 }
 

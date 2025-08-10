@@ -8,8 +8,6 @@ import (
 	"github.com/oaswrap/spec"
 	"github.com/oaswrap/spec/adapter/httpopenapi/internal/constant"
 	"github.com/oaswrap/spec/adapter/httpopenapi/internal/parser"
-	"github.com/oaswrap/spec/module/specui"
-	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 )
 
@@ -36,8 +34,6 @@ func NewGenerator(mux *http.ServeMux, opts ...option.OpenAPIOption) Generator {
 		option.WithTitle(constant.DefaultTitle),
 		option.WithDescription(constant.DefaultDescription),
 		option.WithVersion(constant.DefaultVersion),
-		option.WithDocsPath(constant.DefaultDocsPath),
-		option.WithSwaggerConfig(openapi.SwaggerConfig{}),
 	}
 	opts = append(defaultOpts, opts...)
 	gen := spec.NewRouter(opts...)
@@ -53,9 +49,8 @@ func NewGenerator(mux *http.ServeMux, opts ...option.OpenAPIOption) Generator {
 		return r
 	}
 
-	handler := specui.NewHandler(gen)
-	mux.Handle(http.MethodGet+" "+handler.DocsPath(), handler.Docs())
-	mux.Handle(http.MethodGet+" "+handler.DocsFilePath(), handler.DocsFile())
+	mux.Handle(http.MethodGet+" "+cfg.DocsPath, gen.DocsHandlerFunc())
+	mux.Handle(http.MethodGet+" "+cfg.SpecPath, gen.SpecHandlerFunc())
 
 	return r
 }

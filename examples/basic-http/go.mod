@@ -1,6 +1,6 @@
-module github.com/oaswrap/spec/examples/petstore
+module github.com/oaswrap/spec/examples/basic-http
 
-go 1.21
+go 1.22
 
 require github.com/oaswrap/spec v0.3.1
 
