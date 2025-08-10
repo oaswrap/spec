@@ -34,12 +34,6 @@ jobs:
       id: go-env
       run: echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
 
-    - name: 🗂️ Cache Go Tools
-      uses: actions/cache@v4
-      with:
-        path: ${{ env.GOPATH }}/bin
-        key: ${{ runner.os }}-go-tools-${{ hashFiles('**/go.sum') }}
-
     - name: 🔧 Install Tools
       run: make install-tools
 
@@ -74,12 +68,6 @@ jobs:
     - name: Set Go environment
       id: go-env
       run: echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
-
-    - name: 🗂️ Cache Go Tools
-      uses: actions/cache@v4
-      with:
-        path: ${{ env.GOPATH }}/bin
-        key: ${{ runner.os }}-go-tools-${{ hashFiles('**/go.sum') }}
 
     - name: 🔧 Install Tools
       run: make install-tools

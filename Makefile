@@ -184,3 +184,22 @@ endif
 	git tag -d $(TAG)
 	git push origin :refs/tags/$(TAG)
 	@echo "Tag $(TAG) deleted successfully"
+
+sync-adapter-deps: ## Sync adapter dependencies
+	@if [ -z "$(VERSION)" ]; then \
+		echo "$(RED)Usage: make sync-adapter-deps VERSION=v0.3.0 [NO_TIDY=1]$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)🔄 Syncing adapter dependencies to $(VERSION)...$(NC)"
+	@for a in $(ADAPTERS); do \
+		echo "$(BLUE)📝 Updating adapter/$$a...$(NC)"; \
+		(cd "adapter/$$a" && \
+		$(SED_INPLACE) -E 's#(github.com/oaswrap/spec )v[0-9]+\.[0-9]+\.[^ ]*#\1$(VERSION)#' go.mod); \
+		if [ "$(NO_TIDY)" != "1" ]; then \
+			(cd "adapter/$$a" && go mod tidy); \
+		else \
+			echo "$(YELLOW)⚠️  Skipped go mod tidy for adapter/$$a because NO_TIDY=1$(NC)"; \
+		fi; \
+		echo "$(GREEN)✅ Updated adapter/$$a to $(VERSION)$(NC)"; \
+	done
+	@echo "$(GREEN)🎉 All adapters synced to $(VERSION)!$(NC)"
