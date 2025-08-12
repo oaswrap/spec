@@ -3,6 +3,7 @@ package option_test
 import (
 	"testing"
 
+	"github.com/oaswrap/spec-ui/config"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 	"github.com/oaswrap/spec/pkg/util"
@@ -38,7 +39,9 @@ func TestWithOpenAPIConfig(t *testing.T) {
 				assert.False(t, config.DisableDocs)
 				assert.Nil(t, config.SwaggerUIConfig)
 				assert.Nil(t, config.StoplightElementsConfig)
-				assert.Nil(t, config.RedocConfig)
+				assert.Nil(t, config.ReDocConfig)
+				assert.Nil(t, config.ScalarConfig)
+				assert.Nil(t, config.RapiDocConfig)
 				assert.Nil(t, config.PathParser)
 			},
 		},
@@ -351,30 +354,28 @@ func TestWithSecurity(t *testing.T) {
 func TestWithSwaggerUI(t *testing.T) {
 	tests := []struct {
 		name     string
-		cfgs     []openapi.SwaggerUIConfig
-		expected *openapi.SwaggerUIConfig
+		cfgs     []config.SwaggerUI
+		expected *config.SwaggerUI
 	}{
 		{
 			name:     "no config",
-			cfgs:     []openapi.SwaggerUIConfig{},
-			expected: &openapi.SwaggerUIConfig{},
+			cfgs:     []config.SwaggerUI{},
+			expected: &config.SwaggerUI{},
 		},
 		{
 			name:     "empty config",
-			cfgs:     []openapi.SwaggerUIConfig{{}},
-			expected: &openapi.SwaggerUIConfig{},
+			cfgs:     []config.SwaggerUI{{}},
+			expected: &config.SwaggerUI{},
 		},
 		{
 			name: "valid config",
-			cfgs: []openapi.SwaggerUIConfig{
+			cfgs: []config.SwaggerUI{
 				{
-					ShowTopBar: true,
-					HideCurl:   false,
+					HideCurl: false,
 				},
 			},
-			expected: &openapi.SwaggerUIConfig{
-				ShowTopBar: true,
-				HideCurl:   false,
+			expected: &config.SwaggerUI{
+				HideCurl: false,
 			},
 		},
 	}
@@ -393,22 +394,22 @@ func TestWithSwaggerUI(t *testing.T) {
 func TestWithStoplightElements(t *testing.T) {
 	tests := []struct {
 		name     string
-		cfgs     []openapi.StoplightElementsConfig
-		expected *openapi.StoplightElementsConfig
+		cfgs     []config.StoplightElements
+		expected *config.StoplightElements
 	}{
 		{
 			name:     "no config",
-			cfgs:     []openapi.StoplightElementsConfig{},
-			expected: &openapi.StoplightElementsConfig{},
+			cfgs:     []config.StoplightElements{},
+			expected: &config.StoplightElements{},
 		},
 		{
 			name:     "empty config",
-			cfgs:     []openapi.StoplightElementsConfig{{}},
-			expected: &openapi.StoplightElementsConfig{},
+			cfgs:     []config.StoplightElements{{}},
+			expected: &config.StoplightElements{},
 		},
 		{
 			name: "valid config",
-			cfgs: []openapi.StoplightElementsConfig{
+			cfgs: []config.StoplightElements{
 				{
 					HideExport:  true,
 					HideSchemas: true,
@@ -417,7 +418,7 @@ func TestWithStoplightElements(t *testing.T) {
 					Router:      "hash",
 				},
 			},
-			expected: &openapi.StoplightElementsConfig{
+			expected: &config.StoplightElements{
 				HideExport:  true,
 				HideSchemas: true,
 				Logo:        "https://example.com/logo.png",
@@ -441,32 +442,32 @@ func TestWithStoplightElements(t *testing.T) {
 func TestWithRedoc(t *testing.T) {
 	tests := []struct {
 		name     string
-		cfgs     []openapi.RedocConfig
-		expected *openapi.RedocConfig
+		cfgs     []config.ReDoc
+		expected *config.ReDoc
 	}{
 		{
 			name:     "no config",
-			cfgs:     []openapi.RedocConfig{},
-			expected: &openapi.RedocConfig{},
+			cfgs:     []config.ReDoc{},
+			expected: &config.ReDoc{},
 		},
 		{
 			name:     "empty config",
-			cfgs:     []openapi.RedocConfig{},
-			expected: &openapi.RedocConfig{},
+			cfgs:     []config.ReDoc{},
+			expected: &config.ReDoc{},
 		},
 		{
 			name: "valid config",
-			cfgs: []openapi.RedocConfig{
+			cfgs: []config.ReDoc{
 				{
-					DisableSearch:    true,
-					HideDownload:     true,
-					HideSchemaTitles: true,
+					DisableSearch:       true,
+					HideDownloadButtons: true,
+					HideSchemaTitles:    true,
 				},
 			},
-			expected: &openapi.RedocConfig{
-				DisableSearch:    true,
-				HideDownload:     true,
-				HideSchemaTitles: true,
+			expected: &config.ReDoc{
+				DisableSearch:       true,
+				HideDownloadButtons: true,
+				HideSchemaTitles:    true,
 			},
 		},
 	}
@@ -474,10 +475,94 @@ func TestWithRedoc(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			config := &openapi.Config{}
-			opt := option.WithRedoc(tt.cfgs...)
+			opt := option.WithReDoc(tt.cfgs...)
 			opt(config)
 
-			assert.Equal(t, tt.expected, config.RedocConfig)
+			assert.Equal(t, tt.expected, config.ReDocConfig)
+		})
+	}
+}
+
+func TestWithScalar(t *testing.T) {
+	tests := []struct {
+		name     string
+		cfgs     []config.Scalar
+		expected *config.Scalar
+	}{
+		{
+			name:     "no config",
+			cfgs:     []config.Scalar{},
+			expected: &config.Scalar{},
+		},
+		{
+			name:     "empty config",
+			cfgs:     []config.Scalar{{}},
+			expected: &config.Scalar{},
+		},
+		{
+			name: "valid config",
+			cfgs: []config.Scalar{
+				{
+					HideSidebar: true,
+					HideModels:  true,
+				},
+			},
+			expected: &config.Scalar{
+				HideSidebar: true,
+				HideModels:  true,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := &openapi.Config{}
+			opt := option.WithScalar(tt.cfgs...)
+			opt(config)
+
+			assert.Equal(t, tt.expected, config.ScalarConfig)
+		})
+	}
+}
+
+func TestWithRapiDoc(t *testing.T) {
+	tests := []struct {
+		name     string
+		cfgs     []config.RapiDoc
+		expected *config.RapiDoc
+	}{
+		{
+			name:     "no config",
+			cfgs:     []config.RapiDoc{},
+			expected: &config.RapiDoc{},
+		},
+		{
+			name:     "empty config",
+			cfgs:     []config.RapiDoc{{}},
+			expected: &config.RapiDoc{},
+		},
+		{
+			name: "valid config",
+			cfgs: []config.RapiDoc{
+				{
+					Theme:     "dark",
+					HideTryIt: true,
+				},
+			},
+			expected: &config.RapiDoc{
+				Theme:     "dark",
+				HideTryIt: true,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := &openapi.Config{}
+			opt := option.WithRapiDoc(tt.cfgs...)
+			opt(config)
+
+			assert.Equal(t, tt.expected, config.RapiDocConfig)
 		})
 	}
 }
@@ -728,7 +813,9 @@ func TestOpenAPIConfigDefaults(t *testing.T) {
 	assert.Nil(t, config.SecuritySchemes)
 	assert.Nil(t, config.SwaggerUIConfig)
 	assert.Nil(t, config.StoplightElementsConfig)
-	assert.Nil(t, config.RedocConfig)
+	assert.Nil(t, config.ReDocConfig)
+	assert.Nil(t, config.ScalarConfig)
+	assert.Nil(t, config.RapiDocConfig)
 	assert.Nil(t, config.Logger)
 	assert.Nil(t, config.Contact)
 	assert.Nil(t, config.License)

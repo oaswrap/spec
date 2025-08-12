@@ -14,7 +14,6 @@ A lightweight, framework-agnostic OpenAPI 3.x specification builder for Go that 
 - **🎯 Framework Agnostic** — Works with any Go web framework or as a standalone tool
 - **⚡ Zero Dependencies** — Powered by [`swaggest/openapi-go`](https://github.com/swaggest/openapi-go) with minimal overhead
 - **🔧 Programmatic Control** — Build specs in pure Go code with full type safety
-- **📚 Built-in Documentation** — Multiple UI options: Swagger UI, Redoc, and Stoplight Elements
 - **🚀 Adapter Ecosystem** — Seamless integration with popular frameworks via dedicated adapters
 - **📝 CI/CD Ready** — Generate specs at build time for documentation pipelines
 
@@ -92,65 +91,6 @@ type User struct {
 
 📖 **[View the generated spec](https://rest.wiki/?https://raw.githubusercontent.com/oaswrap/spec/main/examples/basic/openapi.yaml)** on Rest.Wiki
 
-### Basic Usage with Built-in Documentation
-
-Perfect for adding OpenAPI documentation to any existing Go HTTP server:
-
-```go
-package main
-
-import (
-	"log"
-	"net/http"
-
-	"github.com/oaswrap/spec"
-	"github.com/oaswrap/spec/option"
-)
-
-func main() {
-	// Create a new OpenAPI router
-	r := spec.NewRouter(
-		option.WithTitle("My API"),
-		option.WithVersion("1.0.0"),
-		option.WithServer("https://api.example.com"),
-	)
-
-	// Add spec routes
-	v1 := r.Group("/api/v1")
-
-	v1.Post("/login",
-		option.Summary("User login"),
-		option.Request(new(LoginRequest)),
-		option.Response(200, new(LoginResponse)),
-	)
-
-	v1.Get("/users/{id}",
-		option.Summary("Get user by ID"),
-		option.Request(new(GetUserRequest)),
-		option.Response(200, new(User)),
-	)
-
-	// Get configuration for doc paths
-	cfg := r.Config()
-
-	// Setup HTTP handlers
-	mux := http.NewServeMux()
-	
-	// Add built-in documentation handlers
-	mux.HandleFunc("GET "+cfg.DocsPath, r.DocsHandlerFunc())
-	mux.HandleFunc("GET "+cfg.SpecPath, r.SpecHandlerFunc())
-
-	// Add your actual API routes here
-	// mux.HandleFunc("POST /api/v1/login", loginHandler)
-	// mux.HandleFunc("GET /api/v1/users/{id}", getUserHandler)
-
-	log.Printf("🚀 OpenAPI docs available at: http://localhost:3000%s", cfg.DocsPath)
-	log.Printf("📄 OpenAPI spec available at: http://localhost:3000%s", cfg.SpecPath)
-
-	http.ListenAndServe(":3000", mux)
-}
-```
-
 ### Framework Integration
 
 For seamless HTTP server integration, use one of our framework adapters:
@@ -172,42 +112,6 @@ Each adapter provides:
 
 Visit the individual adapter repositories for framework-specific examples and detailed integration guides.
 
-## Built-in Documentation Handlers
-
-The `spec` package includes built-in handlers for serving OpenAPI documentation with multiple UI options, powered by [`oaswrap/spec-ui`](https://github.com/oaswrap/spec-ui):
-
-### Supported Documentation UIs
-
-- **Stoplight Elements** — Modern, component-based documentation (default)
-- **Swagger UI** — Interactive API documentation
-- **Redoc** — Clean, responsive documentation
-
-### Handler Functions
-```go
-// DocsHandlerFunc returns a handler for interactive API documentation
-// Supports multiple UI types: Stoplight Elements (default), Swagger UI, Redoc
-mux.HandleFunc("GET /docs", r.DocsHandlerFunc())
-
-// SpecHandlerFunc returns a handler for the OpenAPI spec (YAML format)
-mux.HandleFunc("GET /docs/openapi.yaml", r.SpecHandlerFunc())
-```
-
-### UI Configuration
-Choose your preferred documentation UI:
-
-```go
-r := spec.NewRouter(
-	option.WithTitle("My API"),
-	option.WithStoplightElements(),			// Available UI options: WithStoplightElements(), WithSwaggerUI(), WithRedoc(),
-	option.WithDocsPath("/docs"),			// Custom docs path (default: "/docs")
-	option.WithSpecPath("/openapi.yaml"),	// Custom spec path (default: "/docs/openapi.yaml")
-)
-
-cfg := r.Config()
-// cfg.DocsPath == "/documentation"
-// cfg.SpecPath == "/api/openapi.yaml"
-```
-
 ## When to Use What?
 
 ### ✅ Use `spec` for static generation when you:
@@ -215,13 +119,6 @@ cfg := r.Config()
 - Integrate with **CI/CD pipelines**
 - Build **custom documentation tools**
 - Need **static spec generation**
-
-### ✅ Use `spec` with built-in handlers when you:
-- Want **lightweight documentation** for existing APIs
-- Need **framework independence**
-- Prefer **manual route documentation**
-- Want to **add docs to legacy systems**
-- Need **custom HTTP handler integration**
 
 ### ✅ Use framework adapters when you:
 - Want **automatic spec generation** from routes
@@ -407,9 +304,6 @@ A: The library is in active development. While core functionality is solid, cons
 
 **Q: How do I handle authentication in the generated docs?**  
 A: Define security schemes using `option.WithSecurity()` and apply them to routes with `option.Security()`. The generated docs will include authentication UI.
-
-**Q: Can I customize the documentation UI?**  
-A: Yes! The built-in handlers support three different UI options: Stoplight Elements (default), Swagger UI, and Redoc. Use `option.WithSwaggerUI()`, `option.WithRedoc()`, or `option.WithStoplightElements()` to choose your preferred interface. All UIs are powered by [`oaswrap/spec-ui`](https://github.com/oaswrap/spec-ui) for consistent, modern documentation experiences.
 
 ## Contributing
 
