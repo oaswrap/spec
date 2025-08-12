@@ -70,8 +70,8 @@ type Router interface {
 	// MethodNotAllowed sets the handler for 405 Method Not Allowed responses.
 	MethodNotAllowed(h http.HandlerFunc)
 
-	// UseOptions applies OpenAPI group options to this router.
-	UseOptions(opts ...option.GroupOption) Router
+	// WithOptions applies OpenAPI group options to this router.
+	WithOptions(opts ...option.GroupOption) Router
 }
 
 // Route represents a single Chi route with OpenAPI metadata.

@@ -6,9 +6,11 @@ import (
 	"strings"
 
 	"github.com/oaswrap/spec"
+	specui "github.com/oaswrap/spec-ui"
 	"github.com/oaswrap/spec/adapter/httpopenapi/internal/constant"
 	"github.com/oaswrap/spec/adapter/httpopenapi/internal/parser"
 	"github.com/oaswrap/spec/option"
+	"github.com/oaswrap/spec/pkg/mapper"
 )
 
 type router struct {
@@ -34,6 +36,7 @@ func NewGenerator(mux *http.ServeMux, opts ...option.OpenAPIOption) Generator {
 		option.WithTitle(constant.DefaultTitle),
 		option.WithDescription(constant.DefaultDescription),
 		option.WithVersion(constant.DefaultVersion),
+		option.WithStoplightElements(),
 	}
 	opts = append(defaultOpts, opts...)
 	gen := spec.NewRouter(opts...)
@@ -49,8 +52,10 @@ func NewGenerator(mux *http.ServeMux, opts ...option.OpenAPIOption) Generator {
 		return r
 	}
 
-	mux.Handle(http.MethodGet+" "+cfg.DocsPath, gen.DocsHandlerFunc())
-	mux.Handle(http.MethodGet+" "+cfg.SpecPath, gen.SpecHandlerFunc())
+	handler := specui.NewHandler(mapper.SpecUIOpts(gen)...)
+
+	mux.Handle(http.MethodGet+" "+cfg.DocsPath, handler.DocsFunc())
+	mux.Handle(http.MethodGet+" "+cfg.SpecPath, handler.SpecFunc())
 
 	return r
 }
@@ -141,7 +146,7 @@ func (r *router) Route(prefix string, fn func(r Router), middlewares ...func(htt
 }
 
 func (r *router) With(opts ...option.GroupOption) Router {
-	r.specRouter.Use(opts...)
+	r.specRouter.With(opts...)
 	return r
 }
 

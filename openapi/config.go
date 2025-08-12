@@ -3,6 +3,7 @@ package openapi
 import (
 	"reflect"
 
+	"github.com/oaswrap/spec-ui/config"
 	"github.com/swaggest/jsonschema-go"
 )
 
@@ -24,14 +25,17 @@ type Config struct {
 
 	DocsPath    string     // Path where the documentation will be served.
 	SpecPath    string     // Path for the OpenAPI specification JSON or YAML.
+	CacheAge    *int       // Cache age for OpenAPI specification responses.
 	DisableDocs bool       // If true, disables serving OpenAPI docs.
 	Logger      Logger     // Logger for diagnostic output.
 	PathParser  PathParser // Path parser for framework-specific path conversions.
 
-	UIProvider              UIProvider               // UI provider for the OpenAPI documentation.
-	SwaggerUIConfig         *SwaggerUIConfig         // Configuration for embedded Swagger UI.
-	StoplightElementsConfig *StoplightElementsConfig // Configuration for Stoplight Elements.
-	RedocConfig             *RedocConfig             // Configuration for Redoc.
+	UIProvider              config.Provider           // UI provider for the OpenAPI documentation.
+	SwaggerUIConfig         *config.SwaggerUI         // Configuration for embedded Swagger UI.
+	StoplightElementsConfig *config.StoplightElements // Configuration for Stoplight Elements.
+	ReDocConfig             *config.ReDoc             // Configuration for Redoc.
+	ScalarConfig            *config.Scalar            // Configuration for Scalar.
+	RapiDocConfig           *config.RapiDoc           // Configuration for RapiDoc.
 }
 
 // ReflectorConfig holds advanced options for schema reflection.

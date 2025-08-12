@@ -5,6 +5,7 @@ go 1.21
 require (
 	github.com/gofiber/fiber/v2 v2.52.9
 	github.com/oaswrap/spec v0.3.2
+	github.com/oaswrap/spec-ui v0.1.4
 	github.com/stretchr/testify v1.10.0
 )
 
@@ -17,7 +18,6 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
-	github.com/oaswrap/spec-ui v0.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/swaggest/jsonschema-go v0.3.78 // indirect
@@ -30,3 +30,5 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/oaswrap/spec => ../..

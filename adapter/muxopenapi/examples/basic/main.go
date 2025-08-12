@@ -13,6 +13,8 @@ import (
 func main() {
 	mux := mux.NewRouter()
 	r := muxopenapi.NewRouter(mux,
+		option.WithTitle("My API"),
+		option.WithVersion("1.0.0"),
 		option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
 	)
 
@@ -33,11 +35,6 @@ func main() {
 		option.Request(new(GetUserRequest)),
 		option.Response(200, new(User)),
 	)
-
-	// Generate OpenAPI spec
-	if err := r.WriteSchemaTo("openapi.yaml"); err != nil {
-		log.Fatal(err)
-	}
 
 	log.Printf("🚀 OpenAPI docs available at: %s", "http://localhost:3000/docs")
 

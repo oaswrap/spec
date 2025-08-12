@@ -440,7 +440,7 @@ func TestRouter_Group(t *testing.T) {
 			option.Summary("Ping the server with Group"),
 			option.Description("This endpoint is used to check if the server is running with a Group request."),
 		)
-	}).UseOptions(option.GroupTags("ping"), option.GroupDeprecated(true))
+	}).WithOptions(option.GroupTags("ping"), option.GroupDeprecated(true))
 
 	err := r.Validate()
 	require.NoError(t, err, "failed to validate OpenAPI configuration")

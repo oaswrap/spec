@@ -15,6 +15,7 @@ func main() {
 	r := echoopenapi.NewRouter(e,
 		option.WithTitle("My API"),
 		option.WithVersion("1.0.0"),
+		option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
 	)
 	// Add routes
 	v1 := r.Group("/api/v1")
@@ -25,17 +26,14 @@ func main() {
 		option.Response(200, new(LoginResponse)),
 	)
 
-	v1.GET("/users/{id}", GetUserHandler).With(
+	auth := v1.Group("", AuthMiddleware).With(
+		option.GroupSecurity("bearerAuth"),
+	)
+	auth.GET("/users/{id}", GetUserHandler).With(
 		option.Summary("Get user by ID"),
 		option.Request(new(GetUserRequest)),
 		option.Response(200, new(User)),
 	)
-
-	// Generate OpenAPI spec
-	if err := r.WriteSchemaTo("openapi.yaml"); err != nil {
-		log.Fatal(err)
-	}
-	log.Println("✅ OpenAPI spec generated at openapi.yaml")
 
 	log.Printf("🚀 OpenAPI docs available at: %s", "http://localhost:3000/docs")
 
@@ -60,6 +58,17 @@ type GetUserRequest struct {
 type User struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// Simulate authentication logic
+		authHeader := c.Request().Header.Get("Authorization")
+		if authHeader != "" && authHeader == "Bearer example-token" {
+			return next(c)
+		}
+		return c.JSON(401, map[string]string{"error": "Unauthorized"})
+	}
 }
 
 func LoginHandler(c echo.Context) error {

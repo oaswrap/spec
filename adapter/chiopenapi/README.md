@@ -1,6 +1,7 @@
 # chiopenapi
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/oaswrap/spec/adapter/chiopenapi.svg)](https://pkg.go.dev/github.com/oaswrap/spec/adapter/chiopenapi)
+[![Go Report Card](https://goreportcard.com/badge/github.com/oaswrap/spec/adapter/chiopenapi)](https://goreportcard.com/report/github.com/oaswrap/spec/adapter/chiopenapi)
 
 A lightweight adapter for the [Chi](https://github.com/go-chi/chi) web framework that automatically generates OpenAPI 3.x specifications from your routes using [`oaswrap/spec`](https://github.com/oaswrap/spec).
 
@@ -9,7 +10,7 @@ A lightweight adapter for the [Chi](https://github.com/go-chi/chi) web framework
 - **⚡ Seamless Integration** — Works with your existing Chi routes and handlers
 - **📝 Automatic Documentation** — Generate OpenAPI specs from route definitions and struct tags
 - **🎯 Type Safety** — Full Go type safety for OpenAPI configuration
-- **🔧 Multiple UI Options** — Swagger UI, Redoc, and Stoplight Elements served automatically at `/docs`
+- **🔧 Multiple UI Options** — Swagger UI, Stoplight Elements, ReDoc, Scalar or RapiDoc served automatically at `/docs`
 - **📄 YAML Export** — OpenAPI spec available at `/docs/openapi.yaml`
 - **🚀 Zero Overhead** — Minimal performance impact on your API
 
@@ -40,6 +41,7 @@ func main() {
 	r := chiopenapi.NewRouter(c,
 		option.WithTitle("My API"),
 		option.WithVersion("1.0.0"),
+		option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
 	)
 	// Add routes
 	r.Route("/api/v1", func(r chiopenapi.Router) {
@@ -48,12 +50,14 @@ func main() {
 			option.Request(new(LoginRequest)),
 			option.Response(200, new(LoginResponse)),
 		)
-
-		r.Get("/users/{id}", GetUserHandler).With(
-			option.Summary("Get user by ID"),
-			option.Request(new(GetUserRequest)),
-			option.Response(200, new(User)),
-		)
+		r.Group(func(r chiopenapi.Router) {
+			r.Use(AuthMiddleware)
+			r.Get("/users/{id}", GetUserHandler).With(
+				option.Summary("Get user by ID"),
+				option.Request(new(GetUserRequest)),
+				option.Response(200, new(User)),
+			)
+		}, option.GroupSecurity("bearerAuth"))
 	})
 
 	// Generate OpenAPI spec
@@ -85,6 +89,18 @@ type GetUserRequest struct {
 type User struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+func AuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Simulate authentication logic
+		authHeader := r.Header.Get("Authorization")
+		if authHeader != "" && authHeader == "Bearer example-token" {
+			next.ServeHTTP(w, r)
+		} else {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		}
+	})
 }
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
@@ -129,8 +145,25 @@ r := chiopenapi.NewRouter(c,
 )
 ```
 
+### Supported Documentation UIs
+Choose from multiple UI options, powered by [`oaswrap/spec-ui`](https://github.com/oaswrap/spec-ui):
+
+- **Stoplight Elements** — Modern, clean design (default)
+- **Swagger UI** — Classic interface with try-it functionality
+- **ReDoc** — Three-panel responsive layout
+- **Scalar** — Beautiful and fast interface
+- **RapiDoc** — Highly customizable
+
+```go
+r := chiopenapi.NewRouter(c,
+	option.WithTitle("My API"),
+	option.WithVersion("1.0.0"),
+	option.WithScalar(), // Use Scalar as the documentation UI
+)
+```
+
 ### Rich Schema Documentation
-Use struct tags to generate detailed OpenAPI schemas:
+Use struct tags to generate detailed OpenAPI schemas. **Note: These tags are used only for OpenAPI spec generation and documentation - they do not perform actual request validation.**
 
 ```go
 type CreateProductRequest struct {
@@ -164,6 +197,7 @@ Check out complete examples in the main repository:
 - **Spec**: [pkg.go.dev/github.com/oaswrap/spec](https://pkg.go.dev/github.com/oaswrap/spec)
 - **Chi Adapter**: [pkg.go.dev/github.com/oaswrap/spec/adapter/chiopenapi](https://pkg.go.dev/github.com/oaswrap/spec/adapter/chiopenapi)
 - **Options**: [pkg.go.dev/github.com/oaswrap/spec/option](https://pkg.go.dev/github.com/oaswrap/spec/option)
+- **Spec UI**: [pkg.go.dev/github.com/oaswrap/spec-ui](https://pkg.go.dev/github.com/oaswrap/spec-ui)
 
 ## Contributing
 

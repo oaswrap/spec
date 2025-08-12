@@ -1,12 +1,15 @@
 package muxopenapi
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	"github.com/oaswrap/spec"
+	specui "github.com/oaswrap/spec-ui"
 	"github.com/oaswrap/spec/adapter/muxopenapi/internal/constant"
 	"github.com/oaswrap/spec/option"
+	"github.com/oaswrap/spec/pkg/mapper"
 )
 
 type router struct {
@@ -32,6 +35,7 @@ func NewGenerator(mux *mux.Router, opts ...option.OpenAPIOption) Generator {
 		option.WithTitle(constant.DefaultTitle),
 		option.WithDescription(constant.DefaultDescription),
 		option.WithVersion(constant.DefaultVersion),
+		option.WithStoplightElements(),
 	}
 	opts = append(defaultOpts, opts...)
 	gen := spec.NewRouter(opts...)
@@ -45,8 +49,12 @@ func NewGenerator(mux *mux.Router, opts ...option.OpenAPIOption) Generator {
 		return rr
 	}
 
-	mux.HandleFunc(cfg.DocsPath, gen.DocsHandlerFunc()).Methods(http.MethodGet)
-	mux.HandleFunc(cfg.SpecPath, gen.SpecHandlerFunc()).Methods(http.MethodGet)
+	handler := specui.NewHandler(mapper.SpecUIOpts(gen)...)
+
+	fmt.Println(cfg.SpecPath)
+
+	mux.Handle(cfg.DocsPath, handler.Docs()).Methods(http.MethodGet)
+	mux.Handle(cfg.SpecPath, handler.Spec()).Methods(http.MethodGet)
 
 	return rr
 }
@@ -142,7 +150,7 @@ func (r *router) UseEncodedPath() Router {
 }
 
 func (r *router) With(opts ...option.GroupOption) Router {
-	r.specRouter.Use(opts...)
+	r.specRouter.With(opts...)
 	return r
 }
 

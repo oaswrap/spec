@@ -4,8 +4,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/oaswrap/spec"
+	specui "github.com/oaswrap/spec-ui"
 	"github.com/oaswrap/spec/adapter/fiberopenapi/internal/constant"
 	"github.com/oaswrap/spec/option"
+	"github.com/oaswrap/spec/pkg/mapper"
 	"github.com/oaswrap/spec/pkg/parser"
 )
 
@@ -25,6 +27,7 @@ func NewRouter(r fiber.Router, opts ...option.OpenAPIOption) Generator {
 		option.WithDescription(constant.DefaultDescription),
 		option.WithVersion(constant.DefaultVersion),
 		option.WithPathParser(parser.NewColonParamParser()),
+		option.WithStoplightElements(),
 	}
 	opts = append(defaultOpts, opts...)
 	gen := spec.NewGenerator(opts...)
@@ -41,8 +44,10 @@ func NewRouter(r fiber.Router, opts ...option.OpenAPIOption) Generator {
 		return rr
 	}
 
-	r.Get(cfg.SpecPath, adaptor.HTTPHandlerFunc(gen.SpecHandlerFunc()))
-	r.Get(cfg.DocsPath, adaptor.HTTPHandlerFunc(gen.DocsHandlerFunc()))
+	handler := specui.NewHandler(mapper.SpecUIOpts(gen)...)
+
+	r.Get(cfg.DocsPath, adaptor.HTTPHandler(handler.Docs()))
+	r.Get(cfg.SpecPath, adaptor.HTTPHandler(handler.Spec()))
 
 	return rr
 }
@@ -122,9 +127,9 @@ func (r *router) Group(prefix string, handlers ...fiber.Handler) Router {
 	}
 }
 
-func (r *router) Route(prefix string, fn func(router Router)) Router {
+func (r *router) Route(prefix string, fn func(router Router), opts ...option.GroupOption) Router {
 	fr := r.fiberRouter.Group(prefix)
-	sr := r.specRouter.Group(prefix)
+	sr := r.specRouter.Group(prefix, opts...)
 
 	subRouter := &router{
 		fiberRouter: fr,
@@ -137,7 +142,7 @@ func (r *router) Route(prefix string, fn func(router Router)) Router {
 }
 
 func (r *router) With(opts ...option.GroupOption) Router {
-	r.specRouter.Use(opts...)
+	r.specRouter.With(opts...)
 	return r
 }
 

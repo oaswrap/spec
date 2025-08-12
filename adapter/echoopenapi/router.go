@@ -5,8 +5,10 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/oaswrap/spec"
+	specui "github.com/oaswrap/spec-ui"
 	"github.com/oaswrap/spec/adapter/echoopenapi/internal/constant"
 	"github.com/oaswrap/spec/option"
+	"github.com/oaswrap/spec/pkg/mapper"
 	"github.com/oaswrap/spec/pkg/parser"
 )
 
@@ -32,6 +34,7 @@ func NewGenerator(e *echo.Echo, opts ...option.OpenAPIOption) Generator {
 		option.WithDescription(constant.DefaultDescription),
 		option.WithVersion(constant.DefaultVersion),
 		option.WithPathParser(parser.NewColonParamParser()),
+		option.WithStoplightElements(),
 	}
 	opts = append(defaultOpts, opts...)
 	gen := spec.NewRouter(opts...)
@@ -47,8 +50,10 @@ func NewGenerator(e *echo.Echo, opts ...option.OpenAPIOption) Generator {
 		return rr
 	}
 
-	rr.echoGroup.GET(cfg.DocsPath, echo.WrapHandler(gen.DocsHandlerFunc()))
-	rr.echoGroup.GET(cfg.SpecPath, echo.WrapHandler(gen.SpecHandlerFunc()))
+	handler := specui.NewHandler(mapper.SpecUIOpts(gen)...)
+
+	rr.echoGroup.GET(cfg.DocsPath, echo.WrapHandler(handler.Docs()))
+	rr.echoGroup.GET(cfg.SpecPath, echo.WrapHandler(handler.Spec()))
 
 	return rr
 }
@@ -135,7 +140,7 @@ func (r *router) StaticFS(prefix string, fs fs.FS) {
 }
 
 func (r *router) With(opts ...option.GroupOption) Router {
-	r.specRouter.Use(opts...)
+	r.specRouter.With(opts...)
 	return r
 }
 

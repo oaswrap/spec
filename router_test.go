@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"net/http"
-	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -526,7 +524,7 @@ func TestRouter(t *testing.T) {
 						option.Request(new(User)),
 						option.Response(200, new(User)),
 					)
-				}, option.GroupSecurity("bearerAuth")).Use(option.GroupTags("Profile"))
+				}, option.GroupSecurity("bearerAuth")).With(option.GroupTags("Profile"))
 			},
 		},
 		{
@@ -875,60 +873,4 @@ func TestRouter_WriteSchemaTo(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestRouter_DocsHandlerFunc(t *testing.T) {
-	r := spec.NewRouter(
-		option.WithOpenAPIVersion("3.1.0"),
-		option.WithTitle("Test API"),
-		option.WithVersion("1.0.0"),
-	)
-
-	// Add a simple operation to ensure we have content
-	r.Add("GET", "/test",
-		option.OperationID("test"),
-		option.Summary("Test operation"),
-		option.Description("This is a test operation."),
-	)
-
-	handler := r.DocsHandlerFunc()
-
-	assert.NotNil(t, handler, "Docs handler function should not be nil")
-
-	req, err := http.NewRequest("GET", "/docs", nil)
-	require.NoError(t, err)
-
-	rr := httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
-
-	assert.Equal(t, http.StatusOK, rr.Code, "Expected status code 200 OK")
-	assert.Contains(t, rr.Body.String(), "Test API", "Response should contain API title")
-}
-
-func TestRouter_SpecHandlerFunc(t *testing.T) {
-	r := spec.NewRouter(
-		option.WithOpenAPIVersion("3.1.0"),
-		option.WithTitle("Test API"),
-		option.WithVersion("1.0.0"),
-	)
-
-	// Add a simple operation to ensure we have content
-	r.Add("GET", "/test",
-		option.OperationID("test"),
-		option.Summary("Test operation"),
-		option.Description("This is a test operation."),
-	)
-
-	handler := r.SpecHandlerFunc()
-
-	assert.NotNil(t, handler, "Spec handler function should not be nil")
-
-	req, err := http.NewRequest("GET", "/spec", nil)
-	require.NoError(t, err)
-
-	rr := httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
-
-	assert.Equal(t, http.StatusOK, rr.Code, "Expected status code 200 OK")
-	assert.Contains(t, rr.Body.String(), "openapi:", "Response should contain OpenAPI spec")
 }

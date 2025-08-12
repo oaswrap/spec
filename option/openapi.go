@@ -3,6 +3,7 @@ package option
 import (
 	"log"
 
+	"github.com/oaswrap/spec-ui/config"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/pkg/util"
 )
@@ -188,41 +189,74 @@ func WithSpecPath(path string) OpenAPIOption {
 	}
 }
 
-// WithSwaggerUI sets the UI documentation to Swagger UI.
-func WithSwaggerUI(cfg ...openapi.SwaggerUIConfig) OpenAPIOption {
+// WithCacheAge sets the cache age for OpenAPI specification responses.
+func WithCacheAge(cacheAge int) OpenAPIOption {
 	return func(c *openapi.Config) {
-		c.UIProvider = openapi.UIProviderSwaggerUI
+		c.CacheAge = &cacheAge
+	}
+}
+
+// WithSwaggerUI sets the UI documentation to Swagger UI.
+func WithSwaggerUI(cfg ...config.SwaggerUI) OpenAPIOption {
+	return func(c *openapi.Config) {
+		c.UIProvider = config.ProviderSwaggerUI
 		if len(cfg) > 0 {
 			c.SwaggerUIConfig = &cfg[0]
 		}
 		if c.SwaggerUIConfig == nil {
-			c.SwaggerUIConfig = &openapi.SwaggerUIConfig{}
+			c.SwaggerUIConfig = &config.SwaggerUI{}
 		}
 	}
 }
 
 // WithStoplightElements sets the UI documentation to Stoplight Elements.
-func WithStoplightElements(cfg ...openapi.StoplightElementsConfig) OpenAPIOption {
+func WithStoplightElements(cfg ...config.StoplightElements) OpenAPIOption {
 	return func(c *openapi.Config) {
-		c.UIProvider = openapi.UIProviderStoplightElements
+		c.UIProvider = config.ProviderStoplightElements
 		if len(cfg) > 0 {
 			c.StoplightElementsConfig = &cfg[0]
 		}
 		if c.StoplightElementsConfig == nil {
-			c.StoplightElementsConfig = &openapi.StoplightElementsConfig{}
+			c.StoplightElementsConfig = &config.StoplightElements{}
 		}
 	}
 }
 
-// WithRedoc sets the UI documentation to Redoc.
-func WithRedoc(cfg ...openapi.RedocConfig) OpenAPIOption {
+// WithReDoc sets the UI documentation to ReDoc.
+func WithReDoc(cfg ...config.ReDoc) OpenAPIOption {
 	return func(c *openapi.Config) {
-		c.UIProvider = openapi.UIProviderRedoc
+		c.UIProvider = config.ProviderReDoc
 		if len(cfg) > 0 {
-			c.RedocConfig = &cfg[0]
+			c.ReDocConfig = &cfg[0]
 		}
-		if c.RedocConfig == nil {
-			c.RedocConfig = &openapi.RedocConfig{}
+		if c.ReDocConfig == nil {
+			c.ReDocConfig = &config.ReDoc{}
+		}
+	}
+}
+
+// WithScalar sets the UI documentation to Scalar.
+func WithScalar(cfg ...config.Scalar) OpenAPIOption {
+	return func(c *openapi.Config) {
+		c.UIProvider = config.ProviderScalar
+		if len(cfg) > 0 {
+			c.ScalarConfig = &cfg[0]
+		}
+		if c.ScalarConfig == nil {
+			c.ScalarConfig = &config.Scalar{}
+		}
+	}
+}
+
+// WithRapiDoc sets the UI documentation to RapiDoc.
+func WithRapiDoc(cfg ...config.RapiDoc) OpenAPIOption {
+	return func(c *openapi.Config) {
+		c.UIProvider = config.ProviderRapiDoc
+		if len(cfg) > 0 {
+			c.RapiDocConfig = &cfg[0]
+		}
+		if c.RapiDocConfig == nil {
+			c.RapiDocConfig = &config.RapiDoc{}
 		}
 	}
 }

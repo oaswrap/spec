@@ -1,6 +1,7 @@
 # fiberopenapi
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/oaswrap/spec/adapter/fiberopenapi.svg)](https://pkg.go.dev/github.com/oaswrap/spec/adapter/fiberopenapi)
+[![Go Report Card](https://goreportcard.com/badge/github.com/oaswrap/spec/adapter/fiberopenapi)](https://goreportcard.com/report/github.com/oaswrap/spec/adapter/fiberopenapi)
 
 A lightweight adapter for the [Fiber](https://github.com/gofiber/fiber) web framework that automatically generates OpenAPI 3.x specifications from your routes using [`oaswrap/spec`](https://github.com/oaswrap/spec).
 
@@ -9,7 +10,7 @@ A lightweight adapter for the [Fiber](https://github.com/gofiber/fiber) web fram
 - **⚡ Seamless Integration** — Works with your existing Fiber routes and handlers
 - **📝 Automatic Documentation** — Generate OpenAPI specs from route definitions and struct tags
 - **🎯 Type Safety** — Full Go type safety for OpenAPI configuration
-- **🔧 Multiple UI Options** — Swagger UI, Redoc, and Stoplight Elements served automatically at `/docs`
+- **🔧 Multiple UI Options** — Swagger UI, Stoplight Elements, ReDoc, Scalar or RapiDoc served automatically at `/docs`
 - **📄 YAML Export** — OpenAPI spec available at `/docs/openapi.yaml`
 - **🚀 Zero Overhead** — Minimal performance impact on your API
 
@@ -39,27 +40,23 @@ func main() {
 	r := fiberopenapi.NewRouter(app,
 		option.WithTitle("My API"),
 		option.WithVersion("1.0.0"),
+		option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
 	)
 	// Add routes
 	v1 := r.Group("/api/v1")
-
 	v1.Post("/login", LoginHandler).With(
 		option.Summary("User login"),
 		option.Request(new(LoginRequest)),
 		option.Response(200, new(LoginResponse)),
 	)
-
-	v1.Get("/users/{id}", GetUserHandler).With(
+	auth := v1.Group("/", AuthMiddleware).With(
+		option.GroupSecurity("bearerAuth"),
+	)
+	auth.Get("/users/:id", GetUserHandler).With(
 		option.Summary("Get user by ID"),
 		option.Request(new(GetUserRequest)),
 		option.Response(200, new(User)),
 	)
-
-	// Generate OpenAPI spec
-	if err := r.WriteSchemaTo("openapi.yaml"); err != nil {
-		log.Fatal(err)
-	}
-	log.Println("✅ OpenAPI schema written to: openapi.yaml")
 
 	log.Printf("🚀 OpenAPI docs available at: %s", "http://localhost:3000/docs")
 
@@ -84,6 +81,14 @@ type GetUserRequest struct {
 type User struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+func AuthMiddleware(c *fiber.Ctx) error {
+	authHeader := c.Get("Authorization")
+	if authHeader != "" && authHeader == "Bearer example-token" {
+		return c.Next()
+	}
+	return c.Status(401).JSON(map[string]string{"error": "Unauthorized"})
 }
 
 func LoginHandler(c *fiber.Ctx) error {
@@ -124,8 +129,25 @@ r := fiberopenapi.NewRouter(c,
 )
 ```
 
+### Supported Documentation UIs
+Choose from multiple UI options, powered by [`oaswrap/spec-ui`](https://github.com/oaswrap/spec-ui):
+
+- **Stoplight Elements** — Modern, clean design (default)
+- **Swagger UI** — Classic interface with try-it functionality
+- **ReDoc** — Three-panel responsive layout
+- **Scalar** — Beautiful and fast interface
+- **RapiDoc** — Highly customizable
+
+```go
+r := chiopenapi.NewRouter(c,
+	option.WithTitle("My API"),
+	option.WithVersion("1.0.0"),
+	option.WithScalar(), // Use Scalar as the documentation UI
+)
+```
+
 ### Rich Schema Documentation
-Use struct tags to generate detailed OpenAPI schemas:
+Use struct tags to generate detailed OpenAPI schemas. **Note: These tags are used only for OpenAPI spec generation and documentation - they do not perform actual request validation.**
 
 ```go
 type CreateProductRequest struct {
@@ -159,6 +181,7 @@ Check out complete examples in the main repository:
 - **Spec**: [pkg.go.dev/github.com/oaswrap/spec](https://pkg.go.dev/github.com/oaswrap/spec)
 - **Fiber Adapter**: [pkg.go.dev/github.com/oaswrap/spec/adapter/fiberopenapi](https://pkg.go.dev/github.com/oaswrap/spec/adapter/fiberopenapi)
 - **Options**: [pkg.go.dev/github.com/oaswrap/spec/option](https://pkg.go.dev/github.com/oaswrap/spec/option)
+- **Spec UI**: [pkg.go.dev/github.com/oaswrap/spec-ui](https://pkg.go.dev/github.com/oaswrap/spec-ui)
 
 ## Contributing
 

@@ -5,8 +5,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/oaswrap/spec"
+	specui "github.com/oaswrap/spec-ui"
 	"github.com/oaswrap/spec/adapter/ginopenapi/internal/constant"
 	"github.com/oaswrap/spec/option"
+	"github.com/oaswrap/spec/pkg/mapper"
 	"github.com/oaswrap/spec/pkg/parser"
 )
 
@@ -26,6 +28,7 @@ func NewRouter(ginRouter gin.IRouter, opts ...option.OpenAPIOption) Generator {
 		option.WithDescription(constant.DefaultDescription),
 		option.WithVersion(constant.DefaultVersion),
 		option.WithPathParser(parser.NewColonParamParser()),
+		option.WithStoplightElements(),
 	}
 	opts = append(defaultOpts, opts...)
 	gen := spec.NewRouter(opts...)
@@ -40,8 +43,10 @@ func NewRouter(ginRouter gin.IRouter, opts ...option.OpenAPIOption) Generator {
 		return rr
 	}
 
-	ginRouter.GET(cfg.DocsPath, gin.WrapF(gen.DocsHandlerFunc()))
-	ginRouter.GET(cfg.SpecPath, gin.WrapF(gen.SpecHandlerFunc()))
+	handler := specui.NewHandler(mapper.SpecUIOpts(gen)...)
+
+	ginRouter.GET(cfg.DocsPath, gin.WrapH(handler.Docs()))
+	ginRouter.GET(cfg.SpecPath, gin.WrapH(handler.Spec()))
 
 	return rr
 }
@@ -152,7 +157,7 @@ func (r *router) StaticFS(path string, fs http.FileSystem) Router {
 // With applies the specified options to the router.
 // It allows for additional configuration of the OpenAPI router.
 func (r *router) With(opts ...option.GroupOption) Router {
-	r.specRouter.Use(opts...)
+	r.specRouter.With(opts...)
 
 	return r
 }
