@@ -203,3 +203,10 @@ sync-adapter-deps: ## Sync adapter dependencies
 		echo "$(GREEN)✅ Updated adapter/$$a to $(VERSION)$(NC)"; \
 	done
 	@echo "$(GREEN)🎉 All adapters synced to $(VERSION)!$(NC)"
+
+.PHONY: clean-replaces
+clean-replaces: ## Clean up replace directives in go.mod adapters
+	@find adapter -mindepth 2 -maxdepth 2 -type f -name go.mod \
+		-exec sed -i.bak '/^replace github\.com\/oaswrap\/spec =>/d' {} \; \
+		-exec rm {}.bak \; \
+		-execdir go mod tidy \;
