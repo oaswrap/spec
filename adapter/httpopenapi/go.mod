@@ -3,7 +3,7 @@ module github.com/oaswrap/spec/adapter/httpopenapi
 go 1.22
 
 require (
-	github.com/oaswrap/spec v0.3.2
+	github.com/oaswrap/spec v0.3.3
 	github.com/oaswrap/spec-ui v0.1.4
 	github.com/stretchr/testify v1.10.0
 )
@@ -18,5 +18,3 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/oaswrap/spec => ../..

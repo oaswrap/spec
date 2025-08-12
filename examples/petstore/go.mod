@@ -5,7 +5,7 @@ go 1.21
 require github.com/oaswrap/spec v0.3.2
 
 require (
-	github.com/oaswrap/spec-ui v0.1.3 // indirect
+	github.com/oaswrap/spec-ui v0.1.4 // indirect
 	github.com/swaggest/jsonschema-go v0.3.78 // indirect
 	github.com/swaggest/openapi-go v0.2.59 // indirect
 	github.com/swaggest/refl v1.4.0 // indirect

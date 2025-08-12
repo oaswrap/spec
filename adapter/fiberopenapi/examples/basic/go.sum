@@ -23,10 +23,10 @@ github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWE
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/mattn/go-runewidth v0.0.16 h1:E5ScNMtiwvlvB5paMFdw9p4kSQzbXFikJ5SQO6TULQc=
 github.com/mattn/go-runewidth v0.0.16/go.mod h1:Jdepj2loyihRzMpdS35Xk/zdY8IAYHsh153qUoGf23w=
-github.com/oaswrap/spec v0.3.2 h1:zwqM9vEai+F1SB0Py/fbw9676eu5F+9fl2Kv++rPBRc=
-github.com/oaswrap/spec v0.3.2/go.mod h1:FhPpan7mDnsGOWi3CNfbTkGrSjWlnr9S3qPSi1VDAXI=
-github.com/oaswrap/spec-ui v0.1.1 h1:xEOxqgSgWcWWK2iPNRS8CqDRb+YMmjX97+EwztjL6II=
-github.com/oaswrap/spec-ui v0.1.1/go.mod h1:+c2kjs6ayP8AxCN+GPPQLefMPoqMA2FM38CAsg4u5hU=
+github.com/oaswrap/spec v0.3.3 h1:ezFH6wflfTrDUo7sxk6iRi+dWWbkdzqRW8xXw139oVw=
+github.com/oaswrap/spec v0.3.3/go.mod h1:cQiboTAf466DfgKGbFe0wCA14wXSBfhPcGMM0/zN1V8=
+github.com/oaswrap/spec-ui v0.1.4 h1:XM2Z/ZS2Su90EtDSVuOHGr2+DLpVc2933mxkn6F4aeU=
+github.com/oaswrap/spec-ui v0.1.4/go.mod h1:D8EnD6zbYJ3q65wdltw6QHXfw+nut5XwSSA1xtlSEQQ=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/rivo/uniseg v0.2.0 h1:S1pD9weZBuJdFmowNwbpi7BJ8TNftyUImj/0WQi72jY=

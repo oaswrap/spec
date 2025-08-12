@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/gin-gonic/gin v1.10.1
-	github.com/oaswrap/spec v0.3.2
+	github.com/oaswrap/spec v0.3.3
 	github.com/oaswrap/spec/adapter/ginopenapi v0.0.0
 )
 
@@ -25,7 +25,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/oaswrap/spec-ui v0.1.1 // indirect
+	github.com/oaswrap/spec-ui v0.1.4 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/swaggest/jsonschema-go v0.3.78 // indirect
 	github.com/swaggest/openapi-go v0.2.59 // indirect

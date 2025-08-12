@@ -4,12 +4,12 @@ go 1.21
 
 require (
 	github.com/gorilla/mux v1.8.1
-	github.com/oaswrap/spec v0.3.2
+	github.com/oaswrap/spec v0.3.3
 	github.com/oaswrap/spec/adapter/muxopenapi v0.3.1
 )
 
 require (
-	github.com/oaswrap/spec-ui v0.1.1 // indirect
+	github.com/oaswrap/spec-ui v0.1.4 // indirect
 	github.com/swaggest/jsonschema-go v0.3.78 // indirect
 	github.com/swaggest/openapi-go v0.2.59 // indirect
 	github.com/swaggest/refl v1.4.0 // indirect
