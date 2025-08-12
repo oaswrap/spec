@@ -146,8 +146,8 @@ func (g *generator) Group(pattern string, opts ...option.GroupOption) Router {
 	return group
 }
 
-// Use applies one or more group options to the router.
-func (g *generator) Use(opts ...option.GroupOption) Router {
+// With applies one or more group options to the router.
+func (g *generator) With(opts ...option.GroupOption) Router {
 	g.opts = append(g.opts, opts...)
 	return g
 }

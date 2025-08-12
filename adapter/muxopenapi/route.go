@@ -89,10 +89,10 @@ func (r *route) SkipClean() bool {
 	return r.muxRoute.SkipClean()
 }
 
-func (r *route) Subrouter() Router {
+func (r *route) Subrouter(opts ...option.GroupOption) Router {
 	return &router{
 		muxRouter:  r.muxRoute.Subrouter(),
-		specRouter: r.specRouter.Group(r.pathPrefix),
+		specRouter: r.specRouter.Group(r.pathPrefix, opts...),
 	}
 }
 

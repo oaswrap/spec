@@ -71,8 +71,8 @@ type Router interface {
 	// Group creates a new sub-router with the given path prefix and group options.
 	Group(pattern string, opts ...option.GroupOption) Router
 
-	// Use applies one or more group options to the router.
-	Use(opts ...option.GroupOption) Router
+	// With applies one or more group options to the router.
+	With(opts ...option.GroupOption) Router
 }
 
 // Route represents a single API route in the OpenAPI specification.

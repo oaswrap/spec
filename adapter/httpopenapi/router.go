@@ -146,7 +146,7 @@ func (r *router) Route(prefix string, fn func(r Router), middlewares ...func(htt
 }
 
 func (r *router) With(opts ...option.GroupOption) Router {
-	r.specRouter.Use(opts...)
+	r.specRouter.With(opts...)
 	return r
 }
 

@@ -131,7 +131,7 @@ type Route interface {
 	SkipClean() bool
 
 	// Subrouter creates a subrouter for the route.
-	Subrouter() Router
+	Subrouter(opts ...option.GroupOption) Router
 
 	// With applies OpenAPI operation options to this route.
 	With(opts ...option.OperationOption) Route

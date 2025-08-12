@@ -49,10 +49,8 @@ github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd h1:TRLaZ9cD/w
 github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
 github.com/modern-go/reflect2 v1.0.2 h1:xBagoLtFs94CBntxluKeaWgTMpvLxC4ur3nMaC9Gz0M=
 github.com/modern-go/reflect2 v1.0.2/go.mod h1:yWuevngMOJpCy52FWWMvUC8ws7m/LJsjYzDa0/r8luk=
-github.com/oaswrap/spec v0.3.2 h1:zwqM9vEai+F1SB0Py/fbw9676eu5F+9fl2Kv++rPBRc=
-github.com/oaswrap/spec v0.3.2/go.mod h1:FhPpan7mDnsGOWi3CNfbTkGrSjWlnr9S3qPSi1VDAXI=
-github.com/oaswrap/spec-ui v0.1.1 h1:xEOxqgSgWcWWK2iPNRS8CqDRb+YMmjX97+EwztjL6II=
-github.com/oaswrap/spec-ui v0.1.1/go.mod h1:+c2kjs6ayP8AxCN+GPPQLefMPoqMA2FM38CAsg4u5hU=
+github.com/oaswrap/spec-ui v0.1.3 h1:FZrSdha0JRukBHzes8XBFigUvynnCMd7Q5i3MPtEK4o=
+github.com/oaswrap/spec-ui v0.1.3/go.mod h1:D8EnD6zbYJ3q65wdltw6QHXfw+nut5XwSSA1xtlSEQQ=
 github.com/pelletier/go-toml/v2 v2.2.2 h1:aYUidT7k73Pcl9nb2gScu7NSrKCSHIDE89b3+6Wq+LM=
 github.com/pelletier/go-toml/v2 v2.2.2/go.mod h1:1t835xjRzz80PqgE6HHgN2JOsmgYu/h4qDAS4n929Rs=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=

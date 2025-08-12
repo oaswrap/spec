@@ -140,7 +140,7 @@ func (r *router) StaticFS(prefix string, fs fs.FS) {
 }
 
 func (r *router) With(opts ...option.GroupOption) Router {
-	r.specRouter.Use(opts...)
+	r.specRouter.With(opts...)
 	return r
 }
 

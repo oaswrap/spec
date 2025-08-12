@@ -157,7 +157,7 @@ func (r *router) StaticFS(path string, fs http.FileSystem) Router {
 // With applies the specified options to the router.
 // It allows for additional configuration of the OpenAPI router.
 func (r *router) With(opts ...option.GroupOption) Router {
-	r.specRouter.Use(opts...)
+	r.specRouter.With(opts...)
 
 	return r
 }

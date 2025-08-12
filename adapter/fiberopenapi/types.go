@@ -57,7 +57,7 @@ type Router interface {
 	Group(prefix string, handlers ...fiber.Handler) Router
 
 	// Route creates a new sub-router with the specified prefix and applies options.
-	Route(prefix string, fn func(router Router)) Router
+	Route(prefix string, fn func(router Router), opts ...option.GroupOption) Router
 
 	// With applies options to the router.
 	// This allows you to configure tags, security, and visibility for the routes.

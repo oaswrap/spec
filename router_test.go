@@ -524,7 +524,7 @@ func TestRouter(t *testing.T) {
 						option.Request(new(User)),
 						option.Response(200, new(User)),
 					)
-				}, option.GroupSecurity("bearerAuth")).Use(option.GroupTags("Profile"))
+				}, option.GroupSecurity("bearerAuth")).With(option.GroupTags("Profile"))
 			},
 		},
 		{

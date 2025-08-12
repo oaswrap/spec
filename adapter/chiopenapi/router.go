@@ -180,8 +180,8 @@ func (r *router) MethodNotAllowed(h http.HandlerFunc) {
 	r.chiRouter.MethodNotAllowed(h)
 }
 
-func (r *router) UseOptions(opts ...option.GroupOption) Router {
-	r.specRouter.Use(opts...)
+func (r *router) WithOptions(opts ...option.GroupOption) Router {
+	r.specRouter.With(opts...)
 	return r
 }
 

@@ -127,9 +127,9 @@ func (r *router) Group(prefix string, handlers ...fiber.Handler) Router {
 	}
 }
 
-func (r *router) Route(prefix string, fn func(router Router)) Router {
+func (r *router) Route(prefix string, fn func(router Router), opts ...option.GroupOption) Router {
 	fr := r.fiberRouter.Group(prefix)
-	sr := r.specRouter.Group(prefix)
+	sr := r.specRouter.Group(prefix, opts...)
 
 	subRouter := &router{
 		fiberRouter: fr,
@@ -142,7 +142,7 @@ func (r *router) Route(prefix string, fn func(router Router)) Router {
 }
 
 func (r *router) With(opts ...option.GroupOption) Router {
-	r.specRouter.Use(opts...)
+	r.specRouter.With(opts...)
 	return r
 }
 
