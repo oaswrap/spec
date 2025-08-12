@@ -35,6 +35,7 @@ func NewGenerator(e *echo.Echo, opts ...option.OpenAPIOption) Generator {
 		option.WithVersion(constant.DefaultVersion),
 		option.WithPathParser(parser.NewColonParamParser()),
 		option.WithStoplightElements(),
+		option.WithCacheAge(0),
 	}
 	opts = append(defaultOpts, opts...)
 	gen := spec.NewRouter(opts...)
