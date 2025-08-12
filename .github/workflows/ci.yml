@@ -13,7 +13,6 @@ concurrency:
 
 env:
   CACHE_VERSION: v1  # Increment to bust cache when needed
-  GO_CACHE_KEY: go-mod-${{ runner.os }}-${{ hashFiles('**/go.sum') }}-${{ env.CACHE_VERSION }}
 
 jobs:
   # ========================================
@@ -28,20 +27,12 @@ jobs:
     - name: 📥 Checkout
       uses: actions/checkout@v4
 
-    - name: 📦 Cache Go Modules
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cache/go-build
-          ~/go/pkg/mod
-        key: ${{ env.GO_CACHE_KEY }}
-
     - name: 🐹 Setup Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.23.x'
-        check-latest: true
-        cache: false  # Using our own shared cache
+        go-version: '1.23.x'  # Force Go 1.23 latest patch
+        check-latest: true    # Always grab the newest patch release
+        cache: true           # Handles ~/.cache/go-build and ~/go/pkg/mod
 
     - name: 📁 Cache Tools
       uses: actions/cache@v4
@@ -79,20 +70,12 @@ jobs:
     - name: 📥 Checkout
       uses: actions/checkout@v4
 
-    - name: 📦 Restore Go Modules Cache
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cache/go-build
-          ~/go/pkg/mod
-        key: ${{ env.GO_CACHE_KEY }}
-
     - name: 🐹 Setup Go
       uses: actions/setup-go@v5
       with:
         go-version: ${{ matrix.go-version }}
         check-latest: true
-        cache: false  # Using our own shared cache
+        cache: true  # Handles module/build cache
 
     - name: 🔧 Install Tools
       run: make install-tools
@@ -101,11 +84,11 @@ jobs:
       run: make test
 
     - name: 📊 Generate Coverage Report
-      if: matrix.go-version == '1.23.x'
+      if: matrix.coverage && matrix.go-version == '1.23.x'
       run: make testcov
 
     - name: 📈 Upload Coverage Report
-      if: matrix.go-version == '1.23.x'
+      if: matrix.coverage && matrix.go-version == '1.23.x'
       uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
