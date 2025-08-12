@@ -41,6 +41,7 @@ func main() {
 	r := chiopenapi.NewRouter(c,
 		option.WithTitle("My API"),
 		option.WithVersion("1.0.0"),
+		option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
 	)
 	// Add routes
 	r.Route("/api/v1", func(r chiopenapi.Router) {
@@ -49,12 +50,14 @@ func main() {
 			option.Request(new(LoginRequest)),
 			option.Response(200, new(LoginResponse)),
 		)
-
-		r.Get("/users/{id}", GetUserHandler).With(
-			option.Summary("Get user by ID"),
-			option.Request(new(GetUserRequest)),
-			option.Response(200, new(User)),
-		)
+		r.Group(func(r chiopenapi.Router) {
+			r.Use(AuthMiddleware)
+			r.Get("/users/{id}", GetUserHandler).With(
+				option.Summary("Get user by ID"),
+				option.Request(new(GetUserRequest)),
+				option.Response(200, new(User)),
+			)
+		}, option.GroupSecurity("bearerAuth"))
 	})
 
 	// Generate OpenAPI spec
@@ -86,6 +89,18 @@ type GetUserRequest struct {
 type User struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+func AuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Simulate authentication logic
+		authHeader := r.Header.Get("Authorization")
+		if authHeader != "" && authHeader == "Bearer example-token" {
+			next.ServeHTTP(w, r)
+		} else {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		}
+	})
 }
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {

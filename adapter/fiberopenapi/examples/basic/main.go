@@ -15,27 +15,23 @@ func main() {
 	r := fiberopenapi.NewRouter(app,
 		option.WithTitle("My API"),
 		option.WithVersion("1.0.0"),
+		option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
 	)
 	// Add routes
 	v1 := r.Group("/api/v1")
-
 	v1.Post("/login", LoginHandler).With(
 		option.Summary("User login"),
 		option.Request(new(LoginRequest)),
 		option.Response(200, new(LoginResponse)),
 	)
-
-	v1.Get("/users/{id}", GetUserHandler).With(
+	auth := v1.Group("/", AuthMiddleware).With(
+		option.GroupSecurity("bearerAuth"),
+	)
+	auth.Get("/users/:id", GetUserHandler).With(
 		option.Summary("Get user by ID"),
 		option.Request(new(GetUserRequest)),
 		option.Response(200, new(User)),
 	)
-
-	// Generate OpenAPI spec
-	if err := r.WriteSchemaTo("openapi.yaml"); err != nil {
-		log.Fatal(err)
-	}
-	log.Println("✅ OpenAPI schema written to: openapi.yaml")
 
 	log.Printf("🚀 OpenAPI docs available at: %s", "http://localhost:3000/docs")
 
@@ -60,6 +56,14 @@ type GetUserRequest struct {
 type User struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+func AuthMiddleware(c *fiber.Ctx) error {
+	authHeader := c.Get("Authorization")
+	if authHeader != "" && authHeader == "Bearer example-token" {
+		return c.Next()
+	}
+	return c.Status(401).JSON(map[string]string{"error": "Unauthorized"})
 }
 
 func LoginHandler(c *fiber.Ctx) error {

@@ -64,6 +64,7 @@ func TestWithOpenAPIConfig(t *testing.T) {
 				option.WithTitle("Advanced API"),
 				option.WithVersion("2.0.0"),
 				option.WithDescription("A comprehensive API"),
+				option.WithCacheAge(86400),
 			},
 			validate: func(t *testing.T, config *openapi.Config) {
 				assert.Equal(t, "3.1.0", config.OpenAPIVersion)
@@ -71,6 +72,7 @@ func TestWithOpenAPIConfig(t *testing.T) {
 				assert.Equal(t, "2.0.0", config.Version)
 				require.NotNil(t, config.Description)
 				assert.Equal(t, "A comprehensive API", *config.Description)
+				assert.Equal(t, 86400, *config.CacheAge)
 			},
 		},
 		{
