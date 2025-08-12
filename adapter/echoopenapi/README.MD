@@ -1,6 +1,7 @@
 # echoopenapi
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/oaswrap/spec/adapter/echoopenapi.svg)](https://pkg.go.dev/github.com/oaswrap/spec/adapter/echoopenapi)
+[![Go Report Card](https://goreportcard.com/badge/github.com/oaswrap/spec/adapter/echoopenapi)](https://goreportcard.com/report/github.com/oaswrap/spec/adapter/echoopenapi)
 
 A lightweight adapter for the [Echo](https://github.com/labstack/echo) web framework that automatically generates OpenAPI 3.x specifications from your routes using [`oaswrap/spec`](https://github.com/oaswrap/spec).
 
@@ -9,7 +10,7 @@ A lightweight adapter for the [Echo](https://github.com/labstack/echo) web frame
 - **⚡ Seamless Integration** — Works with your existing Echo routes and handlers
 - **📝 Automatic Documentation** — Generate OpenAPI specs from route definitions and struct tags
 - **🎯 Type Safety** — Full Go type safety for OpenAPI configuration
-- **🔧 Multiple UI Options** — Swagger UI, Redoc, and Stoplight Elements served automatically at `/docs`
+- **🔧 Multiple UI Options** — Swagger UI, Stoplight Elements, ReDoc, Scalar or RapiDoc served automatically at `/docs`
 - **📄 YAML Export** — OpenAPI spec available at `/docs/openapi.yaml`
 - **🚀 Zero Overhead** — Minimal performance impact on your API
 
@@ -124,8 +125,25 @@ r := echoopenapi.NewRouter(c,
 )
 ```
 
+### Supported Documentation UIs
+Choose from multiple UI options, powered by [`oaswrap/spec-ui`](https://github.com/oaswrap/spec-ui):
+
+- **Stoplight Elements** — Modern, clean design (default)
+- **Swagger UI** — Classic interface with try-it functionality
+- **ReDoc** — Three-panel responsive layout
+- **Scalar** — Beautiful and fast interface
+- **RapiDoc** — Highly customizable
+
+```go
+r := chiopenapi.NewRouter(c,
+	option.WithTitle("My API"),
+	option.WithVersion("1.0.0"),
+	option.WithScalar(), // Use Scalar as the documentation UI
+)
+```
+
 ### Rich Schema Documentation
-Use struct tags to generate detailed OpenAPI schemas:
+Use struct tags to generate detailed OpenAPI schemas. **Note: These tags are used only for OpenAPI spec generation and documentation - they do not perform actual request validation.**
 
 ```go
 type CreateProductRequest struct {
@@ -159,6 +177,7 @@ Check out complete examples in the main repository:
 - **Spec**: [pkg.go.dev/github.com/oaswrap/spec](https://pkg.go.dev/github.com/oaswrap/spec)
 - **Echo Adapter**: [pkg.go.dev/github.com/oaswrap/spec/adapter/echoopenapi](https://pkg.go.dev/github.com/oaswrap/spec/adapter/echoopenapi)
 - **Options**: [pkg.go.dev/github.com/oaswrap/spec/option](https://pkg.go.dev/github.com/oaswrap/spec/option)
+- **Spec UI**: [pkg.go.dev/github.com/oaswrap/spec-ui](https://pkg.go.dev/github.com/oaswrap/spec-ui)
 
 ## Contributing
 
