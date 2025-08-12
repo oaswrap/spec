@@ -11,6 +11,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  CACHE_VERSION: v1  # Increment to bust cache when needed
+
 jobs:
   # ========================================
   # Quality Gate
@@ -27,12 +30,20 @@ jobs:
     - name: 🐹 Setup Go
       uses: actions/setup-go@v5
       with:
-        go-version-file: 'go.mod' # <-- REFINEMENT 1
-        cache: true
+        go-version: '1.23.x'  # Force Go 1.23 latest patch
+        check-latest: true    # Always grab the newest patch release
+        cache: true           # Handles ~/.cache/go-build and ~/go/pkg/mod
 
-    - name: Set Go environment
-      id: go-env
-      run: echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
+    - name: 📁 Cache Tools
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/golangci-lint
+          ~/go/bin
+        key: ${{ runner.os }}-tools-${{ env.CACHE_VERSION }}-${{ hashFiles('tools/tools.go', 'Makefile') }}
+        restore-keys: |
+          ${{ runner.os }}-tools-${{ env.CACHE_VERSION }}-
+          ${{ runner.os }}-tools-
 
     - name: 🔧 Install Tools
       run: make install-tools
@@ -53,7 +64,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        go-version: ['1.23', '1.24']
+        go-version: ['1.23.x', '1.24.x']
 
     steps:
     - name: 📥 Checkout
@@ -63,11 +74,8 @@ jobs:
       uses: actions/setup-go@v5
       with:
         go-version: ${{ matrix.go-version }}
-        cache: true
-
-    - name: Set Go environment
-      id: go-env
-      run: echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
+        check-latest: true
+        cache: true  # Handles module/build cache
 
     - name: 🔧 Install Tools
       run: make install-tools
@@ -76,12 +84,64 @@ jobs:
       run: make test
 
     - name: 📊 Generate Coverage Report
-      if: matrix.go-version == '1.23'
+      if: matrix.coverage && matrix.go-version == '1.23.x'
       run: make testcov
-    
+
     - name: 📈 Upload Coverage Report
-      if: matrix.go-version == '1.23'
+      if: matrix.coverage && matrix.go-version == '1.23.x'
       uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: coverage/coverage.out
+        fail_ci_if_error: false
+        verbose: true
+
+  # ========================================
+  # Security Scan
+  # ========================================
+  security:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: quality
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
+
+    steps:
+    - name: 📥 Checkout
+      uses: actions/checkout@v4
+
+    - name: Run Gosec Security Scanner
+      uses: securego/gosec@master
+      with:
+        args: '-no-fail -fmt sarif -out results.sarif ./...'
+
+    - name: Upload SARIF file
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: results.sarif
+
+  # ========================================
+  # Final Status Check
+  # ========================================
+  ci-success:
+    name: ✅ CI Success
+    runs-on: ubuntu-latest
+    needs: [quality, test, security]
+    if: always()
+
+    steps:
+    - name: Check all jobs status
+      run: |
+        if [[ "${{ needs.quality.result }}" != "success" ]]; then
+          echo "Quality gate failed"
+          exit 1
+        fi
+        if [[ "${{ needs.test.result }}" != "success" ]]; then
+          echo "Tests failed"
+          exit 1
+        fi
+        if [[ "${{ needs.security.result }}" != "success" && "${{ needs.security.result }}" != "skipped" ]]; then
+          echo "Security scan failed"
+          exit 1
+        fi
+        echo "All CI checks passed! 🎉"

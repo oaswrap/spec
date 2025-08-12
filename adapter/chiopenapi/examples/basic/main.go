@@ -35,11 +35,6 @@ func main() {
 		}, option.GroupSecurity("bearerAuth"))
 	})
 
-	// Generate OpenAPI spec
-	if err := r.WriteSchemaTo("openapi.yaml"); err != nil {
-		log.Fatal(err)
-	}
-
 	log.Printf("🚀 OpenAPI docs available at: %s", "http://localhost:3000/docs")
 
 	// Start the server

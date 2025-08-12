@@ -35,6 +35,7 @@ func NewGenerator(r chi.Router, opts ...option.OpenAPIOption) Generator {
 		option.WithDescription(constant.DefaultDescription),
 		option.WithVersion(constant.DefaultVersion),
 		option.WithStoplightElements(),
+		option.WithCacheAge(0),
 	}
 	opts = append(defaultOpts, opts...)
 	gen := spec.NewRouter(opts...)
