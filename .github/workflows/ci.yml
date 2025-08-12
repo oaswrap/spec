@@ -12,7 +12,6 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION_FILE: 'go.mod'
   CACHE_VERSION: v1  # Increment to bust cache when needed
 
 jobs:
@@ -31,31 +30,9 @@ jobs:
     - name: 🐹 Setup Go
       uses: actions/setup-go@v5
       with:
-        go-version-file: ${{ env.GO_VERSION_FILE }}
-        cache: true
-
-    - name: 📦 Cache Go Modules
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cache/go-build
-          ~/go/pkg/mod
-        key: ${{ runner.os }}-go-security-${{ env.CACHE_VERSION }}-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-security-${{ env.CACHE_VERSION }}-
-          ${{ runner.os }}-go-security-
-          ${{ runner.os }}-go-
-
-    - name: 📦 Cache Go Modules
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cache/go-build
-          ~/go/pkg/mod
-        key: ${{ runner.os }}-go-quality-${{ env.CACHE_VERSION }}-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-quality-${{ env.CACHE_VERSION }}-
-          ${{ runner.os }}-go-quality-
+        go-version: '1.23.x'  # Force Go 1.23 latest patch
+        check-latest: true    # Always grab the newest patch release
+        cache: true           # Handles ~/.cache/go-build and ~/go/pkg/mod
 
     - name: 📁 Cache Tools
       uses: actions/cache@v4
@@ -153,7 +130,7 @@ jobs:
         args: '-no-fail -fmt sarif -out results.sarif ./...'
 
     - name: Upload SARIF file
-      uses: github/codeql-action/upload-sarif@v2
+      uses: github/codeql-action/upload-sarif@v3
       with:
         sarif_file: results.sarif
 
