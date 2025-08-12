@@ -6,6 +6,10 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
+  
+permissions:
+  contents: read
+  security-events: write  # Required for SARIF upload
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
