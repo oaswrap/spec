@@ -68,7 +68,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        go-version: ['1.23.x', '1.24.x']
+        go-version: ['1.23', '1.24']
 
     steps:
     - name: 📥 Checkout
@@ -88,11 +88,11 @@ jobs:
       run: make test
 
     - name: 📊 Generate Coverage Report
-      if: matrix.coverage && matrix.go-version == '1.23.x'
+      if: matrix.coverage && matrix.go-version == '1.23'
       run: make testcov
 
     - name: 📈 Upload Coverage Report
-      if: matrix.coverage && matrix.go-version == '1.23.x'
+      if: matrix.coverage && matrix.go-version == '1.23'
       uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}

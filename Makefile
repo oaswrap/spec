@@ -164,18 +164,6 @@ release-adapters-dry-run:
 	done
 	@echo "$(GREEN)🎉 Dry run complete! No changes made.$(NC)"
 
-release-modules: ## Release all modules with the specified version
-	@if [ -z "$(VERSION)" ]; then \
-		echo "$(RED)Usage: make release-modules VERSION=0.3.0$(NC)"; \
-		exit 1; \
-	fi
-	@echo "$(BLUE)🚀 Releasing modules with version v$(VERSION)...$(NC)"
-	@for m in $(MODULES); do \
-		echo "$(BLUE)🚀 Releasing module $$m...$(NC)"; \
-		(cd "module/$$m" && git tag -a module/$$m/v$(VERSION) -m "Release module/$$m/v$(VERSION)" && git push origin module/$$m/v$(VERSION)); \
-	done
-	@echo "$(GREEN)🎉 All modules released with version v$(VERSION)!$(NC)"
-
 delete-tag: ## Delete a Git tag
 ifndef TAG
 	$(error TAG is undefined. Usage: make delete-tag TAG=tagname)
