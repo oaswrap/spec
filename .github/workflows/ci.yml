@@ -11,6 +11,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  CACHE_VERSION: v1  # Increment to bust cache when needed
+
 jobs:
   # ========================================
   # Quality Gate
@@ -19,20 +22,38 @@ jobs:
     name: 🛡️ Quality Gate
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    container: golang:1.23-alpine
 
     steps:
     - name: 📥 Checkout
       uses: actions/checkout@v4
 
-    - name: 🐹 Setup Go
-      uses: actions/setup-go@v5
-      with:
-        go-version-file: 'go.mod' # <-- REFINEMENT 1
-        cache: true
+    - name: 🏔️ Install Alpine Dependencies
+      run: |
+        apk update
+        apk add --no-cache git make gcc musl-dev
 
-    - name: Set Go environment
-      id: go-env
-      run: echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
+    - name: 📦 Cache Go Modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          /go/pkg/mod
+          ~/.cache/go-build
+        key: alpine-go-quality-${{ env.CACHE_VERSION }}-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          alpine-go-quality-${{ env.CACHE_VERSION }}-
+          alpine-go-quality-
+
+    - name: 📁 Cache Tools
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/golangci-lint
+          /go/bin
+        key: alpine-tools-${{ env.CACHE_VERSION }}-${{ hashFiles('tools/tools.go', 'Makefile') }}
+        restore-keys: |
+          alpine-tools-${{ env.CACHE_VERSION }}-
+          alpine-tools-
 
     - name: 🔧 Install Tools
       run: make install-tools
@@ -45,29 +66,39 @@ jobs:
   # ========================================
   test:
     name: 🧪 Test Matrix
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: quality
+    container: golang:${{ matrix.go-version }}-alpine
 
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
         go-version: ['1.23', '1.24']
+        include:
+          - go-version: '1.23'
+            coverage: true
 
     steps:
     - name: 📥 Checkout
       uses: actions/checkout@v4
 
-    - name: 🐹 Setup Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: ${{ matrix.go-version }}
-        cache: true
+    - name: 🏔️ Install Alpine Dependencies
+      run: |
+        apk update
+        apk add --no-cache git make gcc musl-dev
 
-    - name: Set Go environment
-      id: go-env
-      run: echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
+    - name: 📦 Cache Go Modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          /go/pkg/mod
+          ~/.cache/go-build
+        key: alpine-go-test-${{ matrix.go-version }}-${{ env.CACHE_VERSION }}-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          alpine-go-test-${{ matrix.go-version }}-${{ env.CACHE_VERSION }}-
+          alpine-go-test-${{ matrix.go-version }}-
+          alpine-go-test-
 
     - name: 🔧 Install Tools
       run: make install-tools
@@ -76,12 +107,83 @@ jobs:
       run: make test
 
     - name: 📊 Generate Coverage Report
-      if: matrix.go-version == '1.23'
+      if: matrix.coverage
       run: make testcov
     
     - name: 📈 Upload Coverage Report
-      if: matrix.go-version == '1.23'
+      if: matrix.coverage
       uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: coverage/coverage.out
+        fail_ci_if_error: false
+        verbose: true
+
+  # ========================================
+  # Security Scan
+  # ========================================
+  security:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: quality
+    container: golang:1.23-alpine
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
+
+    steps:
+    - name: 📥 Checkout
+      uses: actions/checkout@v4
+
+    - name: 🏔️ Install Alpine Dependencies
+      run: |
+        apk update
+        apk add --no-cache git make gcc musl-dev
+
+    - name: 📦 Cache Go Modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          /go/pkg/mod
+          ~/.cache/go-build
+        key: alpine-go-security-${{ env.CACHE_VERSION }}-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          alpine-go-security-${{ env.CACHE_VERSION }}-
+          alpine-go-security-
+          alpine-go-
+
+    - name: 🔍 Run Gosec Security Scanner
+      uses: securecodewarrior/github-action-gosec@master
+      with:
+        args: '-fmt sarif -out gosec.sarif ./...'
+
+    - name: 📤 Upload SARIF file
+      if: always()
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: gosec.sarif
+
+  # ========================================
+  # Final Status Check
+  # ========================================
+  ci-success:
+    name: ✅ CI Success
+    runs-on: ubuntu-latest
+    needs: [quality, test, security]
+    if: always()
+
+    steps:
+    - name: Check all jobs status
+      run: |
+        if [[ "${{ needs.quality.result }}" != "success" ]]; then
+          echo "Quality gate failed"
+          exit 1
+        fi
+        if [[ "${{ needs.test.result }}" != "success" ]]; then
+          echo "Tests failed"
+          exit 1
+        fi
+        if [[ "${{ needs.security.result }}" != "success" && "${{ needs.security.result }}" != "skipped" ]]; then
+          echo "Security scan failed"
+          exit 1
+        fi
+        echo "All CI checks passed! 🎉"
