@@ -20,10 +20,12 @@ func TestSpecUIOpts(t *testing.T) {
 			name: "Swagger UI",
 			gen: spec.NewGenerator(
 				option.WithSwaggerUI(),
+				option.WithCacheAge(86400),
 			),
 			assert: func(t *testing.T, cfg *config.SpecUI) {
 				assert.Equal(t, config.ProviderSwaggerUI, cfg.Provider)
 				assert.NotNil(t, cfg.SwaggerUI)
+				assert.Equal(t, 86400, cfg.CacheAge)
 			},
 		},
 		{

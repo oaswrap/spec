@@ -25,6 +25,7 @@ type Config struct {
 
 	DocsPath    string     // Path where the documentation will be served.
 	SpecPath    string     // Path for the OpenAPI specification JSON or YAML.
+	CacheAge    *int       // Cache age for OpenAPI specification responses.
 	DisableDocs bool       // If true, disables serving OpenAPI docs.
 	Logger      Logger     // Logger for diagnostic output.
 	PathParser  PathParser // Path parser for framework-specific path conversions.

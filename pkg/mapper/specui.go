@@ -14,6 +14,9 @@ func SpecUIOpts(gen spec.Generator) []specui.Option {
 		specui.WithSpecPath(cfg.SpecPath),
 		specui.WithSpecGenerator(gen),
 	}
+	if cfg.CacheAge != nil {
+		opts = append(opts, specui.WithCacheAge(*cfg.CacheAge))
+	}
 
 	switch cfg.UIProvider {
 	case config.ProviderSwaggerUI:

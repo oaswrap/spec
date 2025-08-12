@@ -189,6 +189,13 @@ func WithSpecPath(path string) OpenAPIOption {
 	}
 }
 
+// WithCacheAge sets the cache age for OpenAPI specification responses.
+func WithCacheAge(cacheAge int) OpenAPIOption {
+	return func(c *openapi.Config) {
+		c.CacheAge = &cacheAge
+	}
+}
+
 // WithSwaggerUI sets the UI documentation to Swagger UI.
 func WithSwaggerUI(cfg ...config.SwaggerUI) OpenAPIOption {
 	return func(c *openapi.Config) {
