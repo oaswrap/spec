@@ -29,6 +29,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/oaswrap/spec/adapter/httpopenapi"
 	"github.com/oaswrap/spec/option"
@@ -61,7 +62,12 @@ func main() {
 	log.Printf("🚀 OpenAPI docs available at: %s", "http://localhost:3000/docs")
 
 	// Start the server
-	if err := http.ListenAndServe(":3000", mainMux); err != nil {
+	server := &http.Server{
+		Handler:           mainMux,
+		Addr:              ":3000",
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+	if err := server.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
 }
