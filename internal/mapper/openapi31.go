@@ -100,7 +100,8 @@ func OAS31Server(server openapi.Server) openapi31.Server {
 				MapOfAnything: variable.MapOfAnything,
 			}
 			if variable.Description != "" {
-				oasServerVariable.Description = &variable.Description
+				description := variable.Description
+				oasServerVariable.Description = &description
 			}
 			variables[name] = oasServerVariable
 		}

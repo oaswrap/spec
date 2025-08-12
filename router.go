@@ -204,7 +204,7 @@ func (g *generator) WriteSchemaTo(path string) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(path, schema, 0644)
+	return os.WriteFile(path, schema, 0600)
 }
 
 // Validate checks whether the OpenAPI specification is valid.
