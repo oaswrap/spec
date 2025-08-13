@@ -46,6 +46,8 @@ type Router interface {
 	PUT(path string, handle httprouter.Handle) Route
 	// DELETE registers a new DELETE route with the given path and handler.
 	DELETE(path string, handle httprouter.Handle) Route
+	// PATCH registers a new PATCH route with the given path and handler.
+	PATCH(path string, handle httprouter.Handle) Route
 	// HEAD registers a new HEAD route with the given path and handler.
 	HEAD(path string, handle httprouter.Handle) Route
 	// OPTIONS registers a new OPTIONS route with the given path and handler.

@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"flag"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/julienschmidt/httprouter"
 	"github.com/oaswrap/spec/adapter/httprouteropenapi"
 	"github.com/oaswrap/spec/openapi"
@@ -27,8 +27,6 @@ func DummyHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) 
 }
 
 func TestRouter_Spec(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-
 	tests := []struct {
 		name      string
 		golden    string
@@ -290,4 +288,279 @@ func TestRouter_Spec(t *testing.T) {
 			testutil.EqualYAML(t, want, schema)
 		})
 	}
+}
+
+type SingleRouteFunc func(path string, handle httprouter.Handle) httprouteropenapi.Route
+
+func PingHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(map[string]string{"message": "pong"})
+}
+
+func TestRouter_SingleRoute(t *testing.T) {
+	tests := []struct {
+		method     string
+		path       string
+		methodFunc func(r httprouteropenapi.Router) SingleRouteFunc
+	}{
+		{
+			method: http.MethodGet,
+			path:   "/ping",
+			methodFunc: func(r httprouteropenapi.Router) SingleRouteFunc {
+				return r.GET
+			},
+		},
+		{
+			method: http.MethodPost,
+			path:   "/ping",
+			methodFunc: func(r httprouteropenapi.Router) SingleRouteFunc {
+				return r.POST
+			},
+		},
+		{
+			method: http.MethodPut,
+			path:   "/ping",
+			methodFunc: func(r httprouteropenapi.Router) SingleRouteFunc {
+				return r.PUT
+			},
+		},
+		{
+			method: http.MethodDelete,
+			path:   "/ping",
+			methodFunc: func(r httprouteropenapi.Router) SingleRouteFunc {
+				return r.DELETE
+			},
+		},
+		{
+			method: http.MethodPatch,
+			path:   "/ping",
+			methodFunc: func(r httprouteropenapi.Router) SingleRouteFunc {
+				return r.PATCH
+			},
+		},
+		{
+			method: http.MethodOptions,
+			path:   "/ping",
+			methodFunc: func(r httprouteropenapi.Router) SingleRouteFunc {
+				return r.OPTIONS
+			},
+		},
+		{
+			method: http.MethodHead,
+			path:   "/ping",
+			methodFunc: func(r httprouteropenapi.Router) SingleRouteFunc {
+				return r.HEAD
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.method, func(t *testing.T) {
+			router := httprouter.New()
+			r := httprouteropenapi.NewRouter(router)
+
+			tt.methodFunc(r)(tt.path, PingHandler).With(
+				option.Summary("Ping the server"),
+				option.Description("Returns a simple pong response"),
+				option.Response(200, new(struct {
+					Message string `json:"message" example:"pong"`
+				})),
+			)
+
+			// Test the route
+			req := httptest.NewRequest(tt.method, tt.path, nil)
+			rec := httptest.NewRecorder()
+			router.ServeHTTP(rec, req)
+
+			assert.Equal(t, http.StatusOK, rec.Code)
+			assert.JSONEq(t, `{"message":"pong"}`, rec.Body.String(), "response body should match")
+
+			schema, err := r.GenerateSchema()
+			assert.NoError(t, err, "failed to generate OpenAPI schema")
+			assert.NotEmpty(t, schema, "OpenAPI schema should not be empty")
+			assert.Contains(t, string(schema), "summary: Ping the server", "OpenAPI schema should contain the summary")
+		})
+	}
+}
+
+func TestRouter_Group(t *testing.T) {
+	logs := []string{}
+	middleware1 := func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			logs = append(logs, "middleware1")
+			next.ServeHTTP(w, r)
+			logs = append(logs, "middleware1")
+		})
+	}
+	middleware2 := func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			logs = append(logs, "middleware2")
+			next.ServeHTTP(w, r)
+			logs = append(logs, "middleware2")
+		})
+	}
+	router := httprouter.New()
+	r := httprouteropenapi.NewRouter(router)
+	api := r.Group("/api/v1", middleware1, middleware2).With(
+		option.GroupTags("apiv1"),
+	)
+	dummyHandler := func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]string{"message": "pong"})
+	}
+	api.GET("/ping", PingHandler).With(
+		option.Summary("Ping the server"),
+		option.Description("Returns a simple pong response"),
+		option.Response(200, new(struct {
+			Message string `json:"message" example:"pong"`
+		})),
+	)
+	api.HandlerFunc(http.MethodGet, "/dummy", dummyHandler).With(
+		option.Summary("Dummy endpoint"),
+		option.Description("Returns a simple dummy response"),
+		option.Response(200, new(struct {
+			Message string `json:"message" example:"pong"`
+		})),
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/ping", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.JSONEq(t, `{"message":"pong"}`, rec.Body.String(), "response body should match")
+
+	assert.Equal(t, []string{
+		"middleware1",
+		"middleware2",
+		"middleware2",
+		"middleware1",
+	}, logs, "middleware logs should match")
+
+	schema, err := r.GenerateSchema()
+	assert.NoError(t, err, "failed to generate OpenAPI schema")
+	assert.NotEmpty(t, schema, "OpenAPI schema should not be empty")
+	assert.Contains(t, string(schema), "apiv1", "OpenAPI schema should contain the group tags")
+
+	req = httptest.NewRequest(http.MethodGet, "/api/v1/dummy", nil)
+	rec = httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.JSONEq(t, `{"message":"pong"}`, rec.Body.String())
+}
+
+func TestGenerator_Docs(t *testing.T) {
+	router := httprouter.New()
+	r := httprouteropenapi.NewRouter(router)
+
+	r.GET("/ping", PingHandler).With(
+		option.Summary("Ping the server"),
+		option.Description("Returns a simple pong response"),
+		option.Response(200, new(struct {
+			Message string `json:"message" example:"pong"`
+		})),
+	)
+
+	t.Run("should serve /docs", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/docs", nil)
+		rec := httptest.NewRecorder()
+		router.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.NotEmpty(t, rec.Body.String(), "response body should not be empty")
+	})
+	t.Run("should serve /docs/openapi.yaml", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/docs/openapi.yaml", nil)
+		rec := httptest.NewRecorder()
+		router.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.NotEmpty(t, rec.Body.String(), "response body should not be empty")
+	})
+}
+
+func TestGenerator_DisableDocs(t *testing.T) {
+	router := httprouter.New()
+	r := httprouteropenapi.NewRouter(router,
+		option.WithDisableDocs(),
+	)
+
+	r.GET("/ping", PingHandler).With(
+		option.Summary("Ping the server"),
+		option.Description("Returns a simple pong response"),
+		option.Response(200, new(struct {
+			Message string `json:"message" example:"pong"`
+		})),
+	)
+
+	t.Run("should not serve /docs", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/docs", nil)
+		rec := httptest.NewRecorder()
+		router.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusNotFound, rec.Code)
+	})
+	t.Run("should not serve /docs/openapi.yaml", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/docs/openapi.yaml", nil)
+		rec := httptest.NewRecorder()
+		router.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusNotFound, rec.Code)
+	})
+}
+
+func TestGenerator_MarshalYAML(t *testing.T) {
+	router := httprouter.New()
+	r := httprouteropenapi.NewRouter(router)
+
+	r.GET("/ping", PingHandler).With(
+		option.Summary("Ping the server"),
+		option.Description("Returns a simple pong response"),
+		option.Response(200, new(struct {
+			Message string `json:"message" example:"pong"`
+		})),
+	)
+
+	schema, err := r.MarshalYAML()
+	assert.NoError(t, err, "failed to marshal OpenAPI schema to YAML")
+	assert.NotEmpty(t, schema, "YAML schema should not be empty")
+	assert.Contains(t, string(schema), "summary: Ping the server", "YAML schema should contain the summary")
+}
+
+func TestGenerator_MarshalJSON(t *testing.T) {
+	router := httprouter.New()
+	r := httprouteropenapi.NewRouter(router)
+
+	r.GET("/ping", PingHandler).With(
+		option.Summary("Ping the server"),
+		option.Description("Returns a simple pong response"),
+		option.Response(200, new(struct {
+			Message string `json:"message" example:"pong"`
+		})),
+	)
+
+	schema, err := r.MarshalJSON()
+	assert.NoError(t, err, "failed to marshal OpenAPI schema to JSON")
+	assert.NotEmpty(t, schema, "JSON schema should not be empty")
+	assert.Contains(t, string(schema), `"summary": "Ping the server"`, "JSON schema should contain the summary")
+}
+
+func TestGenerator_WriteSchemaTo(t *testing.T) {
+	router := httprouter.New()
+	r := httprouteropenapi.NewRouter(router)
+
+	r.GET("/ping", PingHandler).With(
+		option.Summary("Ping the server"),
+		option.Description("Returns a simple pong response"),
+		option.Response(200, new(struct {
+			Message string `json:"message" example:"pong"`
+		})),
+	)
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "openapi.yaml")
+	err := r.WriteSchemaTo(path)
+	assert.NoError(t, err, "failed to write OpenAPI schema to directory")
+	assert.FileExists(t, path, "openapi.yaml should be created")
 }

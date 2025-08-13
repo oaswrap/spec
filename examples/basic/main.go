@@ -13,6 +13,7 @@ func main() {
 		option.WithTitle("My API"),
 		option.WithVersion("1.0.0"),
 		option.WithServer("https://api.example.com"),
+		option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
 	)
 
 	// Add routes
@@ -24,7 +25,9 @@ func main() {
 		option.Response(200, new(LoginResponse)),
 	)
 
-	v1.Get("/users/{id}",
+	auth := v1.Group("/", option.GroupSecurity("bearerAuth"))
+
+	auth.Get("/users/{id}",
 		option.Summary("Get user by ID"),
 		option.Request(new(GetUserRequest)),
 		option.Response(200, new(User)),

@@ -132,6 +132,10 @@ func (r *router) DELETE(path string, handle httprouter.Handle) Route {
 	return r.Handle(http.MethodDelete, path, handle)
 }
 
+func (r *router) PATCH(path string, handle httprouter.Handle) Route {
+	return r.Handle(http.MethodPatch, path, handle)
+}
+
 func (r *router) HEAD(path string, handle httprouter.Handle) Route {
 	return r.Handle(http.MethodHead, path, handle)
 }
