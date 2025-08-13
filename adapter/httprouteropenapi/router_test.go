@@ -406,7 +406,7 @@ func TestRouter_Group(t *testing.T) {
 	)
 	dummyHandler := func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]string{"message": "pong"})
+		_ = json.NewEncoder(w).Encode(map[string]string{"message": "pong"})
 	}
 	api.GET("/ping", PingHandler).With(
 		option.Summary("Ping the server"),
