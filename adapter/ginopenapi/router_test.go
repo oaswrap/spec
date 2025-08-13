@@ -118,14 +118,14 @@ func TestRouter_Spec(t *testing.T) {
 					})),
 					option.Response(200, new([]dto.Pet)),
 				)
-				pet.POST("/{petId}/uploadImage", nil).With(
+				pet.POST("/:petId/uploadImage", nil).With(
 					option.OperationID("uploadFile"),
 					option.Summary("Upload an image for a pet"),
 					option.Description("Uploads an image for a pet."),
 					option.Request(new(dto.UploadImageRequest)),
 					option.Response(200, new(dto.ApiResponse)),
 				)
-				pet.GET("/{petId}", nil).With(
+				pet.GET("/:petId", nil).With(
 					option.OperationID("getPetById"),
 					option.Summary("Get pet by ID"),
 					option.Description("Retrieve a pet by its ID."),
@@ -134,14 +134,14 @@ func TestRouter_Spec(t *testing.T) {
 					})),
 					option.Response(200, new(dto.Pet)),
 				)
-				pet.POST("/{petId}", nil).With(
+				pet.POST("/:petId", nil).With(
 					option.OperationID("updatePetWithForm"),
 					option.Summary("Update pet with form"),
 					option.Description("Updates a pet in the store with form data."),
 					option.Request(new(dto.UpdatePetWithFormRequest)),
 					option.Response(200, nil),
 				)
-				pet.DELETE("/{petId}", nil).With(
+				pet.DELETE("/:petId", nil).With(
 					option.OperationID("deletePet"),
 					option.Summary("Delete a pet"),
 					option.Description("Delete a pet from the store by its ID."),
@@ -158,7 +158,7 @@ func TestRouter_Spec(t *testing.T) {
 					option.Request(new(dto.Order)),
 					option.Response(201, new(dto.Order)),
 				)
-				store.GET("/order/{orderId}", nil).With(
+				store.GET("/order/:orderId", nil).With(
 					option.OperationID("getOrderById"),
 					option.Summary("Get order by ID"),
 					option.Description("Retrieve an order by its ID."),
@@ -168,7 +168,7 @@ func TestRouter_Spec(t *testing.T) {
 					option.Response(200, new(dto.Order)),
 					option.Response(404, nil),
 				)
-				store.DELETE("/order/{orderId}", nil).With(
+				store.DELETE("/order/:orderId", nil).With(
 					option.OperationID("deleteOrder"),
 					option.Summary("Delete an order"),
 					option.Description("Delete an order by its ID."),

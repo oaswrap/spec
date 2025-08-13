@@ -120,14 +120,14 @@ func TestRouter_Spec(t *testing.T) {
 					})),
 					option.Response(200, new([]dto.Pet)),
 				)
-				pet.Post("/{petId}/uploadImage", nil).With(
+				pet.Post("/:petId/uploadImage", nil).With(
 					option.OperationID("uploadFile"),
 					option.Summary("Upload an image for a pet"),
 					option.Description("Uploads an image for a pet."),
 					option.Request(new(dto.UploadImageRequest)),
 					option.Response(200, new(dto.ApiResponse)),
 				)
-				pet.Get("/{petId}", nil).With(
+				pet.Get("/:petId", nil).With(
 					option.OperationID("getPetById"),
 					option.Summary("Get pet by ID"),
 					option.Description("Retrieve a pet by its ID."),
@@ -136,7 +136,7 @@ func TestRouter_Spec(t *testing.T) {
 					})),
 					option.Response(200, new(dto.Pet)),
 				)
-				pet.Post("/{petId}", nil).With(
+				pet.Post("/:petId", nil).With(
 					option.OperationID("updatePetWithForm"),
 					option.Summary("Update pet with form"),
 					option.Description("Updates a pet in the store with form data."),
@@ -160,7 +160,7 @@ func TestRouter_Spec(t *testing.T) {
 					option.Request(new(dto.Order)),
 					option.Response(201, new(dto.Order)),
 				)
-				store.Get("/order/{orderId}", nil).With(
+				store.Get("/order/:orderId", nil).With(
 					option.OperationID("getOrderById"),
 					option.Summary("Get order by ID"),
 					option.Description("Retrieve an order by its ID."),
@@ -170,7 +170,7 @@ func TestRouter_Spec(t *testing.T) {
 					option.Response(200, new(dto.Order)),
 					option.Response(404, nil),
 				)
-				store.Delete("/order/{orderId}", nil).With(
+				store.Delete("/order/:orderId", nil).With(
 					option.OperationID("deleteOrder"),
 					option.Summary("Delete an order"),
 					option.Description("Delete an order by its ID."),
@@ -197,7 +197,7 @@ func TestRouter_Spec(t *testing.T) {
 					option.Request(new(dto.PetUser)),
 					option.Response(201, new(dto.PetUser)),
 				)
-				user.Get("/{username}", nil).With(
+				user.Get("/:username", nil).With(
 					option.OperationID("getUserByName"),
 					option.Summary("Get user by username"),
 					option.Description("Retrieve a user by their username."),
@@ -207,7 +207,7 @@ func TestRouter_Spec(t *testing.T) {
 					option.Response(200, new(dto.PetUser)),
 					option.Response(404, nil),
 				)
-				user.Put("/{username}", nil).With(
+				user.Put("/:username", nil).With(
 					option.OperationID("updateUser"),
 					option.Summary("Update an existing user"),
 					option.Description("Update the details of an existing user."),
@@ -218,7 +218,7 @@ func TestRouter_Spec(t *testing.T) {
 					option.Response(200, new(dto.PetUser)),
 					option.Response(404, nil),
 				)
-				user.Delete("/{username}", nil).With(
+				user.Delete("/:username", nil).With(
 					option.OperationID("deleteUser"),
 					option.Summary("Delete a user"),
 					option.Description("Delete a user from the store by their username."),

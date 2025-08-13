@@ -1,0 +1,536 @@
+openapi: 3.0.3
+info:
+  contact:
+    email: apiteam@swagger.io
+  description: This is a sample Petstore server.
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: https://swagger.io/terms/
+  title: Test API Pet Store API
+  version: 1.0.0
+externalDocs:
+  description: Find more info here about swagger
+  url: https://swagger.io
+servers:
+- url: https://petstore3.swagger.io/api/v3
+tags:
+- description: Everything about your Pets
+  externalDocs:
+    description: Find out more about our Pets
+    url: https://swagger.io
+  name: pet
+- description: Access to Petstore orders
+  externalDocs:
+    description: Find out more about our Store
+    url: https://swagger.io
+  name: store
+- description: Operations about user
+  name: user
+paths:
+  /pet/pet:
+    post:
+      description: Add a new pet to the store.
+      operationId: addPet
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DtoPet'
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DtoPet'
+          description: Created
+      security:
+      - petstore_auth:
+        - write:pets
+        - read:pets
+      summary: Add a new pet
+      tags:
+      - pet
+    put:
+      description: Update the details of an existing pet in the store.
+      operationId: updatePet
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DtoPet'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DtoPet'
+          description: OK
+      security:
+      - petstore_auth:
+        - write:pets
+        - read:pets
+      summary: Update an existing pet
+      tags:
+      - pet
+  /pet/pet/{petId}:
+    delete:
+      description: Delete a pet from the store by its ID.
+      operationId: deletePet
+      parameters:
+      - in: path
+        name: petId
+        required: true
+        schema:
+          type: integer
+      - in: header
+        name: api_key
+        schema:
+          type: string
+      responses:
+        "204":
+          description: No Content
+      security:
+      - petstore_auth:
+        - write:pets
+        - read:pets
+      summary: Delete a pet
+      tags:
+      - pet
+    post:
+      description: Updates a pet in the store with form data.
+      operationId: updatePetWithForm
+      parameters:
+      - in: path
+        name: petId
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FormDataDtoUpdatePetWithFormRequest'
+      responses:
+        "200":
+          description: OK
+      security:
+      - petstore_auth:
+        - write:pets
+        - read:pets
+      summary: Update pet with form
+      tags:
+      - pet
+  /pet/pet/{petId}/uploadImage:
+    post:
+      description: Uploads an image for a pet.
+      operationId: uploadFile
+      parameters:
+      - in: query
+        name: additionalMetadata
+        schema:
+          type: string
+      - in: path
+        name: petId
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DtoApiResponse'
+          description: OK
+      security:
+      - petstore_auth:
+        - write:pets
+        - read:pets
+      summary: Upload an image for a pet
+      tags:
+      - pet
+  /pet/pet/findByStatus:
+    get:
+      description: Finds Pets by status. Multiple status values can be provided with
+        comma separated strings.
+      operationId: findPetsByStatus
+      parameters:
+      - in: query
+        name: status
+        schema:
+          enum:
+          - available
+          - pending
+          - sold
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/DtoPet'
+                type: array
+          description: OK
+      security:
+      - petstore_auth:
+        - write:pets
+        - read:pets
+      summary: Find pets by status
+      tags:
+      - pet
+  /pet/pet/findByTags:
+    get:
+      description: Finds Pets by tags. Multiple tags can be provided with comma separated
+        strings.
+      operationId: findPetsByTags
+      parameters:
+      - in: query
+        name: tags
+        schema:
+          items:
+            type: string
+          type: array
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/DtoPet'
+                type: array
+          description: OK
+      security:
+      - petstore_auth:
+        - write:pets
+        - read:pets
+      summary: Find pets by tags
+      tags:
+      - pet
+  /pet/pet/id/{petId}:
+    get:
+      description: Retrieve a pet by its ID.
+      operationId: getPetById
+      parameters:
+      - in: path
+        name: petId
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DtoPet'
+          description: OK
+      security:
+      - petstore_auth:
+        - write:pets
+        - read:pets
+      summary: Get pet by ID
+      tags:
+      - pet
+  /store/store/order:
+    post:
+      description: Place a new order for a pet.
+      operationId: placeOrder
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DtoOrder'
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DtoOrder'
+          description: Created
+      summary: Place an order
+      tags:
+      - store
+  /store/store/order/{orderId}:
+    delete:
+      description: Delete an order by its ID.
+      operationId: deleteOrder
+      parameters:
+      - in: path
+        name: orderId
+        required: true
+        schema:
+          type: integer
+      responses:
+        "204":
+          description: No Content
+      summary: Delete an order
+      tags:
+      - store
+    get:
+      description: Retrieve an order by its ID.
+      operationId: getOrderById
+      parameters:
+      - in: path
+        name: orderId
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DtoOrder'
+          description: OK
+        "404":
+          description: Not Found
+      summary: Get order by ID
+      tags:
+      - store
+  /user/user:
+    post:
+      description: Create a new user in the store.
+      operationId: createUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DtoPetUser'
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DtoPetUser'
+          description: Created
+      summary: Create a new user
+      tags:
+      - user
+  /user/user/{username}:
+    delete:
+      description: Delete a user from the store by their username.
+      operationId: deleteUser
+      parameters:
+      - in: path
+        name: username
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: No Content
+      summary: Delete a user
+      tags:
+      - user
+    get:
+      description: Retrieve a user by their username.
+      operationId: getUserByName
+      parameters:
+      - in: path
+        name: username
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DtoPetUser'
+          description: OK
+        "404":
+          description: Not Found
+      summary: Get user by username
+      tags:
+      - user
+    put:
+      description: Update the details of an existing user.
+      operationId: updateUser
+      parameters:
+      - in: path
+        name: username
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                email:
+                  type: string
+                firstName:
+                  type: string
+                id:
+                  type: integer
+                lastName:
+                  type: string
+                password:
+                  type: string
+                phone:
+                  type: string
+                userStatus:
+                  enum:
+                  - 0
+                  - 1
+                  - 2
+                  type: integer
+                username:
+                  type: string
+              type: object
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DtoPetUser'
+          description: OK
+        "404":
+          description: Not Found
+      summary: Update an existing user
+      tags:
+      - user
+  /user/user/createWithList:
+    post:
+      description: Create multiple users in the store with a list.
+      operationId: createUsersWithList
+      requestBody:
+        content:
+          application/json:
+            schema:
+              items:
+                $ref: '#/components/schemas/DtoPetUser'
+              nullable: true
+              type: array
+      responses:
+        "201":
+          description: Created
+      summary: Create users with list
+      tags:
+      - user
+components:
+  schemas:
+    DtoApiResponse:
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        type:
+          type: string
+      type: object
+    DtoCategory:
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      type: object
+    DtoOrder:
+      properties:
+        complete:
+          type: boolean
+        id:
+          type: integer
+        petId:
+          type: integer
+        quantity:
+          type: integer
+        shipDate:
+          format: date-time
+          type: string
+        status:
+          enum:
+          - placed
+          - approved
+          - delivered
+          type: string
+      type: object
+    DtoPet:
+      properties:
+        category:
+          $ref: '#/components/schemas/DtoCategory'
+        id:
+          type: integer
+        name:
+          type: string
+        photoUrls:
+          items:
+            type: string
+          nullable: true
+          type: array
+        status:
+          enum:
+          - available
+          - pending
+          - sold
+          type: string
+        tags:
+          items:
+            $ref: '#/components/schemas/DtoTag'
+          nullable: true
+          type: array
+        type:
+          type: string
+      type: object
+    DtoPetUser:
+      properties:
+        email:
+          type: string
+        firstName:
+          type: string
+        id:
+          type: integer
+        lastName:
+          type: string
+        password:
+          type: string
+        phone:
+          type: string
+        userStatus:
+          enum:
+          - 0
+          - 1
+          - 2
+          type: integer
+        username:
+          type: string
+      type: object
+    DtoTag:
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      type: object
+    FormDataDtoUpdatePetWithFormRequest:
+      properties:
+        name:
+          type: string
+        status:
+          enum:
+          - available
+          - pending
+          - sold
+          type: string
+      required:
+      - name
+      type: object
+  securitySchemes:
+    apiKey:
+      in: header
+      name: api_key
+      type: apiKey
+    petstore_auth:
+      flows:
+        implicit:
+          authorizationUrl: https://petstore3.swagger.io/oauth/authorize
+          scopes:
+            read:pets: read your pets
+            write:pets: modify pets in your account
+      type: oauth2

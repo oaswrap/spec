@@ -139,7 +139,7 @@ Choose from multiple UI options, powered by [`oaswrap/spec-ui`](https://github.c
 - **RapiDoc** — Highly customizable
 
 ```go
-r := chiopenapi.NewRouter(c,
+r := fiberopenapi.NewRouter(c,
 	option.WithTitle("My API"),
 	option.WithVersion("1.0.0"),
 	option.WithScalar(), // Use Scalar as the documentation UI
