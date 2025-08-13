@@ -6,10 +6,6 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
-  
-permissions:
-  contents: read
-  security-events: write  # Required for SARIF upload
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -88,11 +84,11 @@ jobs:
       run: make test
 
     - name: 📊 Generate Coverage Report
-      if: matrix.coverage && matrix.go-version == '1.23'
+      if: matrix.go-version == '1.23'
       run: make testcov
 
     - name: 📈 Upload Coverage Report
-      if: matrix.coverage && matrix.go-version == '1.23'
+      if: matrix.go-version == '1.23'
       uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
@@ -117,12 +113,7 @@ jobs:
     - name: Run Gosec Security Scanner
       uses: securego/gosec@master
       with:
-        args: '-no-fail -fmt sarif -out results.sarif ./...'
-
-    - name: Upload SARIF file
-      uses: github/codeql-action/upload-sarif@v3
-      with:
-        sarif_file: results.sarif
+        args: './...'
 
   # ========================================
   # Final Status Check

@@ -1,13 +1,13 @@
-# muxopenapi
+# httprouteropenapi
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/oaswrap/spec/adapter/muxopenapi.svg)](https://pkg.go.dev/github.com/oaswrap/spec/adapter/muxopenapi)
-[![Go Report Card](https://goreportcard.com/badge/github.com/oaswrap/spec/adapter/muxopenapi)](https://goreportcard.com/report/github.com/oaswrap/spec/adapter/muxopenapi)
+[![Go Reference](https://pkg.go.dev/badge/github.com/oaswrap/spec/adapter/httprouteropenapi.svg)](https://pkg.go.dev/github.com/oaswrap/spec/adapter/httprouteropenapi)
+[![Go Report Card](https://goreportcard.com/badge/github.com/oaswrap/spec/adapter/httprouteropenapi)](https://goreportcard.com/report/github.com/oaswrap/spec/adapter/httprouteropenapi)
 
-A lightweight adapter for the [gorilla/mux](https://pkg.go.dev/github.com/gorilla/mux) package that automatically generates OpenAPI 3.x specifications from your routes using [`oaswrap/spec`](https://github.com/oaswrap/spec).
+A lightweight adapter for the [httprouter](https://github.com/julienschmidt/httprouter) package that automatically generates OpenAPI 3.x specifications from your routes using [`oaswrap/spec`](https://github.com/oaswrap/spec).
 
 ## Features
 
-- **⚡ Seamless Integration** — Works with your existing gorilla/mux routes and handlers
+- **⚡ Seamless Integration** — Works with your existing httprouter routes and handlers
 - **📝 Automatic Documentation** — Generate OpenAPI specs from route definitions and struct tags
 - **🎯 Type Safety** — Full Go type safety for OpenAPI configuration
 - **🔧 Multiple UI Options** — Swagger UI, Stoplight Elements, ReDoc, Scalar or RapiDoc served automatically at `/docs`
@@ -17,7 +17,7 @@ A lightweight adapter for the [gorilla/mux](https://pkg.go.dev/github.com/gorill
 ## Installation
 
 ```bash
-go get github.com/oaswrap/spec/adapter/muxopenapi
+go get github.com/oaswrap/spec/adapter/httprouteropenapi
 ```
 
 ## Quick Start
@@ -31,43 +31,38 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/mux"
-	"github.com/oaswrap/spec/adapter/muxopenapi"
+	"github.com/julienschmidt/httprouter"
+	"github.com/oaswrap/spec/adapter/httprouteropenapi"
 	"github.com/oaswrap/spec/option"
 )
 
 func main() {
-	mux := mux.NewRouter()
-	r := muxopenapi.NewRouter(mux,
+	httpRouter := httprouter.New()
+	r := httprouteropenapi.NewRouter(httpRouter,
 		option.WithTitle("My API"),
 		option.WithVersion("1.0.0"),
 		option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
 	)
-
-	api := r.PathPrefix("/api").Subrouter()
-	v1 := api.PathPrefix("/v1").Subrouter()
-
-	v1.HandleFunc("/login", LoginHandler).Methods("POST").With(
-		option.Summary("User Login"),
+	v1 := r.Group("/api/v1")
+	v1.POST("/login", LoginHandler).With(
+		option.Summary("User login"),
 		option.Request(new(LoginRequest)),
 		option.Response(200, new(LoginResponse)),
 	)
-	auth := v1.PathPrefix("/").Subrouter().With(
+	auth := v1.Group("/", AuthMiddleware).With(
 		option.GroupSecurity("bearerAuth"),
 	)
-	auth.Use(AuthMiddleware)
-	auth.HandleFunc("/users/{id}", GetUserHandler).Methods("GET").With(
-		option.Summary("Get User by ID"),
+	auth.GET("/users/:id", GetUserHandler).With(
+		option.Summary("Get user by ID"),
 		option.Request(new(GetUserRequest)),
 		option.Response(200, new(User)),
 	)
 
 	log.Printf("🚀 OpenAPI docs available at: %s", "http://localhost:3000/docs")
 
-	// Start the server
 	server := &http.Server{
-		Handler:           mux,
 		Addr:              ":3000",
+		Handler:           httpRouter,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 	if err := server.ListenAndServe(); err != nil {
@@ -105,35 +100,29 @@ func AuthMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func LoginHandler(w http.ResponseWriter, r *http.Request) {
+func LoginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	// Simulate login logic
 	_ = json.NewEncoder(w).Encode(LoginResponse{Token: "example-token"})
 }
 
-func GetUserHandler(w http.ResponseWriter, r *http.Request) {
+func GetUserHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var req GetUserRequest
-	vars := mux.Vars(r)
-	id := vars["id"]
-	if id == "" {
-		http.Error(w, "User ID is required", http.StatusBadRequest)
-		return
-	}
-	req.ID = id
-	// Simulate fetching user by ID
-	user := User{ID: req.ID, Name: "John Doe"}
-	_ = json.NewEncoder(w).Encode(user)
+	req.ID = ps.ByName("id")
+
+	// Simulate getting user logic
+	_ = json.NewEncoder(w).Encode(User{ID: req.ID, Name: "John Doe"})
 }
 ```
 
 ## Documentation Features
 
 ### Built-in Endpoints
-When you create a muxopenapi router, the following endpoints are automatically available:
+When you create a httpopenapi router, the following endpoints are automatically available:
 
 - **`/docs`** — Interactive UI documentation
 - **`/docs/openapi.yaml`** — Raw OpenAPI specification in YAML format
@@ -141,7 +130,7 @@ When you create a muxopenapi router, the following endpoints are automatically a
 If you want to disable the built-in UI, you can do so by passing `option.WithDisableDocs()` when creating the router:
 
 ```go
-r := muxopenapi.NewRouter(c,
+r := httprouteropenapi.NewRouter(c,
     option.WithTitle("My API"),
     option.WithVersion("1.0.0"),
     option.WithDisableDocs(),
@@ -158,10 +147,10 @@ Choose from multiple UI options, powered by [`oaswrap/spec-ui`](https://github.c
 - **RapiDoc** — Highly customizable
 
 ```go
-r := muxopenapi.NewRouter(c,
-	option.WithTitle("My API"),
-	option.WithVersion("1.0.0"),
-	option.WithScalar(), // Use Scalar as the documentation UI
+r := httprouteropenapi.NewRouter(c,
+    option.WithTitle("My API"),
+    option.WithVersion("1.0.0"),
+    option.WithScalar(), // Use Scalar as the documentation UI
 )
 ```
 
@@ -184,7 +173,7 @@ For more struct tag options, see the [swaggest/openapi-go](https://github.com/sw
 ## Examples
 
 Check out complete examples in the main repository:
-- [Basic](https://github.com/oaswrap/spec/tree/main/examples/adapter/muxopenapi/basic)
+- [Basic](https://github.com/oaswrap/spec/tree/main/examples/adapter/httprouteropenapi/basic)
 
 ## Best Practices
 
@@ -198,7 +187,7 @@ Check out complete examples in the main repository:
 ## API Reference
 
 - **Spec**: [pkg.go.dev/github.com/oaswrap/spec](https://pkg.go.dev/github.com/oaswrap/spec)
-- **Mux Adapter**: [pkg.go.dev/github.com/oaswrap/spec/adapter/muxopenapi](https://pkg.go.dev/github.com/oaswrap/spec/adapter/muxopenapi)
+- **HTTP Router Adapter**: [pkg.go.dev/github.com/oaswrap/spec/adapter/httprouteropenapi](https://pkg.go.dev/github.com/oaswrap/spec/adapter/httprouteropenapi)
 - **Options**: [pkg.go.dev/github.com/oaswrap/spec/option](https://pkg.go.dev/github.com/oaswrap/spec/option)
 - **Spec UI**: [pkg.go.dev/github.com/oaswrap/spec-ui](https://pkg.go.dev/github.com/oaswrap/spec-ui)
 

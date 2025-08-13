@@ -37,6 +37,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
           description: OK
+      security:
+      - bearerAuth: []
       summary: Get user by ID
 components:
   schemas:
@@ -62,3 +64,7 @@ components:
         name:
           type: string
       type: object
+  securitySchemes:
+    bearerAuth:
+      scheme: Bearer
+      type: http

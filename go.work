@@ -12,6 +12,8 @@ use (
 	./adapter/ginopenapi/examples/basic
 	./adapter/httpopenapi
 	./adapter/httpopenapi/examples/basic
+	./adapter/httprouteropenapi
+	./adapter/httprouteropenapi/examples/basic
 	./adapter/muxopenapi
 	./adapter/muxopenapi/examples/basic
 	./examples/basic
