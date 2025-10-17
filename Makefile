@@ -113,7 +113,8 @@ lint: ## Run linting
 	@echo "$(GREEN)✅ Core linting passed$(NC)"
 	@for a in $(ADAPTERS); do \
 		echo "$(BLUE)🔍 Linting adapter/$$a...$(NC)"; \
-		(cd "adapter/$$a" && golangci-lint run) || (echo "$(RED)❌ Adapter $$a linting failed$(NC)" && exit 1); \
+		golangci-lint run ./adapter/$$a/... || \
+			(echo "$(RED)❌ Adapter $$a linting failed$(NC)" && exit 1); \
 	done
 	@echo "$(GREEN)🎉 All linting passed!$(NC)"
 

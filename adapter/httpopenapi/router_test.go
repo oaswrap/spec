@@ -18,6 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+//nolint:gochecknoglobals // test flag for golden file updates
 var update = flag.Bool("update", false, "update golden files")
 
 func TestRouter_Spec(t *testing.T) {
@@ -208,8 +209,9 @@ func TestRouter_Spec(t *testing.T) {
 					option.Summary("Update an existing user"),
 					option.Description("Update the details of an existing user."),
 					option.Request(new(struct {
-						Username string `path:"username" required:"true"`
 						dto.PetUser
+
+						Username string `path:"username" required:"true"`
 					})),
 					option.Response(200, new(dto.PetUser)),
 					option.Response(404, nil),
@@ -251,11 +253,11 @@ func TestRouter_Spec(t *testing.T) {
 
 			if tt.shouldErr {
 				err := r.Validate()
-				assert.Error(t, err, "expected error for invalid OpenAPI configuration")
+				require.Error(t, err, "expected error for invalid OpenAPI configuration")
 				return
 			}
 			err := r.Validate()
-			assert.NoError(t, err, "failed to validate OpenAPI configuration")
+			require.NoError(t, err, "failed to validate OpenAPI configuration")
 
 			// Test the OpenAPI schema generation
 			schema, err := r.GenerateSchema()
@@ -277,7 +279,7 @@ func TestRouter_Spec(t *testing.T) {
 	}
 }
 
-func pingHandler(w http.ResponseWriter, r *http.Request) {
+func pingHandler(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(map[string]string{"message": "pong"})
 }
@@ -290,7 +292,7 @@ func TestRouter_Handle(t *testing.T) {
 			option.OperationID("pingHandler"),
 		)
 
-		req := httptest.NewRequest("GET", "/ping", nil)
+		req := httptest.NewRequest(http.MethodGet, "/ping", nil)
 		rec := httptest.NewRecorder()
 		mux.ServeHTTP(rec, req)
 
@@ -308,7 +310,7 @@ func TestRouter_Handle(t *testing.T) {
 			option.OperationID("pingHandler"),
 		)
 
-		req := httptest.NewRequest("CONNECT", "/ping", nil)
+		req := httptest.NewRequest(http.MethodConnect, "/ping", nil)
 		rec := httptest.NewRecorder()
 		mux.ServeHTTP(rec, req)
 
@@ -329,7 +331,7 @@ func TestRouter_HandleFunc(t *testing.T) {
 			option.OperationID("pingHandler"),
 		)
 
-		req := httptest.NewRequest("GET", "/ping", nil)
+		req := httptest.NewRequest(http.MethodGet, "/ping", nil)
 		rec := httptest.NewRecorder()
 		mux.ServeHTTP(rec, req)
 
@@ -347,7 +349,7 @@ func TestRouter_HandleFunc(t *testing.T) {
 			option.OperationID("pingHandler"),
 		)
 
-		req := httptest.NewRequest("CONNECT", "/ping", nil)
+		req := httptest.NewRequest(http.MethodConnect, "/ping", nil)
 		rec := httptest.NewRecorder()
 		mux.ServeHTTP(rec, req)
 
@@ -372,7 +374,7 @@ func TestRouter_Group(t *testing.T) {
 			option.OperationID("pingHandler"),
 		)
 
-		req := httptest.NewRequest("GET", "/api/ping", nil)
+		req := httptest.NewRequest(http.MethodGet, "/api/ping", nil)
 		rec := httptest.NewRecorder()
 		mux.ServeHTTP(rec, req)
 
@@ -400,7 +402,7 @@ func TestRouter_Group(t *testing.T) {
 			option.OperationID("pingHandler"),
 		)
 
-		req := httptest.NewRequest("GET", "/api/ping", nil)
+		req := httptest.NewRequest(http.MethodGet, "/api/ping", nil)
 		rec := httptest.NewRecorder()
 		mux.ServeHTTP(rec, req)
 
@@ -422,7 +424,7 @@ func TestRouter_Group(t *testing.T) {
 			)
 		})
 
-		req := httptest.NewRequest("GET", "/api/ping", nil)
+		req := httptest.NewRequest(http.MethodGet, "/api/ping", nil)
 		rec := httptest.NewRecorder()
 		mux.ServeHTTP(rec, req)
 
@@ -449,7 +451,7 @@ func TestRouter_Group(t *testing.T) {
 			)
 		}, middleware)
 
-		req := httptest.NewRequest("GET", "/api/ping", nil)
+		req := httptest.NewRequest(http.MethodGet, "/api/ping", nil)
 		rec := httptest.NewRecorder()
 		mux.ServeHTTP(rec, req)
 
@@ -473,7 +475,7 @@ func TestGenerator_Docs(t *testing.T) {
 
 	// Test the OpenAPI documentation endpoint
 	t.Run("should serve docs", func(t *testing.T) {
-		docsReq := httptest.NewRequest("GET", "/docs", nil)
+		docsReq := httptest.NewRequest(http.MethodGet, "/docs", nil)
 		docsRec := httptest.NewRecorder()
 		mux.ServeHTTP(docsRec, docsReq)
 
@@ -481,7 +483,7 @@ func TestGenerator_Docs(t *testing.T) {
 		assert.Contains(t, docsRec.Body.String(), "HTTP OpenAPI")
 	})
 	t.Run("should serve docs file", func(t *testing.T) {
-		docsFileReq := httptest.NewRequest("GET", "/docs/openapi.yaml", nil)
+		docsFileReq := httptest.NewRequest(http.MethodGet, "/docs/openapi.yaml", nil)
 		docsFileRec := httptest.NewRecorder()
 		mux.ServeHTTP(docsFileRec, docsFileReq)
 
@@ -502,14 +504,14 @@ func TestGenerator_DisableDocs(t *testing.T) {
 
 	// Test that docs are not served when disabled
 	t.Run("should not serve docs when disabled", func(t *testing.T) {
-		docsReq := httptest.NewRequest("GET", "/docs", nil)
+		docsReq := httptest.NewRequest(http.MethodGet, "/docs", nil)
 		docsRec := httptest.NewRecorder()
 		mux.ServeHTTP(docsRec, docsReq)
 
 		assert.Equal(t, http.StatusNotFound, docsRec.Code, "expected 404 when docs are disabled")
 	})
 	t.Run("should not serve docs file when disabled", func(t *testing.T) {
-		docsFileReq := httptest.NewRequest("GET", "/docs/openapi.yaml", nil)
+		docsFileReq := httptest.NewRequest(http.MethodGet, "/docs/openapi.yaml", nil)
 		docsFileRec := httptest.NewRecorder()
 		mux.ServeHTTP(docsFileRec, docsFileReq)
 
@@ -555,7 +557,7 @@ func TestGenerator_WriteSchemaTo(t *testing.T) {
 		option.OperationID("pingHandler"),
 	)
 
-	tempFile, err := os.CreateTemp("", "openapi-schema-*.yaml")
+	tempFile, err := os.CreateTemp(t.TempDir(), "openapi-schema-*.yaml")
 	require.NoError(t, err, "failed to create temporary file")
 	defer func() {
 		_ = os.Remove(tempFile.Name())

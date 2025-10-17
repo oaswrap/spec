@@ -19,6 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+//nolint:gochecknoglobals // test flag for golden file updates
 var update = flag.Bool("update", false, "update golden files")
 
 func TestRouter_Spec(t *testing.T) {
@@ -210,8 +211,9 @@ func TestRouter_Spec(t *testing.T) {
 					option.Summary("Update an existing user"),
 					option.Description("Update the details of an existing user."),
 					option.Request(new(struct {
-						Username string `path:"username" required:"true"`
 						dto.PetUser
+
+						Username string `path:"username" required:"true"`
 					})),
 					option.Response(200, new(dto.PetUser)),
 					option.Response(404, nil),
@@ -253,11 +255,11 @@ func TestRouter_Spec(t *testing.T) {
 
 			if tt.shouldErr {
 				err := r.Validate()
-				assert.Error(t, err, "expected error for invalid OpenAPI configuration")
+				require.Error(t, err, "expected error for invalid OpenAPI configuration")
 				return
 			}
 			err := r.Validate()
-			assert.NoError(t, err, "failed to validate OpenAPI configuration")
+			require.NoError(t, err, "failed to validate OpenAPI configuration")
 
 			// Test the OpenAPI schema generation
 			schema, err := r.GenerateSchema()
@@ -279,7 +281,7 @@ func TestRouter_Spec(t *testing.T) {
 	}
 }
 
-func PingHandler(w http.ResponseWriter, r *http.Request) {
+func PingHandler(w http.ResponseWriter, _ *http.Request) {
 	_ = json.NewEncoder(w).Encode(map[string]string{"message": "pong"})
 }
 
@@ -298,7 +300,7 @@ func TestRouter_HandleFunc(t *testing.T) {
 			assert.NotNil(t, r.GetRoute("ping"))
 			assert.NotNil(t, route.GetHandler())
 			assert.Equal(t, "ping", route.GetName())
-			assert.Nil(t, route.GetError())
+			require.NoError(t, route.GetError())
 
 			// Test the /ping endpoint
 			req := httptest.NewRequest(method, "/ping", nil)
@@ -338,7 +340,7 @@ func TestRouter_Handle(t *testing.T) {
 			assert.NotNil(t, r.GetRoute("ping"))
 			assert.NotNil(t, route.GetHandler())
 			assert.Equal(t, "ping", route.GetName())
-			assert.Nil(t, route.GetError())
+			require.NoError(t, route.GetError())
 
 			// Test the /ping endpoint
 			req := httptest.NewRequest(method, "/ping", nil)
@@ -371,7 +373,7 @@ func TestRouter_Queries(t *testing.T) {
 		option.Summary("Ping endpoint"),
 	)
 	t.Run("when match should return 200", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/ping?foo=bar", nil)
+		req := httptest.NewRequest(http.MethodGet, "/ping?foo=bar", nil)
 		rec := httptest.NewRecorder()
 		mux.ServeHTTP(rec, req)
 
@@ -379,7 +381,7 @@ func TestRouter_Queries(t *testing.T) {
 		assert.JSONEq(t, `{"message": "pong"}`, rec.Body.String())
 	})
 	t.Run("when not match should return 404", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/ping?foo=baz", nil)
+		req := httptest.NewRequest(http.MethodGet, "/ping?foo=baz", nil)
 		rec := httptest.NewRecorder()
 		mux.ServeHTTP(rec, req)
 
@@ -396,7 +398,7 @@ func TestRouter_Headers(t *testing.T) {
 	)
 
 	t.Run("when match should return 200", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/ping", nil)
+		req := httptest.NewRequest(http.MethodGet, "/ping", nil)
 		req.Header.Set("X-Foo", "bar")
 		rec := httptest.NewRecorder()
 		mux.ServeHTTP(rec, req)
@@ -405,7 +407,7 @@ func TestRouter_Headers(t *testing.T) {
 		assert.JSONEq(t, `{"message": "pong"}`, rec.Body.String())
 	})
 	t.Run("when not match should return 404", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/ping", nil)
+		req := httptest.NewRequest(http.MethodGet, "/ping", nil)
 		req.Header.Set("X-Foo", "baz")
 		rec := httptest.NewRecorder()
 		mux.ServeHTTP(rec, req)
@@ -424,7 +426,7 @@ func TestRouter_Subrouter(t *testing.T) {
 	)
 
 	// Test the /api/ping endpoint
-	req := httptest.NewRequest("GET", "/api/ping", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/ping", nil)
 
 	rr := httptest.NewRecorder()
 	mux.ServeHTTP(rr, req)
@@ -455,7 +457,7 @@ func TestRouter_Middleware(t *testing.T) {
 			option.Summary("Ping endpoint"),
 		)
 
-		req := httptest.NewRequest("GET", "/ping", nil)
+		req := httptest.NewRequest(http.MethodGet, "/ping", nil)
 		rec := httptest.NewRecorder()
 		r.ServeHTTP(rec, req)
 
@@ -474,7 +476,7 @@ func TestGenerator_Docs(t *testing.T) {
 	)
 
 	t.Run("should serve docs", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/docs", nil)
+		req := httptest.NewRequest(http.MethodGet, "/docs", nil)
 		rec := httptest.NewRecorder()
 		mux.ServeHTTP(rec, req)
 
@@ -482,7 +484,7 @@ func TestGenerator_Docs(t *testing.T) {
 		assert.Contains(t, rec.Body.String(), "Mux OpenAPI")
 	})
 	t.Run("should serve docs/openapi.yaml", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/docs/openapi.yaml", nil)
+		req := httptest.NewRequest(http.MethodGet, "/docs/openapi.yaml", nil)
 		rec := httptest.NewRecorder()
 		mux.ServeHTTP(rec, req)
 
@@ -500,7 +502,7 @@ func TestGenerator_DisableDocs(t *testing.T) {
 	)
 
 	t.Run("should not serve docs", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/docs", nil)
+		req := httptest.NewRequest(http.MethodGet, "/docs", nil)
 		rec := httptest.NewRecorder()
 		mux.ServeHTTP(rec, req)
 
@@ -508,7 +510,7 @@ func TestGenerator_DisableDocs(t *testing.T) {
 	})
 
 	t.Run("should not serve docs/openapi.yaml", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/docs/openapi.yaml", nil)
+		req := httptest.NewRequest(http.MethodGet, "/docs/openapi.yaml", nil)
 		rec := httptest.NewRecorder()
 		mux.ServeHTTP(rec, req)
 

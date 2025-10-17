@@ -13,11 +13,11 @@ pre-commit:
 
     lint:
       glob: "*.go"
-      run: golangci-lint run --fix
+      run: make lint
 
     mod-tidy:
       glob: "go.{mod,sum}"
-      run: go mod tidy
+      run: make tidy
 
 commit-msg:
   commands:

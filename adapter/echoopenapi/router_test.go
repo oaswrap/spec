@@ -19,6 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+//nolint:gochecknoglobals // test flag for golden file updates
 var update = flag.Bool("update", false, "update golden files")
 
 type HelloRequest struct {
@@ -73,6 +74,7 @@ type ErrorResponse struct {
 
 type ValidationResponse struct {
 	ErrorResponse
+
 	Errors []struct {
 		Field   string `json:"field"`
 		Message string `json:"message"`
@@ -271,8 +273,9 @@ func TestRouter_Spec(t *testing.T) {
 					option.Summary("Update an existing user"),
 					option.Description("Update the details of an existing user."),
 					option.Request(new(struct {
-						Username string `path:"username" required:"true"`
 						dto.PetUser
+
+						Username string `path:"username" required:"true"`
 					})),
 					option.Response(200, new(dto.PetUser)),
 					option.Response(404, nil),
@@ -298,10 +301,10 @@ func TestRouter_Spec(t *testing.T) {
 
 			err := r.Validate()
 			if tt.shouldErr {
-				assert.Error(t, err, "Expected error for test: %s", tt.name)
+				require.Error(t, err, "Expected error for test: %s", tt.name)
 				return
 			}
-			assert.NoError(t, err, "Expected no error for test: %s", tt.name)
+			require.NoError(t, err, "Expected no error for test: %s", tt.name)
 
 			// Test the OpenAPI schema generation
 			schema, err := r.GenerateSchema()
@@ -371,16 +374,21 @@ func TestRouter_Single(t *testing.T) {
 			// Verify the OpenAPI schema
 			if tt.method == "CONNECT" {
 				schema, err := r.MarshalYAML()
-				assert.NoError(t, err, "Expected no error while generating OpenAPI schema")
+				require.NoError(t, err, "Expected no error while generating OpenAPI schema")
 				assert.NotEmpty(t, schema, "Expected OpenAPI schema to be generated")
 				assert.NotContains(t, string(schema), fmt.Sprintf("operationId: hello%s", tt.method))
 				return
 			}
 			schema, err := r.MarshalYAML()
-			assert.NoError(t, err, "Expected no error while generating OpenAPI schema")
+			require.NoError(t, err, "Expected no error while generating OpenAPI schema")
 			assert.NotEmpty(t, schema, "Expected OpenAPI schema to be generated")
 			assert.Contains(t, string(schema), fmt.Sprintf("operationId: hello%s", tt.method))
-			assert.Contains(t, string(schema), "summary: Hello Handler", "Expected OpenAPI schema to contain the summary")
+			assert.Contains(
+				t,
+				string(schema),
+				"summary: Hello Handler",
+				"Expected OpenAPI schema to contain the summary",
+			)
 		})
 	}
 }
@@ -565,13 +573,13 @@ func TestGenerator_WriteSchemaTo(t *testing.T) {
 	// Write the OpenAPI schema to a file
 	tempFile := t.TempDir() + "/openapi.yaml"
 	err := r.WriteSchemaTo(tempFile)
-	assert.NoError(t, err, "Expected no error while writing OpenAPI schema to file")
+	require.NoError(t, err, "Expected no error while writing OpenAPI schema to file")
 
 	// Verify the file exists and is not empty
 	info, err := os.Stat(tempFile)
-	assert.NoError(t, err, "Expected no error while checking file stats")
+	require.NoError(t, err, "Expected no error while checking file stats")
 	assert.False(t, info.IsDir(), "Expected file to not be a directory")
-	assert.Greater(t, info.Size(), int64(0), "Expected file size to be greater than 0")
+	assert.Positive(t, info.Size(), "Expected file size to be greater than 0")
 }
 
 func TestGenerator_MarshalJSON(t *testing.T) {
@@ -593,7 +601,7 @@ func TestGenerator_MarshalJSON(t *testing.T) {
 
 	// Marshal the OpenAPI schema to JSON
 	schema, err := r.MarshalJSON()
-	assert.NoError(t, err, "Expected no error while marshaling OpenAPI schema to JSON")
+	require.NoError(t, err, "Expected no error while marshaling OpenAPI schema to JSON")
 	assert.NotEmpty(t, schema, "Expected OpenAPI schema JSON to not be empty")
 }
 

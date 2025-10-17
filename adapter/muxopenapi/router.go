@@ -1,7 +1,6 @@
 package muxopenapi
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -22,14 +21,14 @@ var _ Generator = (*router)(nil)
 
 // NewRouter creates a new OpenAPI router with the provided mux.Router instance and options.
 //
-// It initializes the OpenAPI configuration and sets up the necessary routes for serving
+// It initializes the OpenAPI configuration and sets up the necessary routes for serving.
 func NewRouter(mux *mux.Router, opts ...option.OpenAPIOption) Generator {
 	return NewGenerator(mux, opts...)
 }
 
 // NewGenerator creates a new OpenAPI router with the provided mux.Router instance and options.
 //
-// It initializes the OpenAPI configuration and sets up the necessary routes for serving
+// It initializes the OpenAPI configuration and sets up the necessary routes for serving.
 func NewGenerator(mux *mux.Router, opts ...option.OpenAPIOption) Generator {
 	defaultOpts := []option.OpenAPIOption{
 		option.WithTitle(constant.DefaultTitle),
@@ -51,8 +50,6 @@ func NewGenerator(mux *mux.Router, opts ...option.OpenAPIOption) Generator {
 	}
 
 	handler := specui.NewHandler(mapper.SpecUIOpts(gen)...)
-
-	fmt.Println(cfg.SpecPath)
 
 	mux.Handle(cfg.DocsPath, handler.Docs()).Methods(http.MethodGet)
 	mux.Handle(cfg.SpecPath, handler.Spec()).Methods(http.MethodGet)

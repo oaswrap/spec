@@ -18,6 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+//nolint:gochecknoglobals // test flag for golden file updates
 var update = flag.Bool("update", false, "update golden files")
 
 func TestRouter_Spec(t *testing.T) {
@@ -210,8 +211,9 @@ func TestRouter_Spec(t *testing.T) {
 					option.Summary("Update an existing user"),
 					option.Description("Update the details of an existing user."),
 					option.Request(new(struct {
-						Username string `path:"username" required:"true"`
 						dto.PetUser
+
+						Username string `path:"username" required:"true"`
 					})),
 					option.Response(200, new(dto.PetUser)),
 					option.Response(404, nil),
@@ -260,11 +262,11 @@ func TestRouter_Spec(t *testing.T) {
 
 			if tt.shouldErr {
 				err := r.Validate()
-				assert.Error(t, err, "expected error for invalid OpenAPI configuration")
+				require.Error(t, err, "expected error for invalid OpenAPI configuration")
 				return
 			}
 			err := r.Validate()
-			assert.NoError(t, err, "failed to validate OpenAPI configuration")
+			require.NoError(t, err, "failed to validate OpenAPI configuration")
 
 			// Test the OpenAPI schema generation
 			schema, err := r.GenerateSchema()
@@ -329,7 +331,13 @@ func TestRouter_Single(t *testing.T) {
 			app.ServeHTTP(rec, req)
 
 			assert.Equal(t, http.StatusOK, rec.Code, "expected status code 200 for %s", tt.method)
-			assert.Equal(t, `{"message":"pong"}`, rec.Body.String(), "expected response body to be 'pong' for %s", tt.method)
+			assert.JSONEq(
+				t,
+				`{"message":"pong"}`,
+				rec.Body.String(),
+				"expected response body to be 'pong' for %s",
+				tt.method,
+			)
 
 			schema, err := r.GenerateSchema()
 			require.NoError(t, err, "failed to generate OpenAPI schema for %s", tt.method)
@@ -344,7 +352,7 @@ func TestRouter_Single(t *testing.T) {
 		fileName := "hello.txt"
 		fileContent := []byte("Hello, static!")
 		err := os.WriteFile(filepath.Join(tmpDir, fileName), fileContent, 0644)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		// Setup Gin
 		gin.SetMode(gin.TestMode)
@@ -354,7 +362,7 @@ func TestRouter_Single(t *testing.T) {
 
 		// Create test server
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/static/"+fileName, nil)
+		req, _ := http.NewRequest(http.MethodGet, "/static/"+fileName, nil)
 		g.ServeHTTP(w, req)
 
 		// Assertions
@@ -370,7 +378,7 @@ func TestRouter_Single(t *testing.T) {
 		fileName := "test.txt"
 		content := []byte("Hello from StaticFS!")
 		err := os.WriteFile(filepath.Join(tmpDir, fileName), content, 0644)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		// Setup Gin
 		gin.SetMode(gin.TestMode)
@@ -382,7 +390,7 @@ func TestRouter_Single(t *testing.T) {
 
 		// Make request
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/assets/"+fileName, nil)
+		req, _ := http.NewRequest(http.MethodGet, "/assets/"+fileName, nil)
 		g.ServeHTTP(w, req)
 
 		// Assert
@@ -391,7 +399,7 @@ func TestRouter_Single(t *testing.T) {
 	})
 	t.Run("StaticFile", func(t *testing.T) {
 		// Create temp file
-		tmpFile, err := os.CreateTemp("", "static-file-*.txt")
+		tmpFile, err := os.CreateTemp(t.TempDir(), "static-file-*.txt")
 		require.NoError(t, err)
 		defer func() {
 			_ = os.Remove(tmpFile.Name())
@@ -410,7 +418,7 @@ func TestRouter_Single(t *testing.T) {
 
 		// Create test server
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/static-file", nil)
+		req, _ := http.NewRequest(http.MethodGet, "/static-file", nil)
 		g.ServeHTTP(w, req)
 
 		// Assertions
@@ -424,7 +432,7 @@ func TestRouter_Single(t *testing.T) {
 		content := []byte("This is served by StaticFileFS!")
 
 		err := os.WriteFile(filepath.Join(tmpDir, fileName), content, 0644)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		g := gin.New()
 		r := ginopenapi.NewRouter(g)
@@ -434,7 +442,7 @@ func TestRouter_Single(t *testing.T) {
 
 		// Make request
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/myfile", nil)
+		req, _ := http.NewRequest(http.MethodGet, "/myfile", nil)
 		g.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -467,12 +475,12 @@ func TestRouter_Group(t *testing.T) {
 
 	assert.NotNil(t, group, "expected group to be created")
 
-	req, _ := http.NewRequest("GET", "/api/ping", nil)
+	req, _ := http.NewRequest(http.MethodGet, "/api/ping", nil)
 	rec := httptest.NewRecorder()
 	app.ServeHTTP(rec, req)
 
 	assert.Equal(t, http.StatusOK, rec.Code, "expected status code 200 for /api/ping")
-	assert.Equal(t, `{"message":"pong"}`, rec.Body.String(), "expected response body to be 'pong' for /api/ping")
+	assert.JSONEq(t, `{"message":"pong"}`, rec.Body.String(), "expected response body to be 'pong' for /api/ping")
 
 	schema, err := r.GenerateSchema()
 	require.NoError(t, err, "failed to generate OpenAPI schema for /api/ping")
@@ -497,11 +505,11 @@ func TestRouter_Middleware(t *testing.T) {
 			option.OperationID("testHandler"),
 		)
 
-		req := httptest.NewRequest("GET", "/test", nil)
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
 		rec := httptest.NewRecorder()
 		app.ServeHTTP(rec, req)
 		assert.Equal(t, http.StatusOK, rec.Code, "expected status code 200 for /test")
-		assert.Equal(t, `{"message":"test"}`, rec.Body.String(), "expected response body to be 'test'")
+		assert.JSONEq(t, `{"message":"test"}`, rec.Body.String(), "expected response body to be 'test'")
 		assert.True(t, called, "expected middleware to be called")
 	})
 }
@@ -526,11 +534,11 @@ func TestGenerator_Docs(t *testing.T) {
 
 	// Validate the router
 	err := r.Validate()
-	assert.NoError(t, err, "expected no error when validating router")
+	require.NoError(t, err, "expected no error when validating router")
 
 	// Test the OpenAPI documentation endpoint
 	t.Run("should serve docs", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/docs", nil)
+		req := httptest.NewRequest(http.MethodGet, "/docs", nil)
 		rec := httptest.NewRecorder()
 		app.ServeHTTP(rec, req)
 
@@ -538,13 +546,18 @@ func TestGenerator_Docs(t *testing.T) {
 		assert.Contains(t, rec.Body.String(), "Gin OpenAPI", "expected API documentation in response body")
 	})
 	t.Run("should serve OpenAPI YAML", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/docs/openapi.yaml", nil)
+		req := httptest.NewRequest(http.MethodGet, "/docs/openapi.yaml", nil)
 		rec := httptest.NewRecorder()
 		app.ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusOK, rec.Code, "expected status code 200 for /docs/openapi.yaml")
 		assert.NotEmpty(t, rec.Body.String(), "expected non-empty OpenAPI YAML response")
-		assert.Contains(t, rec.Header().Get("Content-Type"), "application/x-yaml", "expected Content-Type to be application/x-yaml")
+		assert.Contains(
+			t,
+			rec.Header().Get("Content-Type"),
+			"application/x-yaml",
+			"expected Content-Type to be application/x-yaml",
+		)
 		assert.Contains(t, rec.Body.String(), "openapi: 3.0.3", "expected OpenAPI version in response body")
 	})
 }
@@ -561,16 +574,21 @@ func TestGenerator_DisableDocs(t *testing.T) {
 	})
 
 	t.Run("should not register docs routes", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/docs", nil)
+		req := httptest.NewRequest(http.MethodGet, "/docs", nil)
 		rec := httptest.NewRecorder()
 		app.ServeHTTP(rec, req)
 		assert.Equal(t, http.StatusNotFound, rec.Code, "expected status code 404 for /docs when OpenAPI is disabled")
 	})
 	t.Run("should not register OpenAPI YAML route", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/docs/openapi.yaml", nil)
+		req := httptest.NewRequest(http.MethodGet, "/docs/openapi.yaml", nil)
 		rec := httptest.NewRecorder()
 		app.ServeHTTP(rec, req)
-		assert.Equal(t, http.StatusNotFound, rec.Code, "expected status code 404 for /docs/openapi.yaml when OpenAPI is disabled")
+		assert.Equal(
+			t,
+			http.StatusNotFound,
+			rec.Code,
+			"expected status code 404 for /docs/openapi.yaml when OpenAPI is disabled",
+		)
 	})
 }
 
@@ -586,10 +604,10 @@ func TestGenerator_WriteSchemaTo(t *testing.T) {
 	err := r.Validate()
 	require.NoError(t, err, "failed to validate OpenAPI configuration")
 
-	tempFile, err := os.CreateTemp("", "openapi-schema-*.yaml")
+	tempFile, err := os.CreateTemp(t.TempDir(), "openapi-schema-*.yaml")
 	require.NoError(t, err, "failed to create temporary file for OpenAPI schema")
 	defer func() {
-		err := os.Remove(tempFile.Name())
+		err = os.Remove(tempFile.Name())
 		require.NoError(t, err, "failed to remove temporary file")
 	}()
 

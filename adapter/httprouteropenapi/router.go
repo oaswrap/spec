@@ -58,17 +58,17 @@ type router struct {
 	gen        spec.Generator
 }
 
-func (sr *router) wrapHandler(h httprouter.Handle) httprouter.Handle {
-	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (r *router) wrapHandler(h httprouter.Handle) httprouter.Handle {
+	return func(w http.ResponseWriter, rr *http.Request, ps httprouter.Params) {
 		handlerFunc := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			h(w, r, ps)
 		})
 		handler := http.Handler(handlerFunc)
-		for i := len(sr.middlewares) - 1; i >= 0; i-- {
-			m := sr.middlewares[i]
+		for i := len(r.middlewares) - 1; i >= 0; i-- {
+			m := r.middlewares[i]
 			handler = m(handler)
 		}
-		handler.ServeHTTP(w, r)
+		handler.ServeHTTP(w, rr)
 	}
 }
 
@@ -109,7 +109,7 @@ func (r *router) Handler(method, path string, handler http.Handler) Route {
 }
 
 func (r *router) HandlerFunc(method, path string, handlerFunc http.HandlerFunc) Route {
-	return r.Handler(method, path, http.HandlerFunc(handlerFunc))
+	return r.Handler(method, path, handlerFunc)
 }
 
 func (r *router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
