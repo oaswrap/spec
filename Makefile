@@ -23,6 +23,7 @@ YELLOW := \033[1;33m
 BLUE   := \033[0;34m
 NC     := \033[0m # No Color
 
+# Tool versions
 GOLANGCI_LINT_VERSION := v2.3.1
 GOTESTSUM_VERSION     := v1.12.3
 
@@ -122,7 +123,7 @@ check: sync tidy lint test ## Run all local development checks
 install-tools: ## Install development tools
 	@echo "$(BLUE)📦 Installing development tools...$(NC)"
 	@go install gotest.tools/gotestsum@$(GOTESTSUM_VERSION)
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
+	@go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
 	@echo "$(GREEN)✅ Tools installed successfully!$(NC)"
 
 list-adapters: ## List available adapters

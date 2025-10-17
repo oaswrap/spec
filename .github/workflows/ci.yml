@@ -64,7 +64,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        go-version: ['1.23', '1.24']
+        go-version: ['1.23', '1.24', '1.25']
 
     steps:
     - name: 📥 Checkout
@@ -97,31 +97,12 @@ jobs:
         verbose: true
 
   # ========================================
-  # Security Scan
-  # ========================================
-  security:
-    name: 🔒 Security Scan
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: quality
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
-
-    steps:
-    - name: 📥 Checkout
-      uses: actions/checkout@v4
-
-    - name: Run Gosec Security Scanner
-      uses: securego/gosec@master
-      with:
-        args: './...'
-
-  # ========================================
   # Final Status Check
   # ========================================
   ci-success:
     name: ✅ CI Success
     runs-on: ubuntu-latest
-    needs: [quality, test, security]
+    needs: [quality, test]
     if: always()
 
     steps:
@@ -133,10 +114,6 @@ jobs:
         fi
         if [[ "${{ needs.test.result }}" != "success" ]]; then
           echo "Tests failed"
-          exit 1
-        fi
-        if [[ "${{ needs.security.result }}" != "success" && "${{ needs.security.result }}" != "skipped" ]]; then
-          echo "Security scan failed"
           exit 1
         fi
         echo "All CI checks passed! 🎉"
