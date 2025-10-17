@@ -157,6 +157,7 @@ paths:
         name: petId
         required: true
         schema:
+          format: int64
           type: integer
       requestBody:
         content:
@@ -168,7 +169,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DtoApiResponse'
+                $ref: '#/components/schemas/DtoAPIResponse'
           description: OK
       security:
       - petstore_auth:
@@ -414,7 +415,7 @@ paths:
       - user
 components:
   schemas:
-    DtoApiResponse:
+    DtoAPIResponse:
       properties:
         code:
           type: integer

@@ -31,8 +31,10 @@ components:
           minimum: 0
           type: integer
         float32:
+          format: float
           type: number
         float64:
+          format: double
           type: number
         int:
           type: integer
@@ -41,10 +43,13 @@ components:
         int16:
           type: integer
         int32:
+          format: int32
           type: integer
         int64:
+          format: int64
           type: integer
         rune:
+          format: int32
           type: integer
         string:
           type: string

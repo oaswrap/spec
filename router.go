@@ -184,7 +184,11 @@ func (g *generator) GenerateSchema(formats ...string) ([]byte, error) {
 	format := util.Optional("yaml", formats...)
 	supportedFormats := []string{"json", "yaml", "yml"}
 	if !slices.Contains(supportedFormats, format) {
-		return nil, fmt.Errorf("unsupported format: %s, expected one of %v", format, supportedFormats)
+		return nil, fmt.Errorf(
+			"unsupported format: %s, expected one of %s",
+			format,
+			strings.Join(supportedFormats, ", "),
+		)
 	}
 
 	if format == "yaml" || format == "yml" {

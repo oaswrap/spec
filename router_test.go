@@ -762,19 +762,19 @@ func TestRouter_GenerateSchema(t *testing.T) {
 			name:        "Unsupported format",
 			formats:     []string{"xml"},
 			expectError: true,
-			errorMsg:    "unsupported format: xml, expected 'json', 'yaml', or 'yml'",
+			errorMsg:    "unsupported format: xml, expected one of json, yaml, yml",
 		},
 		{
 			name:        "Empty string format",
 			formats:     []string{""},
 			expectError: true,
-			errorMsg:    "unsupported format: , expected 'json', 'yaml', or 'yml'",
+			errorMsg:    "unsupported format: , expected one of json, yaml, yml",
 		},
 		{
 			name:        "Invalid format",
 			formats:     []string{"invalid"},
 			expectError: true,
-			errorMsg:    "unsupported format: invalid, expected 'json', 'yaml', or 'yml'",
+			errorMsg:    "unsupported format: invalid, expected one of json, yaml, ym",
 		},
 	}
 
