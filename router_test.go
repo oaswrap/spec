@@ -21,6 +21,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+//nolint:gochecknoglobals // test flag for golden file updates
 var update = flag.Bool("update", false, "update golden files")
 
 type AllBasicDataTypes struct {
@@ -62,7 +63,7 @@ type AllBasicDataTypesPointers struct {
 }
 
 type LoginRequest struct {
-	Username string `json:"username" example:"john_doe" validate:"required"`
+	Username string `json:"username" example:"john_doe"    validate:"required"`
 	Password string `json:"password" example:"password123" validate:"required"`
 }
 
@@ -155,13 +156,43 @@ func TestRouter(t *testing.T) {
 					ID int `path:"id" validate:"required"`
 				}
 				r.Get("/user", option.OperationID("getUser"), option.Summary("Get User"))
-				r.Post("/user", option.OperationID("createUser"), option.Summary("Create User"), option.Response(201, new(string), option.ContentType("plain/text")))
-				r.Put("/user/{id}", option.OperationID("updateUser"), option.Summary("Update User"), option.Request(new(UserDetailRequest)))
-				r.Patch("/user/{id}", option.OperationID("patchUser"), option.Summary("Patch User"), option.Request(new(UserDetailRequest)))
-				r.Delete("/user/{id}", option.OperationID("deleteUser"), option.Summary("Delete User"), option.Request(new(UserDetailRequest)))
-				r.Head("/user/{id}", option.OperationID("headUser"), option.Summary("Head User"), option.Request(new(UserDetailRequest)))
+				r.Post(
+					"/user",
+					option.OperationID("createUser"),
+					option.Summary("Create User"),
+					option.Response(201, new(string), option.ContentType("plain/text")),
+				)
+				r.Put(
+					"/user/{id}",
+					option.OperationID("updateUser"),
+					option.Summary("Update User"),
+					option.Request(new(UserDetailRequest)),
+				)
+				r.Patch(
+					"/user/{id}",
+					option.OperationID("patchUser"),
+					option.Summary("Patch User"),
+					option.Request(new(UserDetailRequest)),
+				)
+				r.Delete(
+					"/user/{id}",
+					option.OperationID("deleteUser"),
+					option.Summary("Delete User"),
+					option.Request(new(UserDetailRequest)),
+				)
+				r.Head(
+					"/user/{id}",
+					option.OperationID("headUser"),
+					option.Summary("Head User"),
+					option.Request(new(UserDetailRequest)),
+				)
 				r.Options("/user", option.OperationID("optionsUser"), option.Summary("Options User"))
-				r.Trace("/user/{id}", option.OperationID("traceUser"), option.Summary("Trace User"), option.Request(new(UserDetailRequest)))
+				r.Trace(
+					"/user/{id}",
+					option.OperationID("traceUser"),
+					option.Summary("Trace User"),
+					option.Request(new(UserDetailRequest)),
+				)
 			},
 		},
 		{
@@ -275,19 +306,25 @@ func TestRouter(t *testing.T) {
 					option.Request(new(dto.Pet)),
 					option.Response(201, new(dto.Pet)),
 				)
-				pet.Get("/findByStatus",
+				pet.Get(
+					"/findByStatus",
 					option.OperationID("findPetsByStatus"),
 					option.Summary("Find pets by status"),
-					option.Description("Finds Pets by status. Multiple status values can be provided with comma separated strings."),
+					option.Description(
+						"Finds Pets by status. Multiple status values can be provided with comma separated strings.",
+					),
 					option.Request(new(struct {
 						Status string `query:"status" enum:"available,pending,sold"`
 					})),
 					option.Response(200, new([]dto.Pet)),
 				)
-				pet.Get("/findByTags",
+				pet.Get(
+					"/findByTags",
 					option.OperationID("findPetsByTags"),
 					option.Summary("Find pets by tags"),
-					option.Description("Finds Pets by tags. Multiple tags can be provided with comma separated strings."),
+					option.Description(
+						"Finds Pets by tags. Multiple tags can be provided with comma separated strings.",
+					),
 					option.Request(new(struct {
 						Tags []string `query:"tags"`
 					})),
@@ -298,7 +335,7 @@ func TestRouter(t *testing.T) {
 					option.Summary("Upload an image for a pet"),
 					option.Description("Uploads an image for a pet."),
 					option.Request(new(dto.UploadImageRequest)),
-					option.Response(200, new(dto.ApiResponse)),
+					option.Response(200, new(dto.APIResponse)),
 				)
 				pet.Get("/{petId}",
 					option.OperationID("getPetById"),
@@ -385,8 +422,9 @@ func TestRouter(t *testing.T) {
 					option.Summary("Update an existing user"),
 					option.Description("Update the details of an existing user."),
 					option.Request(new(struct {
-						Username string `path:"username" required:"true"`
 						dto.PetUser
+
+						Username string `path:"username" required:"true"`
 					})),
 					option.Response(200, new(dto.PetUser)),
 					option.Response(404, nil),
@@ -451,14 +489,14 @@ func TestRouter(t *testing.T) {
 					option.RootRef(),
 					option.RootNullable(),
 					option.StripDefNamePrefix("Test", "Mock"),
-					option.InterceptDefNameFunc(func(t reflect.Type, defaultDefName string) string {
+					option.InterceptDefNameFunc(func(_ reflect.Type, defaultDefName string) string {
 						return defaultDefName + "_Custom"
 					}),
-					option.InterceptPropFunc(func(params openapi.InterceptPropParams) error {
+					option.InterceptPropFunc(func(_ openapi.InterceptPropParams) error {
 						return nil
 					}),
 					option.RequiredPropByValidateTag(),
-					option.InterceptSchemaFunc(func(params openapi.InterceptSchemaParams) (stop bool, err error) {
+					option.InterceptSchemaFunc(func(_ openapi.InterceptSchemaParams) (bool, error) {
 						return false, nil
 					}),
 					option.TypeMapping(NullString{}, new(string)),
@@ -674,10 +712,10 @@ func TestRouter(t *testing.T) {
 				}
 
 				if tt.shouldError {
-					assert.Error(t, r.Validate(), "Expected router to fail validation")
+					require.Error(t, r.Validate(), "Expected router to fail validation")
 					continue
 				}
-				assert.NoError(t, r.Validate(), "Router validation failed")
+				require.NoError(t, r.Validate(), "Router validation failed")
 
 				schema, err := r.GenerateSchema("yaml")
 				require.NoError(t, err)
@@ -758,15 +796,15 @@ func TestRouter_GenerateSchema(t *testing.T) {
 			schema, err := r.GenerateSchema(tt.formats...)
 
 			if tt.expectError {
-				assert.Error(t, err)
+				require.Error(t, err)
 				assert.Contains(t, err.Error(), tt.errorMsg)
 				assert.Nil(t, schema)
 				return
 			}
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.NotNil(t, schema)
-			assert.Greater(t, len(schema), 0, "Schema should not be empty")
+			assert.NotEmpty(t, schema)
 
 			// Verify format-specific content
 			if len(tt.formats) == 0 || tt.formats[0] == "yaml" {
@@ -849,7 +887,7 @@ func TestRouter_WriteSchemaTo(t *testing.T) {
 				return
 			}
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			// Verify file was created
 			assert.FileExists(t, fullPath)
@@ -857,7 +895,7 @@ func TestRouter_WriteSchemaTo(t *testing.T) {
 			// Read and verify file content
 			content, err := os.ReadFile(fullPath)
 			require.NoError(t, err)
-			assert.Greater(t, len(content), 0, "File should not be empty")
+			assert.NotEmpty(t, content)
 
 			if tt.expectJSON {
 				// Verify JSON format

@@ -1,9 +1,10 @@
-package debuglog
+package debuglog_test
 
 import (
 	"fmt"
 	"testing"
 
+	"github.com/oaswrap/spec/internal/debuglog"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/stretchr/testify/assert"
 )
@@ -16,17 +17,9 @@ func (m *mockLogger) Printf(format string, v ...any) {
 	m.messages = append(m.messages, fmt.Sprintf(format, v...))
 }
 
-func TestNewLogger(t *testing.T) {
-	mockLog := &mockLogger{}
-	logger := NewLogger("test", mockLog)
-
-	assert.Equal(t, "[test]", logger.prefix)
-	assert.Equal(t, mockLog, logger.logger)
-}
-
 func TestLogger_Printf(t *testing.T) {
 	mockLog := &mockLogger{}
-	logger := NewLogger("test", mockLog)
+	logger := debuglog.NewLogger("test", mockLog)
 
 	logger.Printf("Hello %s", "world")
 
@@ -37,7 +30,7 @@ func TestLogger_Printf(t *testing.T) {
 
 func TestLogger_LogOp(t *testing.T) {
 	mockLog := &mockLogger{}
-	logger := NewLogger("api", mockLog)
+	logger := debuglog.NewLogger("api", mockLog)
 
 	logger.LogOp("GET", "/users", "fetch", "all users")
 
@@ -48,7 +41,7 @@ func TestLogger_LogOp(t *testing.T) {
 
 func TestLogger_LogAction(t *testing.T) {
 	mockLog := &mockLogger{}
-	logger := NewLogger("test", mockLog)
+	logger := debuglog.NewLogger("test", mockLog)
 
 	logger.LogAction("validate", "schema")
 
@@ -59,7 +52,7 @@ func TestLogger_LogAction(t *testing.T) {
 
 func TestLogger_LogContact(t *testing.T) {
 	mockLog := &mockLogger{}
-	logger := NewLogger("test", mockLog)
+	logger := debuglog.NewLogger("test", mockLog)
 
 	// Test with nil contact
 	logger.LogContact(nil)
@@ -80,7 +73,7 @@ func TestLogger_LogContact(t *testing.T) {
 
 func TestLogger_LogLicense(t *testing.T) {
 	mockLog := &mockLogger{}
-	logger := NewLogger("test", mockLog)
+	logger := debuglog.NewLogger("test", mockLog)
 
 	license := &openapi.License{
 		Name: "MIT",
@@ -95,7 +88,7 @@ func TestLogger_LogLicense(t *testing.T) {
 
 func TestLogger_LogExternalDocs(t *testing.T) {
 	mockLog := &mockLogger{}
-	logger := NewLogger("test", mockLog)
+	logger := debuglog.NewLogger("test", mockLog)
 
 	docs := &openapi.ExternalDocs{
 		URL:         "https://docs.example.com",
@@ -110,7 +103,7 @@ func TestLogger_LogExternalDocs(t *testing.T) {
 
 func TestLogger_LogServer(t *testing.T) {
 	mockLog := &mockLogger{}
-	logger := NewLogger("test", mockLog)
+	logger := debuglog.NewLogger("test", mockLog)
 
 	desc := "Production server"
 	server := openapi.Server{
@@ -132,7 +125,7 @@ func TestLogger_LogServer(t *testing.T) {
 
 func TestLogger_LogTag(t *testing.T) {
 	mockLog := &mockLogger{}
-	logger := NewLogger("test", mockLog)
+	logger := debuglog.NewLogger("test", mockLog)
 
 	tag := openapi.Tag{
 		Name:        "users",
@@ -151,7 +144,7 @@ func TestLogger_LogTag(t *testing.T) {
 
 func TestLogger_LogSecurityScheme(t *testing.T) {
 	mockLog := &mockLogger{}
-	logger := NewLogger("test", mockLog)
+	logger := debuglog.NewLogger("test", mockLog)
 
 	desc := "API Key authentication"
 	scheme := &openapi.SecurityScheme{

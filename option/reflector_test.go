@@ -7,6 +7,7 @@ import (
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/swaggest/jsonschema-go"
 )
 
@@ -45,7 +46,7 @@ func TestStripDefNamePrefix(t *testing.T) {
 
 func TestInterceptDefNameFunc(t *testing.T) {
 	config := &openapi.ReflectorConfig{}
-	mockFunc := func(t reflect.Type, defaultDefName string) string {
+	mockFunc := func(_ reflect.Type, _ string) string {
 		return "CustomName"
 	}
 	opt := option.InterceptDefNameFunc(mockFunc)
@@ -56,7 +57,7 @@ func TestInterceptDefNameFunc(t *testing.T) {
 
 func TestInterceptPropFunc(t *testing.T) {
 	config := &openapi.ReflectorConfig{}
-	mockFunc := func(params openapi.InterceptPropParams) error {
+	mockFunc := func(_ openapi.InterceptPropParams) error {
 		return nil
 	}
 	opt := option.InterceptPropFunc(mockFunc)
@@ -83,13 +84,13 @@ func TestRequiredPropByValidateTag(t *testing.T) {
 		Processed: true,
 	}
 	err := config.InterceptPropFunc(params)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Contains(t, params.ParentSchema.Required, "Field1")
 }
 
 func TestInterceptSchemaFunc(t *testing.T) {
 	config := &openapi.ReflectorConfig{}
-	mockFunc := func(params openapi.InterceptSchemaParams) (stop bool, err error) {
+	mockFunc := func(_ openapi.InterceptSchemaParams) (bool, error) {
 		return false, nil
 	}
 	opt := option.InterceptSchemaFunc(mockFunc)

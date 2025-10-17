@@ -193,7 +193,9 @@ func OAS31OauthFlowsPassword(flows *openapi.OAuthFlowsPassword) *openapi31.Oauth
 	}
 }
 
-func OAS31OauthFlowsClientCredentials(flows *openapi.OAuthFlowsClientCredentials) *openapi31.OauthFlowsDefsClientCredentials {
+func OAS31OauthFlowsClientCredentials(
+	flows *openapi.OAuthFlowsClientCredentials,
+) *openapi31.OauthFlowsDefsClientCredentials {
 	if flows == nil {
 		return nil
 	}
@@ -204,7 +206,9 @@ func OAS31OauthFlowsClientCredentials(flows *openapi.OAuthFlowsClientCredentials
 	}
 }
 
-func OAS31OauthFlowsAuthorizationCode(flows *openapi.OAuthFlowsAuthorizationCode) *openapi31.OauthFlowsDefsAuthorizationCode {
+func OAS31OauthFlowsAuthorizationCode(
+	flows *openapi.OAuthFlowsAuthorizationCode,
+) *openapi31.OauthFlowsDefsAuthorizationCode {
 	if flows == nil {
 		return nil
 	}

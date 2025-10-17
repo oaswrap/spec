@@ -46,15 +46,18 @@ func getJSONSchemaOpts(cfg *openapi.ReflectorConfig, logger *debuglog.Logger) []
 		logger.Printf("set custom intercept property function")
 	}
 	if cfg.InterceptSchemaFunc != nil {
-		opts = append(opts, jsonschema.InterceptSchema(func(params jsonschema.InterceptSchemaParams) (stop bool, err error) {
-			stop, err = cfg.InterceptSchemaFunc(openapi.InterceptSchemaParams{
-				Context:   params.Context,
-				Value:     params.Value,
-				Schema:    params.Schema,
-				Processed: params.Processed,
-			})
-			return stop, err
-		}))
+		opts = append(
+			opts,
+			jsonschema.InterceptSchema(func(params jsonschema.InterceptSchemaParams) (bool, error) {
+				stop, err := cfg.InterceptSchemaFunc(openapi.InterceptSchemaParams{
+					Context:   params.Context,
+					Value:     params.Value,
+					Schema:    params.Schema,
+					Processed: params.Processed,
+				})
+				return stop, err
+			}),
+		)
 		logger.Printf("set custom intercept schema function")
 	}
 

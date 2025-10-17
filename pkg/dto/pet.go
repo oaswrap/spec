@@ -9,7 +9,7 @@ type Pet struct {
 	ID        int      `json:"id"`
 	Name      string   `json:"name"`
 	Type      string   `json:"type"`
-	Status    string   `json:"status" enum:"available,pending,sold"`
+	Status    string   `json:"status"    enum:"available,pending,sold"`
 	Category  Category `json:"category"`
 	Tags      []Tag    `json:"tags"`
 	PhotoURLs []string `json:"photoUrls"`
@@ -27,19 +27,19 @@ type Category struct {
 
 type UpdatePetWithFormRequest struct {
 	ID     int    `path:"petId" required:"true"`
-	Name   string `formData:"name" required:"true"`
-	Status string `formData:"status" enum:"available,pending,sold"`
+	Name   string `             required:"true" formData:"name"`
+	Status string `                             formData:"status" enum:"available,pending,sold"`
 }
 
 type UploadImageRequest struct {
 	ID                 int64           `params:"petId" path:"petId"`
-	AdditionalMetaData string          `query:"additionalMetadata"`
-	_                  *multipart.File `contentType:"application/octet-stream"`
+	AdditionalMetaData string          `                            query:"additionalMetadata"`
+	_                  *multipart.File `                                                       contentType:"application/octet-stream"`
 }
 
 type DeletePetRequest struct {
 	ID     int    `path:"petId" required:"true"`
-	ApiKey string `header:"api_key"`
+	APIKey string `                             header:"api_key"`
 }
 
 type Order struct {
@@ -47,7 +47,7 @@ type Order struct {
 	PetID    int       `json:"petId"`
 	Quantity int       `json:"quantity"`
 	ShipDate time.Time `json:"shipDate"`
-	Status   string    `json:"status" enum:"placed,approved,delivered"`
+	Status   string    `json:"status"   enum:"placed,approved,delivered"`
 	Complete bool      `json:"complete"`
 }
 
@@ -62,7 +62,7 @@ type PetUser struct {
 	UserStatus int    `json:"userStatus" enum:"0,1,2"`
 }
 
-type ApiResponse struct {
+type APIResponse struct {
 	Message string `json:"message"`
 	Type    string `json:"type"`
 	Code    int    `json:"code"`

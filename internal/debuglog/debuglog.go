@@ -104,13 +104,14 @@ func (l *Logger) LogTag(tag openapi.Tag) {
 
 func (l *Logger) LogSecurityScheme(name string, scheme *openapi.SecurityScheme) {
 	var typeInfo string
-	if scheme.APIKey != nil {
+	switch {
+	case scheme.APIKey != nil:
 		typeInfo = "APIKey"
-	} else if scheme.HTTPBearer != nil {
+	case scheme.HTTPBearer != nil:
 		typeInfo = "HTTPBearer"
-	} else if scheme.OAuth2 != nil {
+	case scheme.OAuth2 != nil:
 		typeInfo = "OAuth2"
-	} else {
+	default:
 		typeInfo = "Unknown"
 	}
 	schemeInfo := "name: " + name + ", type: " + typeInfo

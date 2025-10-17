@@ -5,7 +5,7 @@ import (
 	"regexp"
 
 	"github.com/oaswrap/spec/internal/debuglog"
-	"github.com/oaswrap/spec/internal/errors"
+	"github.com/oaswrap/spec/internal/errs"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 )
@@ -30,15 +30,15 @@ func newReflector(cfg *openapi.Config) reflector {
 
 type invalidReflector struct {
 	spec   *noopSpec
-	errors *errors.SpecError
+	errors *errs.SpecError
 }
 
 func newInvalidReflector(err error) reflector {
-	errors := &errors.SpecError{}
-	errors.Add(err)
+	e := &errs.SpecError{}
+	e.Add(err)
 
 	return &invalidReflector{
-		errors: errors,
+		errors: e,
 		spec:   &noopSpec{},
 	}
 }
@@ -49,7 +49,7 @@ func (r *invalidReflector) Spec() spec {
 	return r.spec
 }
 
-func (r *invalidReflector) Add(method, path string, opts ...option.OperationOption) {}
+func (r *invalidReflector) Add(_, _ string, _ ...option.OperationOption) {}
 
 func (r *invalidReflector) Validate() error {
 	if r.errors.HasErrors() {

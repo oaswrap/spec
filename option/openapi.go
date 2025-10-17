@@ -1,7 +1,7 @@
 package option
 
 import (
-	"log"
+	"log" //nolint:depguard // Use standard log package for simplicity.
 
 	"github.com/oaswrap/spec-ui/config"
 	"github.com/oaswrap/spec/openapi"
@@ -128,17 +128,18 @@ func WithSecurity(name string, opts ...SecurityOption) OpenAPIOption {
 			c.SecuritySchemes = make(map[string]*openapi.SecurityScheme)
 		}
 
-		if securityConfig.APIKey != nil {
+		switch {
+		case securityConfig.APIKey != nil:
 			c.SecuritySchemes[name] = &openapi.SecurityScheme{
 				Description: securityConfig.Description,
 				APIKey:      securityConfig.APIKey,
 			}
-		} else if securityConfig.HTTPBearer != nil {
+		case securityConfig.HTTPBearer != nil:
 			c.SecuritySchemes[name] = &openapi.SecurityScheme{
 				Description: securityConfig.Description,
 				HTTPBearer:  securityConfig.HTTPBearer,
 			}
-		} else if securityConfig.Oauth2 != nil {
+		case securityConfig.Oauth2 != nil:
 			c.SecuritySchemes[name] = &openapi.SecurityScheme{
 				Description: securityConfig.Description,
 				OAuth2:      securityConfig.Oauth2,
@@ -182,7 +183,7 @@ func WithDocsPath(path string) OpenAPIOption {
 // WithSpecPath sets the path for the OpenAPI specification.
 //
 // This is the path where the OpenAPI specification will be served.
-// The default is "/docs/openapi.yaml"
+// The default is "/docs/openapi.yaml".
 func WithSpecPath(path string) OpenAPIOption {
 	return func(c *openapi.Config) {
 		c.SpecPath = path
@@ -309,4 +310,4 @@ func WithPathParser(parser openapi.PathParser) OpenAPIOption {
 
 type noopLogger struct{}
 
-func (l noopLogger) Printf(format string, v ...any) {}
+func (l noopLogger) Printf(_ string, _ ...any) {}

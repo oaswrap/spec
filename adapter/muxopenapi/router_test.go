@@ -122,7 +122,7 @@ func TestRouter_Spec(t *testing.T) {
 					option.Summary("Upload an image for a pet"),
 					option.Description("Uploads an image for a pet."),
 					option.Request(new(dto.UploadImageRequest)),
-					option.Response(200, new(dto.ApiResponse)),
+					option.Response(200, new(dto.APIResponse)),
 				)
 				pet.HandleFunc("/{petId}", nil).Methods("GET").With(
 					option.OperationID("getPetById"),

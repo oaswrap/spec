@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 	"sync"
 
@@ -171,7 +172,7 @@ func (g *generator) MarshalJSON() ([]byte, error) {
 	}
 
 	var buffer bytes.Buffer
-	if err := json.Indent(&buffer, schema, "", "  "); err != nil {
+	if err = json.Indent(&buffer, schema, "", "  "); err != nil {
 		return nil, fmt.Errorf("failed to indent OpenAPI JSON schema: %w", err)
 	}
 
@@ -181,8 +182,9 @@ func (g *generator) MarshalJSON() ([]byte, error) {
 // GenerateSchema generates the OpenAPI schema in the specified format (JSON or YAML).
 func (g *generator) GenerateSchema(formats ...string) ([]byte, error) {
 	format := util.Optional("yaml", formats...)
-	if format != "json" && format != "yaml" && format != "yml" {
-		return nil, fmt.Errorf("unsupported format: %s, expected 'json', 'yaml', or 'yml'", format)
+	supportedFormats := []string{"json", "yaml", "yml"}
+	if !slices.Contains(supportedFormats, format) {
+		return nil, fmt.Errorf("unsupported format: %s, expected one of %v", format, supportedFormats)
 	}
 
 	if format == "yaml" || format == "yml" {
@@ -225,31 +227,13 @@ func (g *generator) buildOnce() {
 func (g *generator) build() []*route {
 	var routes []*route
 	for _, r := range g.routes {
-		var opts []option.OperationOption
-
 		if r.method == "" || r.path == "" {
 			continue // Skip incomplete routes
 		}
 
-		if len(g.opts) > 0 {
-			cfg := &option.GroupConfig{}
-			for _, opt := range g.opts {
-				opt(cfg)
-			}
-			if cfg.Hide {
-				continue
-			}
-			if cfg.Deprecated {
-				opts = append(opts, option.Deprecated(true))
-			}
-			if len(cfg.Tags) > 0 {
-				opts = append(opts, option.Tags(cfg.Tags...))
-			}
-			if len(cfg.Security) > 0 {
-				for _, sec := range cfg.Security {
-					opts = append(opts, option.Security(sec.Name, sec.Scopes...))
-				}
-			}
+		opts, ok := g.buildRouteGroupOpts()
+		if !ok {
+			continue
 		}
 		if len(r.opts) > 0 {
 			r.opts = append(r.opts, opts...)
@@ -262,6 +246,31 @@ func (g *generator) build() []*route {
 		routes = append(routes, group.build()...)
 	}
 	return routes
+}
+
+func (g *generator) buildRouteGroupOpts() ([]option.OperationOption, bool) {
+	var opts []option.OperationOption
+	if len(g.opts) > 0 {
+		cfg := &option.GroupConfig{}
+		for _, opt := range g.opts {
+			opt(cfg)
+		}
+		if cfg.Hide {
+			return nil, false
+		}
+		if cfg.Deprecated {
+			opts = append(opts, option.Deprecated(true))
+		}
+		if len(cfg.Tags) > 0 {
+			opts = append(opts, option.Tags(cfg.Tags...))
+		}
+		if len(cfg.Security) > 0 {
+			for _, sec := range cfg.Security {
+				opts = append(opts, option.Security(sec.Name, sec.Scopes...))
+			}
+		}
+	}
+	return opts, true
 }
 
 type route struct {
