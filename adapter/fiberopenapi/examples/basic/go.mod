@@ -6,7 +6,7 @@ toolchain go1.23.12
 
 require (
 	github.com/gofiber/fiber/v2 v2.52.9
-	github.com/oaswrap/spec v0.3.3
+	github.com/oaswrap/spec v0.3.4
 	github.com/oaswrap/spec/adapter/fiberopenapi v0.0.0
 )
 
@@ -14,7 +14,6 @@ require (
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
-	github.com/kr/text v0.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect

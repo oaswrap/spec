@@ -12,8 +12,7 @@ github.com/iancoleman/orderedmap v0.3.0 h1:5cbR2grmZR/DiVt+VJopEhtVs9YGInGIxAoMJ
 github.com/iancoleman/orderedmap v0.3.0/go.mod h1:XuLcCUkdL5owUCQeF2Ue9uuw1EptkJDkXXS7VoV7XGE=
 github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=
 github.com/kr/text v0.1.0 h1:45sCR5RtlFHMR4UwH9sdQ5TC8v0qDQCHnXt+kaKSTVE=
-github.com/oaswrap/spec v0.3.3 h1:ezFH6wflfTrDUo7sxk6iRi+dWWbkdzqRW8xXw139oVw=
-github.com/oaswrap/spec v0.3.3/go.mod h1:cQiboTAf466DfgKGbFe0wCA14wXSBfhPcGMM0/zN1V8=
+github.com/oaswrap/spec v0.3.4 h1:m44CXo0P52WoY7pY3/ps6cuv/lNVCCZQk4jwqXqhE8o=
 github.com/oaswrap/spec-ui v0.1.4 h1:XM2Z/ZS2Su90EtDSVuOHGr2+DLpVc2933mxkn6F4aeU=
 github.com/oaswrap/spec-ui v0.1.4/go.mod h1:D8EnD6zbYJ3q65wdltw6QHXfw+nut5XwSSA1xtlSEQQ=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
