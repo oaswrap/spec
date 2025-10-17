@@ -23,6 +23,10 @@ YELLOW := \033[1;33m
 BLUE   := \033[0;34m
 NC     := \033[0m # No Color
 
+# Tool versions
+GOLANGCI_LINT_VERSION := v2.3.1
+GOTESTSUM_VERSION     := v1.12.3
+
 # Ensure all targets are marked as phony to avoid conflicts with filenames.
 .PHONY: test test-adapter test-update testcov testcov-html
 .PHONY: tidy sync lint check tidy-all
@@ -109,7 +113,8 @@ lint: ## Run linting
 	@echo "$(GREEN)✅ Core linting passed$(NC)"
 	@for a in $(ADAPTERS); do \
 		echo "$(BLUE)🔍 Linting adapter/$$a...$(NC)"; \
-		(cd "adapter/$$a" && golangci-lint run) || (echo "$(RED)❌ Adapter $$a linting failed$(NC)" && exit 1); \
+		golangci-lint run ./adapter/$$a/... || \
+			(echo "$(RED)❌ Adapter $$a linting failed$(NC)" && exit 1); \
 	done
 	@echo "$(GREEN)🎉 All linting passed!$(NC)"
 
@@ -118,8 +123,8 @@ check: sync tidy lint test ## Run all local development checks
 
 install-tools: ## Install development tools
 	@echo "$(BLUE)📦 Installing development tools...$(NC)"
-	@go install gotest.tools/gotestsum@latest
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	@go install gotest.tools/gotestsum@$(GOTESTSUM_VERSION)
+	@go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
 	@echo "$(GREEN)✅ Tools installed successfully!$(NC)"
 
 list-adapters: ## List available adapters

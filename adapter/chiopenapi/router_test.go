@@ -19,6 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+//nolint:gochecknoglobals // test flag for golden file updates
 var update = flag.Bool("update", false, "update golden files")
 
 func TestRouter_Spec(t *testing.T) {
@@ -119,7 +120,7 @@ func TestRouter_Spec(t *testing.T) {
 						option.Summary("Upload an image for a pet"),
 						option.Description("Uploads an image for a pet."),
 						option.Request(new(dto.UploadImageRequest)),
-						option.Response(200, new(dto.ApiResponse)),
+						option.Response(200, new(dto.APIResponse)),
 					)
 					r.Get("/{petId}", nil).With(
 						option.OperationID("getPetById"),
@@ -207,8 +208,9 @@ func TestRouter_Spec(t *testing.T) {
 						option.Summary("Update an existing user"),
 						option.Description("Update the details of an existing user."),
 						option.Request(new(struct {
-							Username string `path:"username" required:"true"`
 							dto.PetUser
+
+							Username string `path:"username" required:"true"`
 						})),
 						option.Response(200, new(dto.PetUser)),
 						option.Response(404, nil),
@@ -251,11 +253,11 @@ func TestRouter_Spec(t *testing.T) {
 
 			if tt.shouldErr {
 				err := r.Validate()
-				assert.Error(t, err, "expected error for invalid OpenAPI configuration")
+				require.Error(t, err, "expected error for invalid OpenAPI configuration")
 				return
 			}
 			err := r.Validate()
-			assert.NoError(t, err, "failed to validate OpenAPI configuration")
+			require.NoError(t, err, "failed to validate OpenAPI configuration")
 
 			// Test the OpenAPI schema generation
 			schema, err := r.GenerateSchema()
@@ -277,7 +279,7 @@ func TestRouter_Spec(t *testing.T) {
 	}
 }
 
-func pingHandler(w http.ResponseWriter, r *http.Request) {
+func pingHandler(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(map[string]string{"message": "pong"})
 }
@@ -342,7 +344,7 @@ func TestRouter_Single(t *testing.T) {
 		err := r.Validate()
 		require.NoError(t, err, "failed to validate OpenAPI configuration")
 
-		req := httptest.NewRequest("GET", "/ping", nil)
+		req := httptest.NewRequest(http.MethodGet, "/ping", nil)
 		rr := httptest.NewRecorder()
 		c.ServeHTTP(rr, req)
 
@@ -366,7 +368,7 @@ func TestRouter_Single(t *testing.T) {
 		err := r.Validate()
 		require.NoError(t, err, "failed to validate OpenAPI configuration")
 
-		req := httptest.NewRequest("CONNECT", "/ping", nil)
+		req := httptest.NewRequest(http.MethodConnect, "/ping", nil)
 		rr := httptest.NewRecorder()
 		c.ServeHTTP(rr, req)
 
@@ -386,7 +388,7 @@ func TestRouter_Single(t *testing.T) {
 		err := r.Validate()
 		require.NoError(t, err, "failed to validate OpenAPI configuration")
 
-		req := httptest.NewRequest("GET", "/ping", nil)
+		req := httptest.NewRequest(http.MethodGet, "/ping", nil)
 		rr := httptest.NewRecorder()
 		c.ServeHTTP(rr, req)
 
@@ -401,7 +403,7 @@ func TestRouter_Single(t *testing.T) {
 		err := r.Validate()
 		require.NoError(t, err, "failed to validate OpenAPI configuration")
 
-		req := httptest.NewRequest("GET", "/ping", nil)
+		req := httptest.NewRequest(http.MethodGet, "/ping", nil)
 		rr := httptest.NewRecorder()
 		c.ServeHTTP(rr, req)
 
@@ -422,7 +424,7 @@ func TestRouter_Single(t *testing.T) {
 		err := r.Validate()
 		require.NoError(t, err, "failed to validate OpenAPI configuration")
 
-		req := httptest.NewRequest("GET", "/sub/ping", nil)
+		req := httptest.NewRequest(http.MethodGet, "/sub/ping", nil)
 		rr := httptest.NewRecorder()
 		c.ServeHTTP(rr, req)
 
@@ -445,7 +447,7 @@ func TestRouter_Group(t *testing.T) {
 	err := r.Validate()
 	require.NoError(t, err, "failed to validate OpenAPI configuration")
 
-	req := httptest.NewRequest("GET", "/ping", nil)
+	req := httptest.NewRequest(http.MethodGet, "/ping", nil)
 	rr := httptest.NewRecorder()
 	c.ServeHTTP(rr, req)
 
@@ -454,7 +456,12 @@ func TestRouter_Group(t *testing.T) {
 	schema, err := r.GenerateSchema()
 	require.NoError(t, err, "failed to generate OpenAPI schema")
 	assert.Contains(t, string(schema), "getPing", "expected OpenAPI schema to contain operation ID getPing")
-	assert.Contains(t, string(schema), "Ping the server with Group", "expected OpenAPI schema to contain summary for getPing")
+	assert.Contains(
+		t,
+		string(schema),
+		"Ping the server with Group",
+		"expected OpenAPI schema to contain summary for getPing",
+	)
 	assert.Contains(t, string(schema), "deprecated", "expected OpenAPI schema to contain deprecated flag for getPing")
 }
 
@@ -474,7 +481,7 @@ func TestRouter_Middleware(t *testing.T) {
 			r.Get("/ping", pingHandler)
 		})
 
-		req := httptest.NewRequest("GET", "/ping", nil)
+		req := httptest.NewRequest(http.MethodGet, "/ping", nil)
 		rec := httptest.NewRecorder()
 		c.ServeHTTP(rec, req)
 		assert.True(t, called, "expected middleware to be called")
@@ -493,7 +500,7 @@ func TestRouter_Middleware(t *testing.T) {
 		r := chiopenapi.NewRouter(c)
 		r.With(middleware).Get("/ping", pingHandler)
 
-		req := httptest.NewRequest("GET", "/ping", nil)
+		req := httptest.NewRequest(http.MethodGet, "/ping", nil)
 		rec := httptest.NewRecorder()
 		c.ServeHTTP(rec, req)
 		assert.True(t, called, "expected middleware to be called")
@@ -505,7 +512,7 @@ func TestRouter_Middleware(t *testing.T) {
 func TestRouter_NotFound(t *testing.T) {
 	c := chi.NewRouter()
 	r := chiopenapi.NewRouter(c)
-	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+	r.NotFound(func(w http.ResponseWriter, _ *http.Request) {
 		http.Error(w, "Not Found", http.StatusNotFound)
 	})
 
@@ -528,7 +535,7 @@ func TestRouter_MethodNotAllowed(t *testing.T) {
 		option.Summary("Ping the server"),
 		option.Description("This endpoint is used to check if the server is running."),
 	)
-	r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
+	r.MethodNotAllowed(func(w http.ResponseWriter, _ *http.Request) {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 	})
 

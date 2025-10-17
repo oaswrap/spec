@@ -142,7 +142,10 @@ func OAS3APIKey(scheme *openapi.SecurityScheme, apiKey *openapi.SecuritySchemeAP
 	}
 }
 
-func OAS3HTTPBearer(securityScheme *openapi.SecuritySchemeHTTPBearer, description *string) *openapi3.HTTPSecurityScheme {
+func OAS3HTTPBearer(
+	securityScheme *openapi.SecuritySchemeHTTPBearer,
+	description *string,
+) *openapi3.HTTPSecurityScheme {
 	if securityScheme == nil {
 		return nil
 	}
@@ -153,7 +156,10 @@ func OAS3HTTPBearer(securityScheme *openapi.SecuritySchemeHTTPBearer, descriptio
 	}
 }
 
-func OAS3OAuth2SecurityScheme(oauth2 *openapi.SecuritySchemeOAuth2, description *string) *openapi3.OAuth2SecurityScheme {
+func OAS3OAuth2SecurityScheme(
+	oauth2 *openapi.SecuritySchemeOAuth2,
+	description *string,
+) *openapi3.OAuth2SecurityScheme {
 	if oauth2 == nil {
 		return nil
 	}

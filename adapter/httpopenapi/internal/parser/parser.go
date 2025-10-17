@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"fmt"
+	"errors"
 	"net"
 	"net/http"
 	"strings"
@@ -13,10 +13,16 @@ type RoutePattern struct {
 	Path   string
 }
 
+var (
+	ErrInvalidRoutePattern = errors.New("invalid route pattern")
+)
+
+const TotalParts = 2
+
 func ParseRoutePattern(s string) (*RoutePattern, error) {
 	rp := &RoutePattern{}
 
-	parts := strings.SplitN(s, " ", 2)
+	parts := strings.SplitN(s, " ", TotalParts)
 
 	if len(parts) == 2 && isHTTPMethod(parts[0]) {
 		rp.Method = parts[0]
@@ -39,7 +45,7 @@ func ParseRoutePattern(s string) (*RoutePattern, error) {
 	}
 
 	if strings.Contains(rp.Host, " ") {
-		return nil, fmt.Errorf("invalid host: contains space")
+		return nil, ErrInvalidRoutePattern
 	}
 
 	// Handle host:port
@@ -50,7 +56,7 @@ func ParseRoutePattern(s string) (*RoutePattern, error) {
 
 	// Strict host check
 	if hostPart != "localhost" && !strings.Contains(hostPart, ".") {
-		return nil, fmt.Errorf("invalid host: %q must contain '.' or be 'localhost'", hostPart)
+		return nil, ErrInvalidRoutePattern
 	}
 
 	return rp, nil

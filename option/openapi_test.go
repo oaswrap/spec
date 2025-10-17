@@ -792,7 +792,7 @@ func TestWithPathParser(t *testing.T) {
 	assert.NotNil(t, config.PathParser)
 }
 
-// mockPathParser is a test implementation of openapi.PathParser
+// mockPathParser is a test implementation of openapi.PathParser.
 type mockPathParser struct{}
 
 func (m *mockPathParser) Parse(path string) (string, error) {

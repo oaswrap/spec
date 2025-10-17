@@ -1,0 +1,30 @@
+# Lefthook configuration for Go project
+
+pre-commit:
+  parallel: true
+  commands:
+    fmt:
+      glob: "*.go"
+      run: gofmt -w {staged_files} && git add {staged_files}
+
+    vet:
+      glob: "*.go"
+      run: go vet ./...
+
+    lint:
+      glob: "*.go"
+      run: make lint
+
+    mod-tidy:
+      glob: "go.{mod,sum}"
+      run: make tidy
+
+commit-msg:
+  commands:
+    check-message:
+      run: |
+        if ! grep -qE "^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: .+" {1}; then
+          echo "Commit message must follow conventional commits format"
+          echo "Example: feat: add new feature"
+          exit 1
+        fi

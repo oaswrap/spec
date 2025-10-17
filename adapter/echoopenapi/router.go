@@ -20,14 +20,14 @@ type router struct {
 
 // NewRouter creates a new OpenAPI router with the provided Echo instance and options.
 //
-// It initializes the OpenAPI configuration and sets up the necessary routes for serving
+// It initializes the OpenAPI configuration and sets up the necessary routes for serving.
 func NewRouter(e *echo.Echo, opts ...option.OpenAPIOption) Generator {
 	return NewGenerator(e, opts...)
 }
 
 // NewGenerator creates a new OpenAPI generator with the provided Echo instance and options.
 //
-// It initializes the OpenAPI configuration and sets up the necessary routes for serving
+// It initializes the OpenAPI configuration and sets up the necessary routes for serving.
 func NewGenerator(e *echo.Echo, opts ...option.OpenAPIOption) Generator {
 	defaultOpts := []option.OpenAPIOption{
 		option.WithTitle(constant.DefaultTitle),

@@ -19,9 +19,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+//nolint:gochecknoglobals // test flag for golden file updates
 var update = flag.Bool("update", false, "update golden files")
 
-func DummyHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func DummyHandler(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(map[string]string{"message": "Hello, World!"})
 }
@@ -127,7 +128,7 @@ func TestRouter_Spec(t *testing.T) {
 					option.Summary("Upload an image for a pet"),
 					option.Description("Uploads an image for a pet."),
 					option.Request(new(dto.UploadImageRequest)),
-					option.Response(200, new(dto.ApiResponse)),
+					option.Response(200, new(dto.APIResponse)),
 				)
 				pet.GET("/id/:petId", DummyHandler).With(
 					option.OperationID("getPetById"),
@@ -214,8 +215,9 @@ func TestRouter_Spec(t *testing.T) {
 					option.Summary("Update an existing user"),
 					option.Description("Update the details of an existing user."),
 					option.Request(new(struct {
-						Username string `path:"username" required:"true"`
 						dto.PetUser
+
+						Username string `path:"username" required:"true"`
 					})),
 					option.Response(200, new(dto.PetUser)),
 					option.Response(404, nil),
@@ -264,11 +266,11 @@ func TestRouter_Spec(t *testing.T) {
 
 			if tt.shouldErr {
 				err := r.Validate()
-				assert.Error(t, err, "expected error for invalid OpenAPI configuration")
+				require.Error(t, err, "expected error for invalid OpenAPI configuration")
 				return
 			}
 			err := r.Validate()
-			assert.NoError(t, err, "failed to validate OpenAPI configuration")
+			require.NoError(t, err, "failed to validate OpenAPI configuration")
 
 			// Test the OpenAPI schema generation
 			schema, err := r.GenerateSchema()
@@ -292,7 +294,7 @@ func TestRouter_Spec(t *testing.T) {
 
 type SingleRouteFunc func(path string, handle httprouter.Handle) httprouteropenapi.Route
 
-func PingHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func PingHandler(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(map[string]string{"message": "pong"})
 }
@@ -376,7 +378,7 @@ func TestRouter_SingleRoute(t *testing.T) {
 			assert.JSONEq(t, `{"message":"pong"}`, rec.Body.String(), "response body should match")
 
 			schema, err := r.GenerateSchema()
-			assert.NoError(t, err, "failed to generate OpenAPI schema")
+			require.NoError(t, err, "failed to generate OpenAPI schema")
 			assert.NotEmpty(t, schema, "OpenAPI schema should not be empty")
 			assert.Contains(t, string(schema), "summary: Ping the server", "OpenAPI schema should contain the summary")
 		})
@@ -404,7 +406,7 @@ func TestRouter_Group(t *testing.T) {
 	api := r.Group("/api/v1", middleware1, middleware2).With(
 		option.GroupTags("apiv1"),
 	)
-	dummyHandler := func(w http.ResponseWriter, r *http.Request) {
+	dummyHandler := func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_ = json.NewEncoder(w).Encode(map[string]string{"message": "pong"})
 	}
@@ -438,7 +440,7 @@ func TestRouter_Group(t *testing.T) {
 	}, logs, "middleware logs should match")
 
 	schema, err := r.GenerateSchema()
-	assert.NoError(t, err, "failed to generate OpenAPI schema")
+	require.NoError(t, err, "failed to generate OpenAPI schema")
 	assert.NotEmpty(t, schema, "OpenAPI schema should not be empty")
 	assert.Contains(t, string(schema), "apiv1", "OpenAPI schema should contain the group tags")
 
@@ -523,7 +525,7 @@ func TestGenerator_MarshalYAML(t *testing.T) {
 	)
 
 	schema, err := r.MarshalYAML()
-	assert.NoError(t, err, "failed to marshal OpenAPI schema to YAML")
+	require.NoError(t, err, "failed to marshal OpenAPI schema to YAML")
 	assert.NotEmpty(t, schema, "YAML schema should not be empty")
 	assert.Contains(t, string(schema), "summary: Ping the server", "YAML schema should contain the summary")
 }
@@ -541,7 +543,7 @@ func TestGenerator_MarshalJSON(t *testing.T) {
 	)
 
 	schema, err := r.MarshalJSON()
-	assert.NoError(t, err, "failed to marshal OpenAPI schema to JSON")
+	require.NoError(t, err, "failed to marshal OpenAPI schema to JSON")
 	assert.NotEmpty(t, schema, "JSON schema should not be empty")
 	assert.Contains(t, string(schema), `"summary": "Ping the server"`, "JSON schema should contain the summary")
 }
@@ -561,6 +563,6 @@ func TestGenerator_WriteSchemaTo(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "openapi.yaml")
 	err := r.WriteSchemaTo(path)
-	assert.NoError(t, err, "failed to write OpenAPI schema to directory")
+	require.NoError(t, err, "failed to write OpenAPI schema to directory")
 	assert.FileExists(t, path, "openapi.yaml should be created")
 }

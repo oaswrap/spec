@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/oaswrap/spec/internal/debuglog"
-	"github.com/oaswrap/spec/internal/errors"
+	"github.com/oaswrap/spec/internal/errs"
 	"github.com/oaswrap/spec/internal/mapper"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
@@ -16,7 +16,7 @@ type reflector31 struct {
 	reflector  *openapi31.Reflector
 	logger     *debuglog.Logger
 	pathParser openapi.PathParser
-	errors     *errors.SpecError
+	errors     *errs.SpecError
 }
 
 func newReflector31(cfg *openapi.Config, logger *debuglog.Logger) reflector {
@@ -99,7 +99,7 @@ func newReflector31(cfg *openapi.Config, logger *debuglog.Logger) reflector {
 	return &reflector31{
 		reflector:  reflector,
 		logger:     logger,
-		errors:     &errors.SpecError{},
+		errors:     &errs.SpecError{},
 		pathParser: cfg.PathParser,
 	}
 }
@@ -123,7 +123,7 @@ func (r *reflector31) Add(method, path string, opts ...option.OperationOption) {
 
 	method = strings.ToUpper(method)
 
-	if err := r.addOperation(op); err != nil {
+	if err = r.addOperation(op); err != nil {
 		r.logger.LogOp(method, path, "add operation", "failed")
 		r.errors.Add(err)
 		return

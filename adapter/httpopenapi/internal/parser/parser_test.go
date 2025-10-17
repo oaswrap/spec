@@ -5,6 +5,7 @@ import (
 
 	"github.com/oaswrap/spec/adapter/httpopenapi/internal/parser"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestParseRoutePattern(t *testing.T) {
@@ -128,10 +129,10 @@ func TestParseRoutePattern(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := parser.ParseRoutePattern(tt.input)
 			if tt.wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 				assert.Nil(t, got)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.Equal(t, tt.want.Method, got.Method)
 				assert.Equal(t, tt.want.Host, got.Host)
 				assert.Equal(t, tt.want.Path, got.Path)
