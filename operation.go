@@ -8,6 +8,8 @@ import (
 	specopenapi "github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 	"github.com/swaggest/openapi-go"
+	"github.com/swaggest/openapi-go/openapi3"
+	"github.com/swaggest/openapi-go/openapi31"
 )
 
 var _ operationContext = (*operationContextImpl)(nil)
@@ -81,6 +83,26 @@ func (oc *operationContextImpl) build() openapi.OperationContext {
 	return oc.op
 }
 
+func stringMapToEncodingMap3(enc map[string]string) map[string]openapi3.Encoding {
+	res := map[string]openapi3.Encoding{}
+	for k, v := range enc {
+		res[k] = openapi3.Encoding{
+			ContentType: &v,
+		}
+	}
+	return res
+}
+
+func stringMapToEncodingMap31(enc map[string]string) map[string]openapi31.Encoding {
+	res := map[string]openapi31.Encoding{}
+	for k, v := range enc {
+		res[k] = openapi31.Encoding{
+			ContentType: &v,
+		}
+	}
+	return res
+}
+
 func (oc *operationContextImpl) buildRequestOpts(req *specopenapi.ContentUnit) ([]openapi.ContentOption, string) {
 	log := fmt.Sprintf("%T", req.Structure)
 	var opts []openapi.ContentOption
@@ -94,6 +116,24 @@ func (oc *operationContextImpl) buildRequestOpts(req *specopenapi.ContentUnit) (
 		opts = append(opts, openapi.WithContentType(req.ContentType))
 		log += fmt.Sprintf(" (Content-Type: %s)", req.ContentType)
 	}
+	opts = append(opts, func(cu *openapi.ContentUnit) {
+		cu.Customize = func(cor openapi.ContentOrReference) {
+			switch v := cor.(type) {
+			case *openapi3.RequestBodyOrRef:
+				content := map[string]openapi3.MediaType{}
+				for k, val := range v.RequestBody.Content {
+					content[k] = *val.WithEncoding(stringMapToEncodingMap3(req.Encoding))
+				}
+				v.RequestBody.WithContent(content)
+			case *openapi31.RequestBodyOrReference:
+				content := map[string]openapi31.MediaType{}
+				for k, val := range v.RequestBody.Content {
+					content[k] = *val.WithEncoding(stringMapToEncodingMap31(req.Encoding))
+				}
+				v.RequestBody.WithContent(content)
+			}
+		}
+	})
 	return opts, log
 }
 

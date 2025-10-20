@@ -10,6 +10,8 @@ type ContentUnit struct {
 	IsDefault bool // IsDefault indicates if this content unit is the default response.
 
 	Description string // Description provides a description for the content unit.
+
+	Encoding map[string]string // Encoding maps property names to content types
 }
 
 // Contact represents contact information for the API.

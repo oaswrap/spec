@@ -28,3 +28,9 @@ func ContentDefault(isDefault ...bool) ContentOption {
 		cu.IsDefault = util.Optional(true, isDefault...)
 	}
 }
+
+func ContentEncoding(prop, enc string) ContentOption {
+	return func(cu *openapi.ContentUnit) {
+		cu.Encoding[prop] = enc
+	}
+}
