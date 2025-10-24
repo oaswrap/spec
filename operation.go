@@ -86,8 +86,9 @@ func (oc *operationContextImpl) build() openapi.OperationContext {
 func stringMapToEncodingMap3(enc map[string]string) map[string]openapi3.Encoding {
 	res := map[string]openapi3.Encoding{}
 	for k, v := range enc {
+		rv := v
 		res[k] = openapi3.Encoding{
-			ContentType: &v,
+			ContentType: &rv,
 		}
 	}
 	return res
@@ -96,8 +97,9 @@ func stringMapToEncodingMap3(enc map[string]string) map[string]openapi3.Encoding
 func stringMapToEncodingMap31(enc map[string]string) map[string]openapi31.Encoding {
 	res := map[string]openapi31.Encoding{}
 	for k, v := range enc {
+		rv := v
 		res[k] = openapi31.Encoding{
-			ContentType: &v,
+			ContentType: &rv,
 		}
 	}
 	return res
