@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/gorilla/mux v1.8.1
-	github.com/oaswrap/spec v0.3.4
+	github.com/oaswrap/spec v0.3.5
 	github.com/oaswrap/spec-ui v0.1.4
 	github.com/stretchr/testify v1.11.1
 )

@@ -6,7 +6,7 @@ toolchain go1.23.12
 
 require (
 	github.com/gin-gonic/gin v1.10.1
-	github.com/oaswrap/spec v0.3.4
+	github.com/oaswrap/spec v0.3.5
 	github.com/oaswrap/spec/adapter/ginopenapi v0.0.0
 )
 

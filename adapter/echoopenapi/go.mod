@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	github.com/labstack/echo/v4 v4.13.4
-	github.com/oaswrap/spec v0.3.4
+	github.com/oaswrap/spec v0.3.5
 	github.com/oaswrap/spec-ui v0.1.4
 	github.com/stretchr/testify v1.11.1
 )

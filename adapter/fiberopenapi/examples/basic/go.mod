@@ -6,7 +6,7 @@ toolchain go1.23.12
 
 require (
 	github.com/gofiber/fiber/v2 v2.52.9
-	github.com/oaswrap/spec v0.3.4
+	github.com/oaswrap/spec v0.3.5
 	github.com/oaswrap/spec/adapter/fiberopenapi v0.0.0
 )
 

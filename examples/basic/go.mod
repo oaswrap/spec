@@ -2,7 +2,7 @@ module github.com/oaswrap/spec/examples/basic
 
 go 1.21
 
-require github.com/oaswrap/spec v0.3.4
+require github.com/oaswrap/spec v0.3.5
 
 require (
 	github.com/kr/text v0.1.0 // indirect
