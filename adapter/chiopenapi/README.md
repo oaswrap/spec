@@ -206,4 +206,4 @@ We welcome contributions! Please open issues and PRs at the main [oaswrap/spec](
 
 ## License
 
-[MIT License](LICENSE) — Created with ❤️ by [Ahmad Faiz](https://github.com/afkdevs).
+[MIT License](LICENSE) — Created with ❤️ by [Ahmad Faiz](https://github.com/akfaiz).

@@ -322,4 +322,4 @@ Please check existing issues and discussions before starting work on new feature
 
 ## License
 
-[MIT License](LICENSE) — Created with ❤️ by [Ahmad Faiz](https://github.com/afkdevs).
+[MIT License](LICENSE) — Created with ❤️ by [Ahmad Faiz](https://github.com/akfaiz).
