@@ -29,7 +29,7 @@ func main() {
 	auth := v1.Group("", AuthMiddleware).With(
 		option.GroupSecurity("bearerAuth"),
 	)
-	auth.GET("/users/{id}", GetUserHandler).With(
+	auth.GET("/users/:id", GetUserHandler).With(
 		option.Summary("Get user by ID"),
 		option.Request(new(GetUserRequest)),
 		option.Response(200, new(User)),
