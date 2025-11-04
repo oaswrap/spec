@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
-  description: This is the API documentation for Custom Path Mapping
-  title: 'API Doc: Custom Path Mapping'
+  description: This is the API documentation for Custom Parameter Mapping
+  title: 'API Doc: Custom Parameter Mapping'
   version: 1.0.0
 paths:
   /user/{id}:
@@ -9,6 +9,11 @@ paths:
       description: This operation retrieves a user by ID.
       operationId: getUserById
       parameters:
+      - in: query
+        name: extra_param
+        required: true
+        schema:
+          type: string
       - in: path
         name: id
         required: true

@@ -237,16 +237,18 @@ func TestRouter(t *testing.T) {
 			},
 		},
 		{
-			name:   "Custom Path Mapping",
-			golden: "custom_path_mapping",
+			name:   "Custom Parameter Mapping",
+			golden: "custom_parameter_mapping",
 			opts: []option.OpenAPIOption{
 				option.WithReflectorConfig(
 					option.ParameterTagMapping(openapi.ParameterInPath, "param"),
+					option.ParameterTagMapping(openapi.ParameterInQuery, "query2"),
 				),
 			},
 			setup: func(r spec.Router) {
 				type GetUserByIDRequest struct {
-					ID int `param:"id" validate:"required"`
+					ID         int    `param:"id"`
+					ExtraParam string `           query2:"extra_param" required:"true"`
 				}
 				r.Get("/user/{id}",
 					option.OperationID("getUserById"),
@@ -598,7 +600,7 @@ func TestRouter(t *testing.T) {
 					option.Summary("Get User by ID"),
 					option.Description("This operation retrieves a user by ID."),
 					option.Request(new(struct {
-						ID int `path:"id" validate:"required"`
+						ID int `path:"id"`
 					})),
 					option.Response(200, new(User)),
 				)
@@ -682,7 +684,7 @@ func TestRouter(t *testing.T) {
 					option.Summary("Get User by ID"),
 					option.Description("This operation retrieves a user by ID."),
 					option.Request(new(struct {
-						ID int `params:"id" validate:"required"`
+						ID int `params:"id"`
 					})),
 				)
 			},
@@ -699,7 +701,7 @@ func TestRouter(t *testing.T) {
 					option.Summary("Get User by ID"),
 					option.Description("This operation retrieves a user by ID."),
 					option.Request(new(struct {
-						ID int `path:"id" validate:"required"`
+						ID int `path:"id"`
 					})),
 					option.Response(200, new(User)),
 				)

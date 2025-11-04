@@ -182,25 +182,71 @@ func (oc *operationContextImpl) modifyReqStructure(structure any) any {
 		return structure
 	}
 
-	modifyFieldTag := false
-
-	fields := make([]reflect.StructField, 0, t.NumField())
-	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
-		for in, tag := range oc.parameterTagMapping {
-			if field.Tag.Get(tag) != "" && field.Tag.Get(string(in)) == "" {
-				// Change tag according to parameter in mapping
-				field.Tag = reflect.StructTag(string(field.Tag) + ` ` + string(in) + `:"` + field.Tag.Get(tag) + `"`)
-				modifyFieldTag = true
-			}
-		}
-		fields = append(fields, field)
-	}
-
-	// No modification needed
-	if !modifyFieldTag {
+	fields, modified := oc.buildModifiedFields(t)
+	if !modified {
 		return structure
 	}
 
-	return reflect.New(reflect.StructOf(fields)).Interface()
+	// Create new struct type with modified fields
+	newType := reflect.StructOf(fields)
+	return reflect.New(newType).Interface()
+}
+
+// buildModifiedFields processes struct fields and applies parameter tag mappings.
+func (oc *operationContextImpl) buildModifiedFields(t reflect.Type) ([]reflect.StructField, bool) {
+	fields := make([]reflect.StructField, 0, t.NumField())
+	modified := false
+
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		originalField := field
+
+		// Apply parameter tag mappings
+		for paramIn, sourceTag := range oc.parameterTagMapping {
+			if oc.shouldApplyMapping(field, sourceTag, string(paramIn)) {
+				field.Tag = oc.buildNewTag(field.Tag, sourceTag, string(paramIn))
+				modified = true
+			}
+		}
+
+		fields = append(fields, field)
+
+		// Log if field was modified (for debugging)
+		if field.Tag != originalField.Tag {
+			oc.logger.LogAction("modified field tag",
+				fmt.Sprintf("field=%s, original=%q, new=%q",
+					field.Name, originalField.Tag, field.Tag))
+		}
+	}
+
+	return fields, modified
+}
+
+// shouldApplyMapping determines if a parameter tag mapping should be applied to a field.
+func (oc *operationContextImpl) shouldApplyMapping(field reflect.StructField, sourceTag, targetTag string) bool {
+	// Only apply if source tag exists and target tag doesn't exist
+	return field.Tag.Get(sourceTag) != "" && field.Tag.Get(targetTag) == ""
+}
+
+// buildNewTag constructs a new struct tag by adding the mapped parameter tag.
+func (oc *operationContextImpl) buildNewTag(
+	originalTag reflect.StructTag,
+	sourceTag, targetTag string,
+) reflect.StructTag {
+	sourceValue := originalTag.Get(sourceTag)
+	if sourceValue == "" {
+		return originalTag
+	}
+
+	// Parse existing tag string and add new tag
+	tagStr := string(originalTag)
+	if tagStr != "" && !strings.HasSuffix(tagStr, " ") {
+		tagStr += " "
+	}
+
+	// Escape quotes in the tag value
+	escapedValue := strings.ReplaceAll(sourceValue, `"`, `\"`)
+	newTag := fmt.Sprintf(`%s%s:"%s"`, tagStr, targetTag, escapedValue)
+
+	return reflect.StructTag(newTag)
 }
