@@ -126,3 +126,17 @@ func TypeMapping(src, dst any) ReflectorOption {
 		})
 	}
 }
+
+// ParameterTagMapping sets a custom struct tag mapping for parameters of a specific location.
+//
+// Example:
+//
+//	option.WithReflectorConfig(option.ParameterTagMapping(openapi.ParameterInPath, "param"))
+func ParameterTagMapping(paramIn openapi.ParameterIn, tagName string) ReflectorOption {
+	return func(c *openapi.ReflectorConfig) {
+		if c.ParameterTagMapping == nil {
+			c.ParameterTagMapping = make(map[openapi.ParameterIn]string)
+		}
+		c.ParameterTagMapping[paramIn] = tagName
+	}
+}

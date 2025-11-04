@@ -40,14 +40,15 @@ type Config struct {
 
 // ReflectorConfig holds advanced options for schema reflection.
 type ReflectorConfig struct {
-	InlineRefs           bool                 // If true, inline schema references instead of using components.
-	RootRef              bool                 // If true, use a root reference for top-level schemas.
-	RootNullable         bool                 // If true, allow root schemas to be nullable.
-	StripDefNamePrefix   []string             // Prefixes to strip from generated definition names.
-	InterceptDefNameFunc InterceptDefNameFunc // Function to customize definition names.
-	InterceptPropFunc    InterceptPropFunc    // Function to intercept property schema generation.
-	InterceptSchemaFunc  InterceptSchemaFunc  // Function to intercept full schema generation.
-	TypeMappings         []TypeMapping        // Custom type mappings for schema generation.
+	InlineRefs           bool                   // If true, inline schema references instead of using components.
+	RootRef              bool                   // If true, use a root reference for top-level schemas.
+	RootNullable         bool                   // If true, allow root schemas to be nullable.
+	StripDefNamePrefix   []string               // Prefixes to strip from generated definition names.
+	InterceptDefNameFunc InterceptDefNameFunc   // Function to customize definition names.
+	InterceptPropFunc    InterceptPropFunc      // Function to intercept property schema generation.
+	InterceptSchemaFunc  InterceptSchemaFunc    // Function to intercept full schema generation.
+	TypeMappings         []TypeMapping          // Custom type mappings for schema generation.
+	ParameterTagMapping  map[ParameterIn]string // Custom struct tag mapping for parameters.
 }
 
 // TypeMapping maps a source type to a target type in schema generation.

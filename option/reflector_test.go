@@ -112,3 +112,11 @@ func TestTypeMapping(t *testing.T) {
 	assert.Equal(t, src, mapping.Src)
 	assert.Equal(t, dst, mapping.Dst)
 }
+
+func TestParameterTagMapping(t *testing.T) {
+	config := &openapi.ReflectorConfig{}
+	opt := option.ParameterTagMapping(openapi.ParameterInPath, "param")
+	opt(config)
+
+	assert.Equal(t, "param", config.ParameterTagMapping[openapi.ParameterInPath])
+}

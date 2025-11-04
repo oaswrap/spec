@@ -171,3 +171,14 @@ type OAuthFlowsAuthorizationCode struct {
 
 	MapOfAnything map[string]any // Vendor extensions. Keys must match `^x-`.
 }
+
+// ParameterIn is an enum type.
+type ParameterIn string
+
+// ParameterIn values enumeration.
+const (
+	ParameterInPath   = ParameterIn("path")
+	ParameterInQuery  = ParameterIn("query")
+	ParameterInHeader = ParameterIn("header")
+	ParameterInCookie = ParameterIn("cookie")
+)

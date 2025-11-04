@@ -2,6 +2,7 @@ package spec
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/oaswrap/spec/internal/debuglog"
@@ -15,9 +16,10 @@ import (
 var _ operationContext = (*operationContextImpl)(nil)
 
 type operationContextImpl struct {
-	op     openapi.OperationContext
-	cfg    *option.OperationConfig
-	logger *debuglog.Logger
+	op                  openapi.OperationContext
+	cfg                 *option.OperationConfig
+	logger              *debuglog.Logger
+	parameterTagMapping map[specopenapi.ParameterIn]string
 }
 
 func (oc *operationContextImpl) With(opts ...option.OperationOption) operationContext {
@@ -70,7 +72,7 @@ func (oc *operationContextImpl) build() openapi.OperationContext {
 
 	for _, req := range cfg.Requests {
 		opts, value := oc.buildRequestOpts(req)
-		oc.op.AddReqStructure(req.Structure, opts...)
+		oc.op.AddReqStructure(oc.modifyReqStructure(req.Structure), opts...)
 		logger.LogOp(method, path, "add request", value)
 	}
 
@@ -163,4 +165,42 @@ func (oc *operationContextImpl) buildResponseOpts(resp *specopenapi.ContentUnit)
 		log += fmt.Sprintf(" (Content-Type: %s)", resp.ContentType)
 	}
 	return opts, log
+}
+
+func (oc *operationContextImpl) modifyReqStructure(structure any) any {
+	if len(oc.parameterTagMapping) == 0 {
+		return structure
+	}
+
+	t := reflect.TypeOf(structure)
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+
+	// Only structs are supported for parameter tag modification
+	if t.Kind() != reflect.Struct {
+		return structure
+	}
+
+	modifyFieldTag := false
+
+	fields := make([]reflect.StructField, 0, t.NumField())
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		for in, tag := range oc.parameterTagMapping {
+			if field.Tag.Get(tag) != "" && field.Tag.Get(string(in)) == "" {
+				// Change tag according to parameter in mapping
+				field.Tag = reflect.StructTag(string(field.Tag) + ` ` + string(in) + `:"` + field.Tag.Get(tag) + `"`)
+				modifyFieldTag = true
+			}
+		}
+		fields = append(fields, field)
+	}
+
+	// No modification needed
+	if !modifyFieldTag {
+		return structure
+	}
+
+	return reflect.New(reflect.StructOf(fields)).Interface()
 }

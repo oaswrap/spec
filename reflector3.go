@@ -13,10 +13,11 @@ import (
 )
 
 type reflector3 struct {
-	reflector  *openapi3.Reflector
-	logger     *debuglog.Logger
-	errors     *errs.SpecError
-	pathParser openapi.PathParser
+	reflector           *openapi3.Reflector
+	logger              *debuglog.Logger
+	errors              *errs.SpecError
+	pathParser          openapi.PathParser
+	parameterTagMapping map[openapi.ParameterIn]string
 }
 
 func newReflector3(cfg *openapi.Config, logger *debuglog.Logger) reflector {
@@ -86,6 +87,8 @@ func newReflector3(cfg *openapi.Config, logger *debuglog.Logger) reflector {
 		}
 	}
 
+	var parameterTagMapping map[openapi.ParameterIn]string
+
 	// Custom options for JSON schema generation
 	if cfg.ReflectorConfig != nil {
 		jsonSchemaOpts := getJSONSchemaOpts(cfg.ReflectorConfig, logger)
@@ -97,13 +100,16 @@ func newReflector3(cfg *openapi.Config, logger *debuglog.Logger) reflector {
 			reflector.AddTypeMapping(opt.Src, opt.Dst)
 			logger.LogAction("add type mapping", fmt.Sprintf("%T -> %T", opt.Src, opt.Dst))
 		}
+
+		parameterTagMapping = cfg.ReflectorConfig.ParameterTagMapping
 	}
 
 	return &reflector3{
-		reflector:  reflector,
-		logger:     logger,
-		errors:     &errs.SpecError{},
-		pathParser: cfg.PathParser,
+		reflector:           reflector,
+		logger:              logger,
+		errors:              &errs.SpecError{},
+		pathParser:          cfg.PathParser,
+		parameterTagMapping: parameterTagMapping,
 	}
 }
 
@@ -159,8 +165,9 @@ func (r *reflector3) newOperationContext(method, path string) (operationContext,
 		return nil, err
 	}
 	return &operationContextImpl{
-		op:     op,
-		logger: r.logger,
-		cfg:    &option.OperationConfig{},
+		op:                  op,
+		logger:              r.logger,
+		cfg:                 &option.OperationConfig{},
+		parameterTagMapping: r.parameterTagMapping,
 	}, nil
 }

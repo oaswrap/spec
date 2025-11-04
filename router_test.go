@@ -237,6 +237,27 @@ func TestRouter(t *testing.T) {
 			},
 		},
 		{
+			name:   "Custom Path Mapping",
+			golden: "custom_path_mapping",
+			opts: []option.OpenAPIOption{
+				option.WithReflectorConfig(
+					option.ParameterTagMapping(openapi.ParameterInPath, "param"),
+				),
+			},
+			setup: func(r spec.Router) {
+				type GetUserByIDRequest struct {
+					ID int `param:"id" validate:"required"`
+				}
+				r.Get("/user/{id}",
+					option.OperationID("getUserById"),
+					option.Summary("Get User by ID"),
+					option.Description("This operation retrieves a user by ID."),
+					option.Request(new(GetUserByIDRequest)),
+					option.Response(200, new(User)),
+				)
+			},
+		},
+		{
 			name:   "Pet Store",
 			golden: "petstore",
 			opts: []option.OpenAPIOption{option.WithTitle("Petstore API"),
