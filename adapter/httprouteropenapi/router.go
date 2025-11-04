@@ -156,7 +156,7 @@ func (r *router) Group(prefix string, middlewares ...func(http.Handler) http.Han
 	group := &router{
 		router:      r.router,
 		middlewares: append(r.middlewares, middlewares...),
-		specRouter:  r.specRouter.Group(prefix),
+		specRouter:  r.specRouter.Group(""),
 		prefix:      r.pathOf(prefix),
 	}
 	return group

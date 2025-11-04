@@ -28,7 +28,7 @@ tags:
 - description: Operations about user
   name: user
 paths:
-  /pet/pet:
+  /pet:
     post:
       description: Add a new pet to the store.
       operationId: addPet
@@ -73,7 +73,7 @@ paths:
       summary: Update an existing pet
       tags:
       - pet
-  /pet/pet/{petId}:
+  /pet/{petId}:
     delete:
       description: Delete a pet from the store by its ID.
       operationId: deletePet
@@ -121,7 +121,7 @@ paths:
       summary: Update pet with form
       tags:
       - pet
-  /pet/pet/{petId}/uploadImage:
+  /pet/{petId}/uploadImage:
     post:
       description: Uploads an image for a pet.
       operationId: uploadFile
@@ -155,7 +155,7 @@ paths:
       summary: Upload an image for a pet
       tags:
       - pet
-  /pet/pet/findByStatus:
+  /pet/findByStatus:
     get:
       description: Finds Pets by status. Multiple status values can be provided with
         comma separated strings.
@@ -185,7 +185,7 @@ paths:
       summary: Find pets by status
       tags:
       - pet
-  /pet/pet/findByTags:
+  /pet/findByTags:
     get:
       description: Finds Pets by tags. Multiple tags can be provided with comma separated
         strings.
@@ -213,7 +213,7 @@ paths:
       summary: Find pets by tags
       tags:
       - pet
-  /pet/pet/id/{petId}:
+  /pet/id/{petId}:
     get:
       description: Retrieve a pet by its ID.
       operationId: getPetById
@@ -237,7 +237,7 @@ paths:
       summary: Get pet by ID
       tags:
       - pet
-  /store/store/order:
+  /store/order:
     post:
       description: Place a new order for a pet.
       operationId: placeOrder
@@ -256,7 +256,7 @@ paths:
       summary: Place an order
       tags:
       - store
-  /store/store/order/{orderId}:
+  /store/order/{orderId}:
     delete:
       description: Delete an order by its ID.
       operationId: deleteOrder
@@ -293,7 +293,7 @@ paths:
       summary: Get order by ID
       tags:
       - store
-  /user/user:
+  /user:
     post:
       description: Create a new user in the store.
       operationId: createUser
@@ -312,7 +312,7 @@ paths:
       summary: Create a new user
       tags:
       - user
-  /user/user/{username}:
+  /user/{username}:
     delete:
       description: Delete a user from the store by their username.
       operationId: deleteUser
@@ -396,7 +396,7 @@ paths:
       summary: Update an existing user
       tags:
       - user
-  /user/user/createWithList:
+  /user/createWithList:
     post:
       description: Create multiple users in the store with a list.
       operationId: createUsersWithList
