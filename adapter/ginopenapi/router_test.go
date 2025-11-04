@@ -131,7 +131,7 @@ func TestRouter_Spec(t *testing.T) {
 					option.Summary("Get pet by ID"),
 					option.Description("Retrieve a pet by its ID."),
 					option.Request(new(struct {
-						ID int `path:"petId" required:"true"`
+						ID int `uri:"petId" required:"true"`
 					})),
 					option.Response(200, new(dto.Pet)),
 				)
@@ -164,7 +164,7 @@ func TestRouter_Spec(t *testing.T) {
 					option.Summary("Get order by ID"),
 					option.Description("Retrieve an order by its ID."),
 					option.Request(new(struct {
-						ID int `path:"orderId" required:"true"`
+						ID int `uri:"orderId" required:"true"`
 					})),
 					option.Response(200, new(dto.Order)),
 					option.Response(404, nil),
@@ -174,7 +174,7 @@ func TestRouter_Spec(t *testing.T) {
 					option.Summary("Delete an order"),
 					option.Description("Delete an order by its ID."),
 					option.Request(new(struct {
-						ID int `path:"orderId" required:"true"`
+						ID int `uri:"orderId" required:"true"`
 					})),
 					option.Response(204, nil),
 				)
@@ -201,7 +201,7 @@ func TestRouter_Spec(t *testing.T) {
 					option.Summary("Get user by username"),
 					option.Description("Retrieve a user by their username."),
 					option.Request(new(struct {
-						Username string `path:"username" required:"true"`
+						Username string `uri:"username" required:"true"`
 					})),
 					option.Response(200, new(dto.PetUser)),
 					option.Response(404, nil),
@@ -213,7 +213,7 @@ func TestRouter_Spec(t *testing.T) {
 					option.Request(new(struct {
 						dto.PetUser
 
-						Username string `path:"username" required:"true"`
+						Username string `uri:"username" required:"true"`
 					})),
 					option.Response(200, new(dto.PetUser)),
 					option.Response(404, nil),
@@ -223,7 +223,7 @@ func TestRouter_Spec(t *testing.T) {
 					option.Summary("Delete a user"),
 					option.Description("Delete a user from the store by their username."),
 					option.Request(new(struct {
-						Username string `path:"username" required:"true"`
+						Username string `uri:"username" required:"true"`
 					})),
 					option.Response(204, nil),
 				)

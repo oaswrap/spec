@@ -7,6 +7,7 @@ import (
 	"github.com/oaswrap/spec"
 	specui "github.com/oaswrap/spec-ui"
 	"github.com/oaswrap/spec/adapter/echoopenapi/internal/constant"
+	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 	"github.com/oaswrap/spec/pkg/mapper"
 	"github.com/oaswrap/spec/pkg/parser"
@@ -36,6 +37,9 @@ func NewGenerator(e *echo.Echo, opts ...option.OpenAPIOption) Generator {
 		option.WithPathParser(parser.NewColonParamParser()),
 		option.WithStoplightElements(),
 		option.WithCacheAge(0),
+		option.WithReflectorConfig(
+			option.ParameterTagMapping(openapi.ParameterInPath, "param"),
+		),
 	}
 	opts = append(defaultOpts, opts...)
 	gen := spec.NewRouter(opts...)

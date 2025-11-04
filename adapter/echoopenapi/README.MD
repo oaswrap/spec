@@ -77,7 +77,7 @@ type LoginResponse struct {
 }
 
 type GetUserRequest struct {
-	ID string `path:"id" required:"true"`
+	ID string `param:"id" required:"true"`
 }
 
 type User struct {

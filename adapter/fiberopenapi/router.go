@@ -6,6 +6,7 @@ import (
 	"github.com/oaswrap/spec"
 	specui "github.com/oaswrap/spec-ui"
 	"github.com/oaswrap/spec/adapter/fiberopenapi/internal/constant"
+	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 	"github.com/oaswrap/spec/pkg/mapper"
 	"github.com/oaswrap/spec/pkg/parser"
@@ -29,6 +30,9 @@ func NewRouter(r fiber.Router, opts ...option.OpenAPIOption) Generator {
 		option.WithPathParser(parser.NewColonParamParser()),
 		option.WithStoplightElements(),
 		option.WithCacheAge(0),
+		option.WithReflectorConfig(
+			option.ParameterTagMapping(openapi.ParameterInPath, "params"),
+		),
 	}
 	opts = append(defaultOpts, opts...)
 	gen := spec.NewGenerator(opts...)

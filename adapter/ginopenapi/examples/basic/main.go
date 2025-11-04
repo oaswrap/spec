@@ -50,7 +50,7 @@ type LoginResponse struct {
 }
 
 type GetUserRequest struct {
-	ID string `path:"id" uri:"id" required:"true"`
+	ID string `uri:"id" required:"true"`
 }
 
 type User struct {
