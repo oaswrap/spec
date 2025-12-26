@@ -6,8 +6,10 @@ use (
 	./adapter/chiopenapi/examples/basic
 	./adapter/echoopenapi
 	./adapter/echoopenapi/examples/basic
-	./adapter/fiberopenapi
-	./adapter/fiberopenapi/examples/basic
+	./adapter/fiberopenapi/v2
+	./adapter/fiberopenapi/v2/examples/basic
+	./adapter/fiberopenapi/v3
+	./adapter/fiberopenapi/v3/examples/basic
 	./adapter/ginopenapi
 	./adapter/ginopenapi/examples/basic
 	./adapter/httpopenapi

@@ -1,13 +1,15 @@
-# fiberopenapi
+# fiberopenapi/v3
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/oaswrap/spec/adapter/fiberopenapi.svg)](https://pkg.go.dev/github.com/oaswrap/spec/adapter/fiberopenapi)
-[![Go Report Card](https://goreportcard.com/badge/github.com/oaswrap/spec/adapter/fiberopenapi)](https://goreportcard.com/report/github.com/oaswrap/spec/adapter/fiberopenapi)
+[![Go Reference](https://pkg.go.dev/badge/github.com/oaswrap/spec/adapter/fiberopenapi/v3.svg)](https://pkg.go.dev/github.com/oaswrap/spec/adapter/fiberopenapi/v3)
+[![Go Report Card](https://goreportcard.com/badge/github.com/oaswrap/spec/adapter/fiberopenapi/v3)](https://goreportcard.com/report/github.com/oaswrap/spec/adapter/fiberopenapi/v3)
 
-A lightweight adapter for the [Fiber](https://github.com/gofiber/fiber) web framework that automatically generates OpenAPI 3.x specifications from your routes using [`oaswrap/spec`](https://github.com/oaswrap/spec).
+A lightweight adapter for the [Fiber v3](https://github.com/gofiber/fiber) web framework that automatically generates OpenAPI 3.x specifications from your routes using [`oaswrap/spec`](https://github.com/oaswrap/spec).
+
+> **Note**: This adapter is for Fiber v3. If you're using Fiber v2, use [`fiberopenapi`](https://github.com/oaswrap/spec/tree/main/adapter/fiberopenapi) instead.
 
 ## Features
 
-- **⚡ Seamless Integration** — Works with your existing Fiber routes and handlers
+- **⚡ Seamless Integration** — Works with your existing Fiber v3 routes and handlers
 - **📝 Automatic Documentation** — Generate OpenAPI specs from route definitions and struct tags
 - **🎯 Type Safety** — Full Go type safety for OpenAPI configuration
 - **🔧 Multiple UI Options** — Swagger UI, Stoplight Elements, ReDoc, Scalar or RapiDoc served automatically at `/docs`
@@ -17,7 +19,7 @@ A lightweight adapter for the [Fiber](https://github.com/gofiber/fiber) web fram
 ## Installation
 
 ```bash
-go get github.com/oaswrap/spec/adapter/fiberopenapi
+go get github.com/oaswrap/spec/adapter/fiberopenapi/v3
 ```
 
 ## Quick Start
@@ -28,8 +30,8 @@ package main
 import (
 	"log"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/oaswrap/spec/adapter/fiberopenapi"
+	"github.com/gofiber/fiber/v3"
+	fiberopenapi "github.com/oaswrap/spec/adapter/fiberopenapi/v3"
 	"github.com/oaswrap/spec/option"
 )
 
@@ -83,7 +85,7 @@ type User struct {
 	Name string `json:"name"`
 }
 
-func AuthMiddleware(c *fiber.Ctx) error {
+func AuthMiddleware(c fiber.Ctx) error {
 	authHeader := c.Get("Authorization")
 	if authHeader != "" && authHeader == "Bearer example-token" {
 		return c.Next()
@@ -91,18 +93,18 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	return c.Status(401).JSON(map[string]string{"error": "Unauthorized"})
 }
 
-func LoginHandler(c *fiber.Ctx) error {
+func LoginHandler(c fiber.Ctx) error {
 	var req LoginRequest
-	if err := c.BodyParser(&req); err != nil {
+	if err := c.Bind().Body(&req); err != nil {
 		return c.Status(400).JSON(map[string]string{"error": "Invalid request"})
 	}
 	// Simulate login logic
 	return c.Status(200).JSON(LoginResponse{Token: "example-token"})
 }
 
-func GetUserHandler(c *fiber.Ctx) error {
+func GetUserHandler(c fiber.Ctx) error {
 	var req GetUserRequest
-	if err := c.ParamsParser(&req); err != nil {
+	if err := c.Bind().URI(&req); err != nil {
 		return c.Status(400).JSON(map[string]string{"error": "Invalid request"})
 	}
 	// Simulate fetching user by ID
@@ -122,7 +124,7 @@ When you create a fiberopenapi router, the following endpoints are automatically
 If you want to disable the built-in UI, you can do so by passing `option.WithDisableDocs()` when creating the router:
 
 ```go
-r := fiberopenapi.NewRouter(c,
+r := fiberopenapi.NewRouter(app,
 	option.WithTitle("My API"),
 	option.WithVersion("1.0.0"),
 	option.WithDisableDocs(),
@@ -139,7 +141,7 @@ Choose from multiple UI options, powered by [`oaswrap/spec-ui`](https://github.c
 - **RapiDoc** — Highly customizable
 
 ```go
-r := fiberopenapi.NewRouter(c,
+r := fiberopenapi.NewRouter(app,
 	option.WithTitle("My API"),
 	option.WithVersion("1.0.0"),
 	option.WithScalar(), // Use Scalar as the documentation UI
@@ -162,10 +164,36 @@ type CreateProductRequest struct {
 
 For more struct tag options, see the [swaggest/openapi-go](https://github.com/swaggest/openapi-go?tab=readme-ov-file#features).
 
+## Fiber v3 Specifics
+
+This adapter is built for Fiber v3 and takes advantage of its new features:
+
+### Binding API
+Fiber v3 introduces a new binding API. Use `c.Bind()` for request parsing:
+
+```go
+func Handler(c fiber.Ctx) error {
+	var req Request
+	if err := c.Bind().Body(&req); err != nil {
+		return err
+	}
+	// ...
+}
+```
+
+### Path Parameters
+Path parameters use the `params` tag in Fiber v3:
+
+```go
+type GetUserRequest struct {
+	ID string `params:"id" required:"true"`
+}
+```
+
 ## Examples
 
 Check out complete examples in the main repository:
-- [Basic](https://github.com/oaswrap/spec/tree/main/examples/adapter/fiberopenapi/basic)
+- [Basic](https://github.com/oaswrap/spec/tree/main/adapter/fiberopenapi/v3/examples/basic)
 
 ## Best Practices
 
@@ -179,7 +207,7 @@ Check out complete examples in the main repository:
 ## API Reference
 
 - **Spec**: [pkg.go.dev/github.com/oaswrap/spec](https://pkg.go.dev/github.com/oaswrap/spec)
-- **Fiber Adapter**: [pkg.go.dev/github.com/oaswrap/spec/adapter/fiberopenapi](https://pkg.go.dev/github.com/oaswrap/spec/adapter/fiberopenapi)
+- **Fiber v3 Adapter**: [pkg.go.dev/github.com/oaswrap/spec/adapter/fiberopenapi/v3](https://pkg.go.dev/github.com/oaswrap/spec/adapter/fiberopenapi/v3)
 - **Options**: [pkg.go.dev/github.com/oaswrap/spec/option](https://pkg.go.dev/github.com/oaswrap/spec/option)
 - **Spec UI**: [pkg.go.dev/github.com/oaswrap/spec-ui](https://pkg.go.dev/github.com/oaswrap/spec-ui)
 

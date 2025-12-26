@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/oaswrap/spec/adapter/fiberopenapi"
+	fiberopenapi "github.com/oaswrap/spec/adapter/fiberopenapi/v2"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 	"github.com/oaswrap/spec/pkg/dto"
