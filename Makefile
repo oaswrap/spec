@@ -28,6 +28,7 @@ GOLANGCI_LINT_VERSION := v2.3.1
 GOTESTSUM_VERSION     := v1.12.3
 
 # Normalize VERSION input so targets accept both 1.2.3 and v1.2.3.
+# Pre-release versions are also supported, e.g. 0.4.0-rc.1 or v0.4.0-rc.1.
 VERSION_STRIPPED := $(patsubst v%,%,$(VERSION))
 VERSION_TAG      := v$(VERSION_STRIPPED)
 
@@ -37,6 +38,9 @@ VERSION_TAG      := v$(VERSION_STRIPPED)
 .PHONY: install-tools
 .PHONY: list-adapters adapter-status
 .PHONY: sync-adapter-deps
+.PHONY: release-preflight release-core-publish
+.PHONY: release-adapters-preflight release-adapters-publish release-adapters-publish-dry-run
+.PHONY: release-all-prepare release-all-publish release-all-dry-run
 .PHONY: help
 
 help: ## Show this help message
@@ -141,37 +145,127 @@ list-adapters: ## List available adapters
 		fi; \
 	done
 
-release: ## Release core module with the specified version
-	@if [ -z "$(VERSION)" ]; then \
-		echo "$(RED)Usage: make release VERSION=0.3.0 (or v0.3.0)$(NC)"; \
-		exit 1; \
-	fi
+release-core-publish: ## Internal: release core module tag
+	@$(MAKE) release-preflight VERSION=$(VERSION_TAG)
 	@echo "$(BLUE)🚀 Releasing version $(VERSION_TAG)...$(NC)"
 	@git tag -a $(VERSION_TAG) -m "Release $(VERSION_TAG)"
 	@git push origin $(VERSION_TAG)
 
-release-adapters: ## Release all adapters with the specified version
+release-preflight: ## Validate release prerequisites for core tag
 	@if [ -z "$(VERSION)" ]; then \
-		echo "$(RED)Usage: make release-adapters VERSION=0.3.0 (or v0.3.0)$(NC)"; \
+		echo "$(RED)Usage: make release-all-prepare VERSION=0.3.0 (or v0.3.0)$(NC)"; \
 		exit 1; \
 	fi
+	@if [ -n "$$(git status --porcelain)" ]; then \
+		echo "$(RED)❌ Working tree is not clean. Commit or stash changes first.$(NC)"; \
+		exit 1; \
+	fi
+	@if git rev-parse -q --verify "refs/tags/$(VERSION_TAG)" >/dev/null; then \
+		echo "$(RED)❌ Local tag $(VERSION_TAG) already exists.$(NC)"; \
+		exit 1; \
+	fi
+	@if git ls-remote --exit-code --tags origin "refs/tags/$(VERSION_TAG)" >/dev/null 2>&1; then \
+		echo "$(RED)❌ Remote tag $(VERSION_TAG) already exists on origin.$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(GREEN)✅ Core release preflight passed for $(VERSION_TAG)$(NC)"
+
+release-adapters-publish: ## Internal: release adapter module tags
+	@$(MAKE) release-adapters-preflight VERSION=$(VERSION_TAG)
 	@echo "$(BLUE)🚀 Releasing adapters with version $(VERSION_TAG)...$(NC)"
-	@for a in $(ADAPTERS); do \
-		echo "$(BLUE)🚀 Releasing adapter $$a...$(NC)"; \
-		(cd "adapter/$$a" && git tag -a adapter/$$a/$(VERSION_TAG) -m "Release adapter/$$a/$(VERSION_TAG)" && git push origin adapter/$$a/$(VERSION_TAG)); \
-	done
+	@tags=""; \
+	for a in $(ADAPTERS); do \
+		tag="adapter/$$a/$(VERSION_TAG)"; \
+		echo "$(BLUE)🏷️  Creating local tag $$tag...$(NC)"; \
+		git tag -a "$$tag" -m "Release $$tag"; \
+		tags="$$tags $$tag"; \
+	done; \
+	echo "$(BLUE)🚀 Pushing adapter tags to origin...$(NC)"; \
+	git push origin $$tags
 	@echo "$(GREEN)🎉 All adapters released with version $(VERSION_TAG)!$(NC)"
 
-release-adapters-dry-run:
-	@echo "$(YELLOW)🔍 Dry run for releasing adapters with version $(VERSION_TAG)...$(NC)"
+release-adapters-preflight: ## Validate release prerequisites for adapter tags
 	@if [ -z "$(VERSION)" ]; then \
-		echo "$(RED)Usage: make release-adapters-dry-run VERSION=0.3.0 (or v0.3.0)$(NC)"; \
+		echo "$(RED)Usage: make release-all-publish VERSION=0.3.0 (or v0.3.0)$(NC)"; \
+		exit 1; \
+	fi
+	@if [ -n "$$(git status --porcelain)" ]; then \
+		echo "$(RED)❌ Working tree is not clean. Commit or stash changes first.$(NC)"; \
 		exit 1; \
 	fi
 	@for a in $(ADAPTERS); do \
-		echo "$(BLUE)🚀 Would release adapter $$a with version adapter/$$a/$(VERSION_TAG)$(NC)"; \
+		tag="adapter/$$a/$(VERSION_TAG)"; \
+		if ! grep -Eq 'github.com/oaswrap/spec[[:space:]]+$(VERSION_TAG)($$|[[:space:]])' "adapter/$$a/go.mod"; then \
+			echo "$(RED)❌ adapter/$$a/go.mod is not pinned to $(VERSION_TAG). Run make sync-adapter-deps VERSION=$(VERSION_TAG).$(NC)"; \
+			exit 1; \
+		fi; \
+		if git rev-parse -q --verify "refs/tags/$$tag" >/dev/null; then \
+			echo "$(RED)❌ Local tag $$tag already exists.$(NC)"; \
+			exit 1; \
+		fi; \
+		if git ls-remote --exit-code --tags origin "refs/tags/$$tag" >/dev/null 2>&1; then \
+			echo "$(RED)❌ Remote tag $$tag already exists on origin.$(NC)"; \
+			exit 1; \
+		fi; \
+	done
+	@echo "$(GREEN)✅ Adapter release preflight passed for $(VERSION_TAG)$(NC)"
+
+release-adapters-publish-dry-run:
+	@if [ -z "$(VERSION)" ]; then \
+		echo "$(RED)Usage: make release-all-dry-run VERSION=0.3.0 (or v0.3.0)$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(YELLOW)🔍 Dry run for releasing adapters with version $(VERSION_TAG)...$(NC)"
+	@for a in $(ADAPTERS); do \
+		tag="adapter/$$a/$(VERSION_TAG)"; \
+		status="ok"; \
+		if git rev-parse -q --verify "refs/tags/$$tag" >/dev/null; then status="local-tag-exists"; fi; \
+		if git ls-remote --exit-code --tags origin "refs/tags/$$tag" >/dev/null 2>&1; then status="remote-tag-exists"; fi; \
+		echo "$(BLUE)🚀 Would release adapter $$a with version $$tag (status: $$status)$(NC)"; \
 	done
 	@echo "$(GREEN)🎉 Dry run complete! No changes made.$(NC)"
+
+release-all-prepare: ## Stage 1 release flow: root release + adapter dependency sync
+	@if [ -z "$(VERSION)" ]; then \
+		echo "$(RED)Usage: make release-all-prepare VERSION=0.3.0 (or v0.3.0)$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)📦 Stage 1/2: Preparing monorepo release for $(VERSION_TAG)...$(NC)"
+	@$(MAKE) release-core-publish VERSION=$(VERSION_TAG)
+	@$(MAKE) sync-adapter-deps VERSION=$(VERSION_TAG)
+	@echo "$(YELLOW)⚠️  Commit and push adapter dependency changes before publishing adapter tags.$(NC)"
+	@echo "$(YELLOW)   Suggested commit: chore: sync adapter deps to $(VERSION_TAG)$(NC)"
+	@echo "$(GREEN)✅ Stage 1 complete. Next: make release-all-publish VERSION=$(VERSION_TAG)$(NC)"
+
+release-all-publish: ## Stage 2 release flow: publish adapter tags from committed sync state
+	@if [ -z "$(VERSION)" ]; then \
+		echo "$(RED)Usage: make release-all-publish VERSION=0.3.0 (or v0.3.0)$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)📦 Stage 2/2: Publishing adapter tags for $(VERSION_TAG)...$(NC)"
+	@$(MAKE) release-adapters-publish VERSION=$(VERSION_TAG)
+	@echo "$(GREEN)🎉 Monorepo release completed for $(VERSION_TAG)!$(NC)"
+
+release-all-dry-run: ## Dry run for two-stage monorepo release
+	@if [ -z "$(VERSION)" ]; then \
+		echo "$(RED)Usage: make release-all-dry-run VERSION=0.3.0 (or v0.3.0)$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(YELLOW)🔍 Dry run for monorepo release $(VERSION_TAG)...$(NC)"
+	@echo "$(BLUE)Stage 1/2 would create and push core tag: $(VERSION_TAG)$(NC)"
+	@if git rev-parse -q --verify "refs/tags/$(VERSION_TAG)" >/dev/null; then \
+		echo "$(YELLOW)   Local status: tag already exists$(NC)"; \
+	else \
+		echo "$(GREEN)   Local status: tag available$(NC)"; \
+	fi
+	@if git ls-remote --exit-code --tags origin "refs/tags/$(VERSION_TAG)" >/dev/null 2>&1; then \
+		echo "$(YELLOW)   Remote status: tag already exists$(NC)"; \
+	else \
+		echo "$(GREEN)   Remote status: tag available$(NC)"; \
+	fi
+	@echo "$(BLUE)Stage 1/2 would sync adapter go.mod dependencies to $(VERSION_TAG)$(NC)"
+	@$(MAKE) release-adapters-publish-dry-run VERSION=$(VERSION_TAG)
+	@echo "$(YELLOW)ℹ️  Release process note: commit synced adapter dependencies before Stage 2 publishing.$(NC)"
 
 delete-tag: ## Delete a Git tag
 ifndef TAG

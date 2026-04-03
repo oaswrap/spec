@@ -4,6 +4,8 @@ This document outlines the release process for the oaswrap/spec project, which f
 
 Version input note: release commands accept both `x.y.z` and `vx.y.z` for `VERSION`.
 
+Release model note: local development can use monorepo `replace` workflows, but released adapter tags must pin `github.com/oaswrap/spec` to the released core tag version.
+
 ## Project Structure
 
 The project consists of:
@@ -45,46 +47,27 @@ Before releasing, ensure you have:
 
 ## Release Types
 
-### 1. Core Module Release
+### 1. Two-Stage Monorepo Release
 
-Release the main `github.com/oaswrap/spec` module:
+Recommended end-to-end flow for root + adapters:
 
 ```bash
-make release VERSION=x.y.z
+# Stage 1: release core and sync adapter deps
+make release-all-prepare VERSION=x.y.z
+
+# Commit sync changes produced by stage 1
+git add adapter/*/go.mod adapter/*/go.sum
+git commit -m "chore: sync adapter deps to vx.y.z"
+git push
+
+# Stage 2: publish adapter tags
+make release-all-publish VERSION=x.y.z
 ```
 
-**Example:**
-```bash
-make release VERSION=1.2.0
-```
-
-This will:
-- Create and push a Git tag `vx.y.z`
-- Trigger the release workflow
-
-### 2. Adapter Modules Release
-
-Release all adapter modules simultaneously:
+Preview without changes:
 
 ```bash
-make release-adapters VERSION=x.y.z
-```
-
-**Example:**
-```bash
-make release-adapters VERSION=1.2.0
-```
-
-This will:
-- Create tags for each adapter: `adapter/{name}/vx.y.z`
-- Push all adapter tags to the repository
-
-### 3. Dry Run for Adapters
-
-Test the adapter release process without making changes:
-
-```bash
-make release-adapters-dry-run VERSION=x.y.z
+make release-all-dry-run VERSION=x.y.z
 ```
 
 ## Typical Release Workflow
@@ -102,18 +85,17 @@ For bug fixes and minor improvements:
    # Update CHANGELOG.md if maintained
    ```
 
-2. **Release core module**:
+2. **Run Stage 1 (core tag + dependency sync)**:
    ```bash
-   make release VERSION=0.3.5
-   ```
+   make release-all-prepare VERSION=0.3.5
 
-3. **Update adapters** (if needed):
-   ```bash
-   # Sync adapter dependencies to new core version
-   make sync-adapter-deps VERSION=0.3.5
+   # Commit the sync result produced by stage 1
+   git add adapter/*/go.mod adapter/*/go.sum
+   git commit -m "chore: sync adapter deps to v0.3.5"
+   git push
    
-   # Release adapters
-   make release-adapters VERSION=0.3.5
+   # Publish adapter tags (stage 2)
+   make release-all-publish VERSION=0.3.5
    ```
 
 ### Minor Release (x.Y.z)
@@ -127,15 +109,17 @@ For new features and non-breaking changes:
 
 2. **Update documentation** (README, examples, etc.)
 
-3. **Release core module**:
+3. **Run Stage 1 (core tag + dependency sync)**:
    ```bash
-   make release VERSION=0.4.0
-   ```
+   make release-all-prepare VERSION=0.4.0
 
-4. **Update and release adapters**:
-   ```bash
-   make sync-adapter-deps VERSION=0.4.0
-   make release-adapters VERSION=0.4.0
+   # Commit the sync result produced by stage 1
+   git add adapter/*/go.mod adapter/*/go.sum
+   git commit -m "chore: sync adapter deps to v0.4.0"
+   git push
+
+   # Publish adapter tags (stage 2)
+   make release-all-publish VERSION=0.4.0
    ```
 
 ### Major Release (X.y.z)
@@ -182,6 +166,27 @@ The project follows [Semantic Versioning](https://semver.org/):
 - **MINOR** (0.x.0): New features, backwards-compatible changes
 - **MAJOR** (x.0.0): Breaking changes
 
+### Pre-release Testing (RC)
+
+Use release candidate (RC) versions for testing before final release:
+
+- `0.4.0-rc.1`
+- `0.4.0-rc.2`
+
+Example with two-stage release flow:
+
+```bash
+make release-all-dry-run VERSION=0.4.0-rc.1
+make release-all-prepare VERSION=0.4.0-rc.1
+
+# Commit sync changes from stage 1
+git add adapter/*/go.mod adapter/*/go.sum
+git commit -m "chore: sync adapter deps to v0.4.0-rc.1"
+git push
+
+make release-all-publish VERSION=0.4.0-rc.1
+```
+
 ### Tag Management
 
 #### Deleting Tags
@@ -209,12 +214,11 @@ Examples:
 
 ## CI/CD Integration
 
-The release process integrates with GitHub Actions:
+Current automation in this repository:
 
-1. **Pushing tags** triggers release workflows
+1. **Branch and pull-request pushes** trigger CI checks
 2. **Automated testing** runs on all supported Go versions
-3. **Release artifacts** are generated automatically
-4. **Go modules** are published to the Go module proxy
+3. **Tag-driven release publishing** is currently handled by Makefile commands and git tags
 
 ## Quality Checks
 
@@ -255,9 +259,8 @@ make list-adapters
 
 1. **Tag already exists**:
    ```bash
-   # Delete the tag and try again
-   make delete-tag TAG=v1.2.0
-   make release VERSION=1.2.0
+   # Preview tag availability first
+   make release-all-dry-run VERSION=1.2.0
    ```
 
 2. **Adapter dependency mismatch**:
@@ -289,14 +292,14 @@ make list-adapters
 - [ ] Clean git working directory
 
 ### Core Release
-- [ ] `make release VERSION=x.y.z` completed successfully
+- [ ] `make release-all-prepare VERSION=x.y.z` completed successfully
 - [ ] Tag appears in GitHub releases
 - [ ] Module available on pkg.go.dev
 
 ### Adapter Release (if needed)
-- [ ] Dependencies synced (`make sync-adapter-deps VERSION=vx.y.z`)
+- [ ] Sync changes committed and pushed
 - [ ] All adapter tests pass
-- [ ] `make release-adapters VERSION=x.y.z` completed successfully
+- [ ] `make release-all-publish VERSION=x.y.z` completed successfully
 - [ ] All adapter tags created
 
 ### Post-release
