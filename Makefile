@@ -5,7 +5,7 @@
 PKG           := ./...
 COVERAGE_DIR  := coverage
 COVERAGE_FILE := coverage.out
-ADAPTERS      := chiopenapi echoopenapi fiberopenapi ginopenapi httpopenapi muxopenapi httprouteropenapi
+ADAPTERS      := chiopenapi echoopenapi fiberopenapi ginopenapi httpopenapi muxopenapi httprouteropenapi echov5openapi
 
 # Platform detection for sed compatibility
 # Using an immediately expanded variable for this is good practice.
@@ -26,6 +26,10 @@ NC     := \033[0m # No Color
 # Tool versions
 GOLANGCI_LINT_VERSION := v2.3.1
 GOTESTSUM_VERSION     := v1.12.3
+
+# Normalize VERSION input so targets accept both 1.2.3 and v1.2.3.
+VERSION_STRIPPED := $(patsubst v%,%,$(VERSION))
+VERSION_TAG      := v$(VERSION_STRIPPED)
 
 # Ensure all targets are marked as phony to avoid conflicts with filenames.
 .PHONY: test test-adapter test-update testcov testcov-html
@@ -139,33 +143,33 @@ list-adapters: ## List available adapters
 
 release: ## Release core module with the specified version
 	@if [ -z "$(VERSION)" ]; then \
-		echo "$(RED)Usage: make release VERSION=0.3.0$(NC)"; \
+		echo "$(RED)Usage: make release VERSION=0.3.0 (or v0.3.0)$(NC)"; \
 		exit 1; \
 	fi
-	@echo "$(BLUE)🚀 Releasing version v$(VERSION)...$(NC)"
-	@git tag -a v$(VERSION) -m "Release v$(VERSION)"
-	@git push origin v$(VERSION)
+	@echo "$(BLUE)🚀 Releasing version $(VERSION_TAG)...$(NC)"
+	@git tag -a $(VERSION_TAG) -m "Release $(VERSION_TAG)"
+	@git push origin $(VERSION_TAG)
 
 release-adapters: ## Release all adapters with the specified version
 	@if [ -z "$(VERSION)" ]; then \
-		echo "$(RED)Usage: make release-adapters VERSION=0.3.0$(NC)"; \
+		echo "$(RED)Usage: make release-adapters VERSION=0.3.0 (or v0.3.0)$(NC)"; \
 		exit 1; \
 	fi
-	@echo "$(BLUE)🚀 Releasing adapters with version v$(VERSION)...$(NC)"
+	@echo "$(BLUE)🚀 Releasing adapters with version $(VERSION_TAG)...$(NC)"
 	@for a in $(ADAPTERS); do \
 		echo "$(BLUE)🚀 Releasing adapter $$a...$(NC)"; \
-		(cd "adapter/$$a" && git tag -a adapter/$$a/v$(VERSION) -m "Release adapter/$$a/v$(VERSION)" && git push origin adapter/$$a/v$(VERSION)); \
+		(cd "adapter/$$a" && git tag -a adapter/$$a/$(VERSION_TAG) -m "Release adapter/$$a/$(VERSION_TAG)" && git push origin adapter/$$a/$(VERSION_TAG)); \
 	done
-	@echo "$(GREEN)🎉 All adapters released with version v$(VERSION)!$(NC)"
+	@echo "$(GREEN)🎉 All adapters released with version $(VERSION_TAG)!$(NC)"
 
 release-adapters-dry-run:
-	@echo "$(YELLOW)🔍 Dry run for releasing adapters with version v$(VERSION)...$(NC)"
+	@echo "$(YELLOW)🔍 Dry run for releasing adapters with version $(VERSION_TAG)...$(NC)"
 	@if [ -z "$(VERSION)" ]; then \
-		echo "$(RED)Usage: make release-adapters-dry-run VERSION=0.3.0$(NC)"; \
+		echo "$(RED)Usage: make release-adapters-dry-run VERSION=0.3.0 (or v0.3.0)$(NC)"; \
 		exit 1; \
 	fi
 	@for a in $(ADAPTERS); do \
-		echo "$(BLUE)🚀 Would release adapter $$a with version adapter/$$a/v$(VERSION)$(NC)"; \
+		echo "$(BLUE)🚀 Would release adapter $$a with version adapter/$$a/$(VERSION_TAG)$(NC)"; \
 	done
 	@echo "$(GREEN)🎉 Dry run complete! No changes made.$(NC)"
 
@@ -180,22 +184,22 @@ endif
 
 sync-adapter-deps: ## Sync adapter dependencies
 	@if [ -z "$(VERSION)" ]; then \
-		echo "$(RED)Usage: make sync-adapter-deps VERSION=v0.3.0 [NO_TIDY=1]$(NC)"; \
+		echo "$(RED)Usage: make sync-adapter-deps VERSION=0.3.0 (or v0.3.0) [NO_TIDY=1]$(NC)"; \
 		exit 1; \
 	fi
-	@echo "$(BLUE)🔄 Syncing adapter dependencies to $(VERSION)...$(NC)"
+	@echo "$(BLUE)🔄 Syncing adapter dependencies to $(VERSION_TAG)...$(NC)"
 	@for a in $(ADAPTERS); do \
 		echo "$(BLUE)📝 Updating adapter/$$a...$(NC)"; \
 		(cd "adapter/$$a" && \
-		$(SED_INPLACE) -E 's#(github.com/oaswrap/spec )v[0-9]+\.[0-9]+\.[^ ]*#\1$(VERSION)#' go.mod); \
+		$(SED_INPLACE) -E 's#(github.com/oaswrap/spec )v[0-9]+\.[0-9]+\.[^ ]*#\1$(VERSION_TAG)#' go.mod); \
 		if [ "$(NO_TIDY)" != "1" ]; then \
 			(cd "adapter/$$a" && go mod tidy); \
 		else \
 			echo "$(YELLOW)⚠️  Skipped go mod tidy for adapter/$$a because NO_TIDY=1$(NC)"; \
 		fi; \
-		echo "$(GREEN)✅ Updated adapter/$$a to $(VERSION)$(NC)"; \
+		echo "$(GREEN)✅ Updated adapter/$$a to $(VERSION_TAG)$(NC)"; \
 	done
-	@echo "$(GREEN)🎉 All adapters synced to $(VERSION)!$(NC)"
+	@echo "$(GREEN)🎉 All adapters synced to $(VERSION_TAG)!$(NC)"
 
 .PHONY: clean-replaces
 clean-replaces: ## Clean up replace directives in go.mod adapters

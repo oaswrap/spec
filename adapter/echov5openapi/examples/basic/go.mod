@@ -9,7 +9,6 @@ require (
 )
 
 require (
-	github.com/kr/text v0.2.0 // indirect
 	github.com/oaswrap/spec-ui v0.1.4 // indirect
 	github.com/swaggest/jsonschema-go v0.3.78 // indirect
 	github.com/swaggest/openapi-go v0.2.60 // indirect

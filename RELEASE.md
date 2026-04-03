@@ -2,6 +2,8 @@
 
 This document outlines the release process for the oaswrap/spec project, which follows a multi-module architecture with a core module and multiple adapter modules.
 
+Version input note: release commands accept both `x.y.z` and `vx.y.z` for `VERSION`.
+
 ## Project Structure
 
 The project consists of:
@@ -10,6 +12,7 @@ The project consists of:
 - **Adapter modules**: Framework-specific integrations
   - `github.com/oaswrap/spec/adapter/chiopenapi` - Chi framework adapter
   - `github.com/oaswrap/spec/adapter/echoopenapi` - Echo framework adapter
+  - `github.com/oaswrap/spec/adapter/echov5openapi` - Echo v5 framework adapter
   - `github.com/oaswrap/spec/adapter/fiberopenapi` - Fiber framework adapter
   - `github.com/oaswrap/spec/adapter/ginopenapi` - Gin framework adapter
   - `github.com/oaswrap/spec/adapter/httpopenapi` - net/http adapter
@@ -107,7 +110,7 @@ For bug fixes and minor improvements:
 3. **Update adapters** (if needed):
    ```bash
    # Sync adapter dependencies to new core version
-   make sync-adapter-deps VERSION=v0.3.5
+   make sync-adapter-deps VERSION=0.3.5
    
    # Release adapters
    make release-adapters VERSION=0.3.5
@@ -131,7 +134,7 @@ For new features and non-breaking changes:
 
 4. **Update and release adapters**:
    ```bash
-   make sync-adapter-deps VERSION=v0.4.0
+   make sync-adapter-deps VERSION=0.4.0
    make release-adapters VERSION=0.4.0
    ```
 
@@ -155,6 +158,10 @@ make sync-adapter-deps VERSION=v1.2.0
 
 # Skip go mod tidy during sync (useful for CI)
 make sync-adapter-deps VERSION=v1.2.0 NO_TIDY=1
+
+# Equivalent (also accepted):
+make sync-adapter-deps VERSION=1.2.0
+make sync-adapter-deps VERSION=1.2.0 NO_TIDY=1
 ```
 
 ### Cleaning Replace Directives
@@ -256,7 +263,7 @@ make list-adapters
 2. **Adapter dependency mismatch**:
    ```bash
    # Resync dependencies
-   make sync-adapter-deps VERSION=v1.2.0
+   make sync-adapter-deps VERSION=1.2.0
    ```
 
 3. **Test failures**:
