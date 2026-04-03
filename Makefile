@@ -40,7 +40,7 @@ VERSION_TAG      := v$(VERSION_STRIPPED)
 .PHONY: sync-adapter-deps
 .PHONY: release-preflight release-core-publish
 .PHONY: release-adapters-preflight release-adapters-publish release-adapters-publish-dry-run
-.PHONY: release-all-prepare release-all-publish release-all-dry-run
+.PHONY: release-prepare release-publish release-dry-run
 .PHONY: help
 
 help: ## Show this help message
@@ -153,7 +153,7 @@ release-core-publish: ## Internal: release core module tag
 
 release-preflight: ## Validate release prerequisites for core tag
 	@if [ -z "$(VERSION)" ]; then \
-		echo "$(RED)Usage: make release-all-prepare VERSION=0.3.0 (or v0.3.0)$(NC)"; \
+		echo "$(RED)Usage: make release-prepare VERSION=0.3.0 (or v0.3.0)$(NC)"; \
 		exit 1; \
 	fi
 	@if [ -n "$$(git status --porcelain)" ]; then \
@@ -186,7 +186,7 @@ release-adapters-publish: ## Internal: release adapter module tags
 
 release-adapters-preflight: ## Validate release prerequisites for adapter tags
 	@if [ -z "$(VERSION)" ]; then \
-		echo "$(RED)Usage: make release-all-publish VERSION=0.3.0 (or v0.3.0)$(NC)"; \
+		echo "$(RED)Usage: make release-publish VERSION=0.3.0 (or v0.3.0)$(NC)"; \
 		exit 1; \
 	fi
 	@if [ -n "$$(git status --porcelain)" ]; then \
@@ -212,7 +212,7 @@ release-adapters-preflight: ## Validate release prerequisites for adapter tags
 
 release-adapters-publish-dry-run:
 	@if [ -z "$(VERSION)" ]; then \
-		echo "$(RED)Usage: make release-all-dry-run VERSION=0.3.0 (or v0.3.0)$(NC)"; \
+		echo "$(RED)Usage: make release-dry-run VERSION=0.3.0 (or v0.3.0)$(NC)"; \
 		exit 1; \
 	fi
 	@echo "$(YELLOW)🔍 Dry run for releasing adapters with version $(VERSION_TAG)...$(NC)"
@@ -225,9 +225,9 @@ release-adapters-publish-dry-run:
 	done
 	@echo "$(GREEN)🎉 Dry run complete! No changes made.$(NC)"
 
-release-all-prepare: ## Stage 1 release flow: root release + adapter dependency sync
+release-prepare: ## Stage 1 release flow: root release + adapter dependency sync
 	@if [ -z "$(VERSION)" ]; then \
-		echo "$(RED)Usage: make release-all-prepare VERSION=0.3.0 (or v0.3.0)$(NC)"; \
+		echo "$(RED)Usage: make release-prepare VERSION=0.3.0 (or v0.3.0)$(NC)"; \
 		exit 1; \
 	fi
 	@echo "$(BLUE)📦 Stage 1/2: Preparing monorepo release for $(VERSION_TAG)...$(NC)"
@@ -235,20 +235,20 @@ release-all-prepare: ## Stage 1 release flow: root release + adapter dependency 
 	@$(MAKE) sync-adapter-deps VERSION=$(VERSION_TAG)
 	@echo "$(YELLOW)⚠️  Commit and push adapter dependency changes before publishing adapter tags.$(NC)"
 	@echo "$(YELLOW)   Suggested commit: chore: sync adapter deps to $(VERSION_TAG)$(NC)"
-	@echo "$(GREEN)✅ Stage 1 complete. Next: make release-all-publish VERSION=$(VERSION_TAG)$(NC)"
+	@echo "$(GREEN)✅ Stage 1 complete. Next: make release-publish VERSION=$(VERSION_TAG)$(NC)"
 
-release-all-publish: ## Stage 2 release flow: publish adapter tags from committed sync state
+release-publish: ## Stage 2 release flow: publish adapter tags from committed sync state
 	@if [ -z "$(VERSION)" ]; then \
-		echo "$(RED)Usage: make release-all-publish VERSION=0.3.0 (or v0.3.0)$(NC)"; \
+		echo "$(RED)Usage: make release-publish VERSION=0.3.0 (or v0.3.0)$(NC)"; \
 		exit 1; \
 	fi
 	@echo "$(BLUE)📦 Stage 2/2: Publishing adapter tags for $(VERSION_TAG)...$(NC)"
 	@$(MAKE) release-adapters-publish VERSION=$(VERSION_TAG)
 	@echo "$(GREEN)🎉 Monorepo release completed for $(VERSION_TAG)!$(NC)"
 
-release-all-dry-run: ## Dry run for two-stage monorepo release
+release-dry-run: ## Dry run for two-stage monorepo release
 	@if [ -z "$(VERSION)" ]; then \
-		echo "$(RED)Usage: make release-all-dry-run VERSION=0.3.0 (or v0.3.0)$(NC)"; \
+		echo "$(RED)Usage: make release-dry-run VERSION=0.3.0 (or v0.3.0)$(NC)"; \
 		exit 1; \
 	fi
 	@echo "$(YELLOW)🔍 Dry run for monorepo release $(VERSION_TAG)...$(NC)"

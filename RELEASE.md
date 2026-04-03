@@ -53,7 +53,7 @@ Recommended end-to-end flow for root + adapters:
 
 ```bash
 # Stage 1: release core and sync adapter deps
-make release-all-prepare VERSION=x.y.z
+make release-prepare VERSION=x.y.z
 
 # Commit sync changes produced by stage 1
 git add adapter/*/go.mod adapter/*/go.sum
@@ -61,13 +61,13 @@ git commit -m "chore: sync adapter deps to vx.y.z"
 git push
 
 # Stage 2: publish adapter tags
-make release-all-publish VERSION=x.y.z
+make release-publish VERSION=x.y.z
 ```
 
 Preview without changes:
 
 ```bash
-make release-all-dry-run VERSION=x.y.z
+make release-dry-run VERSION=x.y.z
 ```
 
 ## Typical Release Workflow
@@ -87,7 +87,7 @@ For bug fixes and minor improvements:
 
 2. **Run Stage 1 (core tag + dependency sync)**:
    ```bash
-   make release-all-prepare VERSION=0.3.5
+   make release-prepare VERSION=0.3.5
 
    # Commit the sync result produced by stage 1
    git add adapter/*/go.mod adapter/*/go.sum
@@ -95,7 +95,7 @@ For bug fixes and minor improvements:
    git push
    
    # Publish adapter tags (stage 2)
-   make release-all-publish VERSION=0.3.5
+   make release-publish VERSION=0.3.5
    ```
 
 ### Minor Release (x.Y.z)
@@ -111,7 +111,7 @@ For new features and non-breaking changes:
 
 3. **Run Stage 1 (core tag + dependency sync)**:
    ```bash
-   make release-all-prepare VERSION=0.4.0
+   make release-prepare VERSION=0.4.0
 
    # Commit the sync result produced by stage 1
    git add adapter/*/go.mod adapter/*/go.sum
@@ -119,7 +119,7 @@ For new features and non-breaking changes:
    git push
 
    # Publish adapter tags (stage 2)
-   make release-all-publish VERSION=0.4.0
+   make release-publish VERSION=0.4.0
    ```
 
 ### Major Release (X.y.z)
@@ -176,15 +176,15 @@ Use release candidate (RC) versions for testing before final release:
 Example with two-stage release flow:
 
 ```bash
-make release-all-dry-run VERSION=0.4.0-rc.1
-make release-all-prepare VERSION=0.4.0-rc.1
+make release-dry-run VERSION=0.4.0-rc.1
+make release-prepare VERSION=0.4.0-rc.1
 
 # Commit sync changes from stage 1
 git add adapter/*/go.mod adapter/*/go.sum
 git commit -m "chore: sync adapter deps to v0.4.0-rc.1"
 git push
 
-make release-all-publish VERSION=0.4.0-rc.1
+make release-publish VERSION=0.4.0-rc.1
 ```
 
 ### Tag Management
@@ -260,7 +260,7 @@ make list-adapters
 1. **Tag already exists**:
    ```bash
    # Preview tag availability first
-   make release-all-dry-run VERSION=1.2.0
+   make release-dry-run VERSION=1.2.0
    ```
 
 2. **Adapter dependency mismatch**:
@@ -292,14 +292,14 @@ make list-adapters
 - [ ] Clean git working directory
 
 ### Core Release
-- [ ] `make release-all-prepare VERSION=x.y.z` completed successfully
+- [ ] `make release-prepare VERSION=x.y.z` completed successfully
 - [ ] Tag appears in GitHub releases
 - [ ] Module available on pkg.go.dev
 
 ### Adapter Release (if needed)
 - [ ] Sync changes committed and pushed
 - [ ] All adapter tests pass
-- [ ] `make release-all-publish VERSION=x.y.z` completed successfully
+- [ ] `make release-publish VERSION=x.y.z` completed successfully
 - [ ] All adapter tags created
 
 ### Post-release
