@@ -423,6 +423,8 @@ linters:
       - common-false-positives
     # Excluding configuration per-path, per-linter, per-text and per-source.
     rules:
+      - text: 'local replacement are not allowed'
+        linters: [ gomoddirectives ]
       - source: 'TODO'
         linters: [ godot ]
       - text: 'should have a package comment'

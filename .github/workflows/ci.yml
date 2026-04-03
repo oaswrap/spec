@@ -30,7 +30,7 @@ jobs:
     - name: 🐹 Setup Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.23.x'  # Force Go 1.23 latest patch
+        go-version: '1.25.x'  # Use latest supported toolchain for quality checks
         check-latest: true    # Always grab the newest patch release
         cache: true           # Handles ~/.cache/go-build and ~/go/pkg/mod
 
