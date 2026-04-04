@@ -16,6 +16,7 @@ require (
 	github.com/swaggest/jsonschema-go v0.3.78 // indirect
 	github.com/swaggest/openapi-go v0.2.60 // indirect
 	github.com/swaggest/refl v1.4.0 // indirect
+	golang.org/x/net v0.50.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

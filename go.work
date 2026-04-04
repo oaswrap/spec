@@ -10,6 +10,8 @@ use (
 	./adapter/echov5openapi/examples/basic
 	./adapter/fiberopenapi
 	./adapter/fiberopenapi/examples/basic
+	./adapter/fiberv3openapi
+	./adapter/fiberv3openapi/examples/basic
 	./adapter/ginopenapi
 	./adapter/ginopenapi/examples/basic
 	./adapter/httpopenapi

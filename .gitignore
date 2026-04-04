@@ -32,3 +32,6 @@ coverage/
 # Editor/IDE
 .idea/
 .vscode/
+
+# AI assistant data
+.claude/

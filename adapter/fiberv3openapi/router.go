@@ -1,0 +1,183 @@
+package fiberv3openapi
+
+import (
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/adaptor"
+	"github.com/oaswrap/spec"
+	specui "github.com/oaswrap/spec-ui"
+	"github.com/oaswrap/spec/adapter/fiberv3openapi/internal/constant"
+	"github.com/oaswrap/spec/openapi"
+	"github.com/oaswrap/spec/option"
+	"github.com/oaswrap/spec/pkg/mapper"
+	"github.com/oaswrap/spec/pkg/parser"
+)
+
+// NewGenerator creates a new OpenAPI generator with the specified Fiber v3 router and options.
+//
+// It initializes the OpenAPI router and sets up the necessary routes for OpenAPI documentation.
+func NewGenerator(r fiber.Router, opts ...option.OpenAPIOption) Generator {
+	return NewRouter(r, opts...)
+}
+
+// NewRouter creates a new OpenAPI router with the specified Fiber v3 router and options.
+//
+// It initializes the OpenAPI generator and sets up the necessary routes for OpenAPI documentation.
+func NewRouter(r fiber.Router, opts ...option.OpenAPIOption) Generator {
+	defaultOpts := []option.OpenAPIOption{
+		option.WithTitle(constant.DefaultTitle),
+		option.WithDescription(constant.DefaultDescription),
+		option.WithVersion(constant.DefaultVersion),
+		option.WithPathParser(parser.NewColonParamParser()),
+		option.WithStoplightElements(),
+		option.WithCacheAge(0),
+		option.WithReflectorConfig(
+			option.ParameterTagMapping(openapi.ParameterInPath, "uri"),
+		),
+	}
+	opts = append(defaultOpts, opts...)
+	gen := spec.NewGenerator(opts...)
+	cfg := gen.Config()
+
+	rr := &router{
+		fiberRouter: r,
+		specRouter:  gen,
+		gen:         gen,
+	}
+
+	// If docs are disabled, return the router without adding docs routes.
+	if cfg.DisableDocs {
+		return rr
+	}
+
+	handler := specui.NewHandler(mapper.SpecUIOpts(gen)...)
+
+	r.Get(cfg.DocsPath, adaptor.HTTPHandler(handler.Docs()))
+	r.Get(cfg.SpecPath, adaptor.HTTPHandler(handler.Spec()))
+
+	return rr
+}
+
+type router struct {
+	fiberRouter fiber.Router
+	specRouter  spec.Router
+	gen         spec.Generator
+}
+
+func (r *router) Use(args ...any) Router {
+	r.fiberRouter.Use(args...)
+	return r
+}
+
+func (r *router) Get(path string, handlers ...fiber.Handler) Route {
+	return r.Add(fiber.MethodGet, path, handlers...)
+}
+
+func (r *router) Head(path string, handlers ...fiber.Handler) Route {
+	return r.Add(fiber.MethodHead, path, handlers...)
+}
+
+func (r *router) Post(path string, handlers ...fiber.Handler) Route {
+	return r.Add(fiber.MethodPost, path, handlers...)
+}
+
+func (r *router) Put(path string, handlers ...fiber.Handler) Route {
+	return r.Add(fiber.MethodPut, path, handlers...)
+}
+
+func (r *router) Patch(path string, handlers ...fiber.Handler) Route {
+	return r.Add(fiber.MethodPatch, path, handlers...)
+}
+
+func (r *router) Delete(path string, handlers ...fiber.Handler) Route {
+	return r.Add(fiber.MethodDelete, path, handlers...)
+}
+
+func (r *router) Connect(path string, handlers ...fiber.Handler) Route {
+	return r.Add(fiber.MethodConnect, path, handlers...)
+}
+
+func (r *router) Options(path string, handlers ...fiber.Handler) Route {
+	return r.Add(fiber.MethodOptions, path, handlers...)
+}
+
+func (r *router) Trace(path string, handlers ...fiber.Handler) Route {
+	return r.Add(fiber.MethodTrace, path, handlers...)
+}
+
+func (r *router) Add(method, path string, handlers ...fiber.Handler) Route {
+	anyHandlers := make([]any, 0, len(handlers))
+	for _, h := range handlers {
+		if h != nil {
+			anyHandlers = append(anyHandlers, h)
+		}
+	}
+	// Fiber v3 requires at least one handler
+	if len(anyHandlers) == 0 {
+		anyHandlers = append(anyHandlers, func(c fiber.Ctx) error {
+			return c.SendStatus(fiber.StatusNotImplemented)
+		})
+	}
+	r.fiberRouter.Add([]string{method}, path, anyHandlers[0], anyHandlers[1:]...)
+
+	rt := &route{}
+	if method == fiber.MethodConnect {
+		// CONNECT method is not supported by OpenAPI, so we skip it
+		return rt
+	}
+	rt.sr = r.specRouter.Add(method, path)
+
+	return rt
+}
+
+func (r *router) Group(prefix string, handlers ...fiber.Handler) Router {
+	anyHandlers := make([]any, len(handlers))
+	for i, h := range handlers {
+		anyHandlers[i] = h
+	}
+	fr := r.fiberRouter.Group(prefix, anyHandlers...)
+	sr := r.specRouter.Group(prefix)
+
+	return &router{
+		fiberRouter: fr,
+		specRouter:  sr,
+	}
+}
+
+func (r *router) Route(prefix string, fn func(router Router), opts ...option.GroupOption) Router {
+	fr := r.fiberRouter.Group(prefix)
+	sr := r.specRouter.Group(prefix, opts...)
+
+	subRouter := &router{
+		fiberRouter: fr,
+		specRouter:  sr,
+	}
+
+	fn(subRouter)
+
+	return subRouter
+}
+
+func (r *router) With(opts ...option.GroupOption) Router {
+	r.specRouter.With(opts...)
+	return r
+}
+
+func (r *router) Validate() error {
+	return r.gen.Validate()
+}
+
+func (r *router) GenerateSchema(formats ...string) ([]byte, error) {
+	return r.gen.GenerateSchema(formats...)
+}
+
+func (r *router) MarshalYAML() ([]byte, error) {
+	return r.gen.MarshalYAML()
+}
+
+func (r *router) MarshalJSON() ([]byte, error) {
+	return r.gen.MarshalJSON()
+}
+
+func (r *router) WriteSchemaTo(path string) error {
+	return r.gen.WriteSchemaTo(path)
+}
