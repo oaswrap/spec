@@ -5,6 +5,8 @@
 
 A lightweight adapter for the [Echo](https://github.com/labstack/echo) web framework that automatically generates OpenAPI 3.x specifications from your routes using [`oaswrap/spec`](https://github.com/oaswrap/spec).
 
+> **Note:** This adapter is for Echo v4. For Echo v5, use [`echov5openapi`](../echov5openapi).
+
 ## Features
 
 - **⚡ Seamless Integration** — Works with your existing Echo routes and handlers
@@ -167,10 +169,9 @@ type CreateProductRequest struct {
 
 For more struct tag options, see the [swaggest/openapi-go](https://github.com/swaggest/openapi-go?tab=readme-ov-file#features).
 
-## Examples
+## Example
 
-Check out complete examples in the main repository:
-- [Basic](https://github.com/oaswrap/spec/tree/main/examples/adapter/echoopenapi/basic)
+Check out the [examples directory](/adapter/echoopenapi/example) for more complete implementations and use cases.
 
 ## Best Practices
 

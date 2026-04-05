@@ -1,10 +1,10 @@
-module github.com/oaswrap/spec/adapter/echoopenapi/examples/basic
+module github.com/oaswrap/spec/adapter/echoopenapi/example
 
 go 1.24.0
 
 require (
 	github.com/labstack/echo/v4 v4.13.4
-	github.com/oaswrap/spec v0.3.6
+	github.com/oaswrap/spec v0.4.0-rc.1
 	github.com/oaswrap/spec/adapter/echoopenapi v0.0.0
 )
 
@@ -25,4 +25,4 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
-replace github.com/oaswrap/spec/adapter/echoopenapi => ../..
+replace github.com/oaswrap/spec/adapter/echoopenapi => ..

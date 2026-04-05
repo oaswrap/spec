@@ -1,11 +1,11 @@
-module github.com/oaswrap/spec/adapter/muxopenapi/examples/basic
+module github.com/oaswrap/spec/adapter/chiopenapi/example
 
 go 1.21
 
 require (
-	github.com/gorilla/mux v1.8.1
-	github.com/oaswrap/spec v0.3.6
-	github.com/oaswrap/spec/adapter/muxopenapi v0.3.1
+	github.com/go-chi/chi/v5 v5.2.2
+	github.com/oaswrap/spec v0.4.0-rc.1
+	github.com/oaswrap/spec/adapter/chiopenapi v0.0.0
 )
 
 require (
@@ -16,4 +16,4 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
-replace github.com/oaswrap/spec/adapter/muxopenapi => ../..
+replace github.com/oaswrap/spec/adapter/chiopenapi => ..

@@ -179,10 +179,9 @@ type CreateProductRequest struct {
 
 For more struct tag options, see the [swaggest/openapi-go](https://github.com/swaggest/openapi-go?tab=readme-ov-file#features).
 
-## Examples
+## Example
 
-Check out complete examples in the main repository:
-- [Basic](https://github.com/oaswrap/spec/tree/main/examples/adapter/chiopenapi/basic)
+Check out the [examples directory](/adapter/chiopenapi/example) for more complete implementations and use cases.
 
 ## Best Practices
 

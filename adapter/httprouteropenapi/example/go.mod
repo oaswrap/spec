@@ -1,10 +1,10 @@
-module github.com/oaswrap/spec/adapter/httprouteropenapi/examples/basic
+module github.com/oaswrap/spec/adapter/httprouteropenapi/example
 
 go 1.21
 
 require (
 	github.com/julienschmidt/httprouter v1.3.0
-	github.com/oaswrap/spec v0.3.6
+	github.com/oaswrap/spec v0.4.0-rc.1
 	github.com/oaswrap/spec/adapter/httprouteropenapi v0.0.0
 )
 
@@ -16,4 +16,4 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
-replace github.com/oaswrap/spec/adapter/httprouteropenapi => ../..
+replace github.com/oaswrap/spec/adapter/httprouteropenapi => ..

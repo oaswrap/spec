@@ -3,23 +3,23 @@ go 1.25.0
 use (
 	.
 	./adapter/chiopenapi
-	./adapter/chiopenapi/examples/basic
+	./adapter/chiopenapi/example
 	./adapter/echoopenapi
-	./adapter/echoopenapi/examples/basic
+	./adapter/echoopenapi/example
 	./adapter/echov5openapi
-	./adapter/echov5openapi/examples/basic
+	./adapter/echov5openapi/example
 	./adapter/fiberopenapi
-	./adapter/fiberopenapi/examples/basic
+	./adapter/fiberopenapi/example
 	./adapter/fiberv3openapi
-	./adapter/fiberv3openapi/examples/basic
+	./adapter/fiberv3openapi/example
 	./adapter/ginopenapi
-	./adapter/ginopenapi/examples/basic
+	./adapter/ginopenapi/example
 	./adapter/httpopenapi
-	./adapter/httpopenapi/examples/basic
+	./adapter/httpopenapi/example
 	./adapter/httprouteropenapi
-	./adapter/httprouteropenapi/examples/basic
+	./adapter/httprouteropenapi/example
 	./adapter/muxopenapi
-	./adapter/muxopenapi/examples/basic
+	./adapter/muxopenapi/example
 	./examples/basic
 	./examples/petstore
 )

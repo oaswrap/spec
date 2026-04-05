@@ -1,10 +1,10 @@
-module github.com/oaswrap/spec/adapter/ginopenapi/examples/basic
+module github.com/oaswrap/spec/adapter/ginopenapi/example
 
 go 1.24.0
 
 require (
 	github.com/gin-gonic/gin v1.10.1
-	github.com/oaswrap/spec v0.3.6
+	github.com/oaswrap/spec v0.4.0-rc.1
 	github.com/oaswrap/spec/adapter/ginopenapi v0.0.0
 )
 
@@ -42,4 +42,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/oaswrap/spec/adapter/ginopenapi => ../..
+replace github.com/oaswrap/spec/adapter/ginopenapi => ..

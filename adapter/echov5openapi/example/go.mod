@@ -1,4 +1,4 @@
-module github.com/oaswrap/spec/adapter/echov5openapi/examples/basic
+module github.com/oaswrap/spec/adapter/echov5openapi/example
 
 go 1.25.0
 
@@ -17,4 +17,4 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
-replace github.com/oaswrap/spec/adapter/echov5openapi => ../..
+replace github.com/oaswrap/spec/adapter/echov5openapi => ..
