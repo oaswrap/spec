@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
+	stoplightemb "github.com/oaswrap/spec-ui/stoplightemb"
 	"github.com/oaswrap/spec/adapter/fiberopenapi"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
@@ -476,6 +477,20 @@ func TestGenerator_Docs(t *testing.T) {
 			"expected OpenAPI version in response body for OpenAPI YAML route",
 		)
 	})
+}
+
+func TestGenerator_Assets(t *testing.T) {
+	app := fiber.New()
+	r := fiberopenapi.NewRouter(app, option.WithUIOption(stoplightemb.WithUI()))
+	r.Get("/ping", PingHandler).With(
+		option.OperationID("pingHandler"),
+	)
+
+	req, _ := http.NewRequest(http.MethodGet, "/docs/_assets/styles.min.css", nil)
+	res, err := app.Test(req, -1)
+	require.NoError(t, err, "failed to test embedded asset route")
+	assert.Equal(t, http.StatusOK, res.StatusCode, "expected status OK for embedded asset route")
+	_ = res.Body.Close()
 }
 
 func TestGenerator_DisableDocs(t *testing.T) {

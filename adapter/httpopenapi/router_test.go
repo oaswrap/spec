@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	stoplightemb "github.com/oaswrap/spec-ui/stoplightemb"
 	"github.com/oaswrap/spec/adapter/httpopenapi"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
@@ -517,6 +518,21 @@ func TestGenerator_DisableDocs(t *testing.T) {
 
 		assert.Equal(t, http.StatusNotFound, docsFileRec.Code, "expected 404 when docs are disabled")
 	})
+}
+
+func TestGenerator_Assets(t *testing.T) {
+	mux := http.NewServeMux()
+	r := httpopenapi.NewRouter(mux, option.WithUIOption(stoplightemb.WithUI()))
+
+	r.HandleFunc("GET /ping", pingHandler).With(
+		option.OperationID("pingHandler"),
+	)
+
+	assetReq := httptest.NewRequest(http.MethodGet, "/docs/_assets/styles.min.css", nil)
+	assetRec := httptest.NewRecorder()
+	mux.ServeHTTP(assetRec, assetReq)
+
+	assert.Equal(t, http.StatusOK, assetRec.Code)
 }
 
 func TestGenerator_MarshalJSON(t *testing.T) {

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	stoplightemb "github.com/oaswrap/spec-ui/stoplightemb"
 	"github.com/oaswrap/spec/adapter/ginopenapi"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
@@ -590,6 +591,24 @@ func TestGenerator_DisableDocs(t *testing.T) {
 			"expected status code 404 for /docs/openapi.yaml when OpenAPI is disabled",
 		)
 	})
+}
+
+func TestGenerator_Assets(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	app := gin.New()
+	r := ginopenapi.NewRouter(app, option.WithUIOption(stoplightemb.WithUI()))
+	r.GET("/ping", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "pong"})
+	}).With(
+		option.OperationID("pingHandler"),
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "/docs/_assets/styles.min.css", nil)
+	rec := httptest.NewRecorder()
+	app.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code, "expected status code 200 for embedded asset route")
 }
 
 func TestGenerator_WriteSchemaTo(t *testing.T) {

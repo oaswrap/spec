@@ -56,6 +56,10 @@ func NewGenerator(r chi.Router, opts ...option.OpenAPIOption) Generator {
 	r.Get(cfg.DocsPath, handler.DocsFunc())
 	r.Get(cfg.SpecPath, handler.SpecFunc())
 
+	if handler.AssetsEnabled() {
+		r.Handle(handler.AssetsPath()+"/*", handler.Assets())
+	}
+
 	return rr
 }
 

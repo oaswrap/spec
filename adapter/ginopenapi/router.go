@@ -53,6 +53,10 @@ func NewRouter(ginRouter gin.IRouter, opts ...option.OpenAPIOption) Generator {
 	ginRouter.GET(cfg.DocsPath, gin.WrapH(handler.Docs()))
 	ginRouter.GET(cfg.SpecPath, gin.WrapH(handler.Spec()))
 
+	if handler.AssetsEnabled() {
+		ginRouter.GET(handler.AssetsPath()+"/*filepath", gin.WrapH(handler.Assets()))
+	}
+
 	return rr
 }
 

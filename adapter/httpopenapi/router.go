@@ -58,6 +58,10 @@ func NewGenerator(mux *http.ServeMux, opts ...option.OpenAPIOption) Generator {
 	mux.Handle(http.MethodGet+" "+cfg.DocsPath, handler.DocsFunc())
 	mux.Handle(http.MethodGet+" "+cfg.SpecPath, handler.SpecFunc())
 
+	if handler.AssetsEnabled() {
+		mux.Handle(http.MethodGet+" "+handler.AssetsPath()+"/", handler.Assets())
+	}
+
 	return r
 }
 

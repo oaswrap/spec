@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v5"
+	stoplightemb "github.com/oaswrap/spec-ui/stoplightemb"
 	"github.com/oaswrap/spec/adapter/echov5openapi"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
@@ -629,6 +630,25 @@ func TestGenerator_Docs(t *testing.T) {
 
 	assert.Equal(t, 200, rec.Code, "Expected status code 200 for /docs")
 	assert.Contains(t, rec.Body.String(), "Test API Docs", "Expected response to contain API title")
+}
+
+func TestGenerator_Assets(t *testing.T) {
+	e := echo.New()
+	r := echov5openapi.NewGenerator(e,
+		option.WithTitle("Test API Assets"),
+		option.WithVersion("1.0.0"),
+		option.WithUIOption(stoplightemb.WithUI()),
+	)
+
+	r.GET("/hello", HelloHandler).With(
+		option.OperationID("hello"),
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "/docs/_assets/styles.min.css", nil)
+	rec := httptest.NewRecorder()
+	e.ServeHTTP(rec, req)
+
+	assert.Equal(t, 200, rec.Code, "Expected status code 200 for embedded asset route")
 }
 
 func TestGenerator_DisableDocs(t *testing.T) {

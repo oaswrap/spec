@@ -46,6 +46,10 @@ func NewGenerator(httpRouter *httprouter.Router, opts ...option.OpenAPIOption) G
 	httpRouter.Handler(http.MethodGet, cfg.DocsPath, handler.Docs())
 	httpRouter.Handler(http.MethodGet, cfg.SpecPath, handler.Spec())
 
+	if handler.AssetsEnabled() {
+		httpRouter.Handler(http.MethodGet, handler.AssetsPath()+"/*filepath", handler.Assets())
+	}
+
 	return r
 }
 

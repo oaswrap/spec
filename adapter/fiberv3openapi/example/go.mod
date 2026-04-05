@@ -16,7 +16,7 @@ require (
 	github.com/klauspost/compress v1.18.4 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/oaswrap/spec-ui v0.1.4 // indirect
+	github.com/oaswrap/spec-ui v0.2.0 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/swaggest/jsonschema-go v0.3.78 // indirect
 	github.com/swaggest/openapi-go v0.2.60 // indirect

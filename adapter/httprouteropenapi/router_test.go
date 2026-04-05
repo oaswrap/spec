@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/julienschmidt/httprouter"
+	stoplightemb "github.com/oaswrap/spec-ui/stoplightemb"
 	"github.com/oaswrap/spec/adapter/httprouteropenapi"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
@@ -510,6 +511,21 @@ func TestGenerator_DisableDocs(t *testing.T) {
 
 		assert.Equal(t, http.StatusNotFound, rec.Code)
 	})
+}
+
+func TestGenerator_Assets(t *testing.T) {
+	router := httprouter.New()
+	r := httprouteropenapi.NewRouter(router, option.WithUIOption(stoplightemb.WithUI()))
+
+	r.GET("/ping", PingHandler).With(
+		option.OperationID("pingHandler"),
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "/docs/_assets/styles.min.css", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
 }
 
 func TestGenerator_MarshalYAML(t *testing.T) {

@@ -16,8 +16,8 @@ github.com/labstack/echo/v5 v5.0.2 h1:DwPe1Rla27Zf3QxbW+DxhPKRIbKHHTgHQyaLJC2gE3
 github.com/labstack/echo/v5 v5.0.2/go.mod h1:SyvlSdObGjRXeQfCCXW/sybkZdOOQZBmpKF0bvALaeo=
 github.com/oaswrap/spec v0.4.0-rc.1 h1:fE9rvPVurJgq9PAh8ENPGt3UQhBM/QTE1JM4aOWpAdk=
 github.com/oaswrap/spec v0.4.0-rc.1/go.mod h1:+9yWJJqvjAOCFca6nsPGks9jgmDSKlol7Umd28oNgEI=
-github.com/oaswrap/spec-ui v0.1.4 h1:XM2Z/ZS2Su90EtDSVuOHGr2+DLpVc2933mxkn6F4aeU=
-github.com/oaswrap/spec-ui v0.1.4/go.mod h1:D8EnD6zbYJ3q65wdltw6QHXfw+nut5XwSSA1xtlSEQQ=
+github.com/oaswrap/spec-ui v0.2.0 h1:NVuAqjOUf3acSEmwy5y4q0ii15xD+KGuoJYvNmtLd4k=
+github.com/oaswrap/spec-ui v0.2.0/go.mod h1:D8EnD6zbYJ3q65wdltw6QHXfw+nut5XwSSA1xtlSEQQ=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/sergi/go-diff v1.3.1 h1:xkr+Oxo4BOQKmkn/B9eMK0g5Kg/983T9DqqPHwYqD+8=

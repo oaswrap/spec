@@ -32,8 +32,7 @@ github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWE
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/oaswrap/spec v0.4.0-rc.1 h1:fE9rvPVurJgq9PAh8ENPGt3UQhBM/QTE1JM4aOWpAdk=
 github.com/oaswrap/spec v0.4.0-rc.1/go.mod h1:+9yWJJqvjAOCFca6nsPGks9jgmDSKlol7Umd28oNgEI=
-github.com/oaswrap/spec-ui v0.1.4 h1:XM2Z/ZS2Su90EtDSVuOHGr2+DLpVc2933mxkn6F4aeU=
-github.com/oaswrap/spec-ui v0.1.4/go.mod h1:D8EnD6zbYJ3q65wdltw6QHXfw+nut5XwSSA1xtlSEQQ=
+github.com/oaswrap/spec-ui v0.2.0 h1:NVuAqjOUf3acSEmwy5y4q0ii15xD+KGuoJYvNmtLd4k=
 github.com/philhofer/fwd v1.2.0 h1:e6DnBTl7vGY+Gz322/ASL4Gyp1FspeMvx1RNDoToZuM=
 github.com/philhofer/fwd v1.2.0/go.mod h1:RqIHx9QI14HlwKwm98g9Re5prTQ6LdeRQn+gXJFxsJM=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=

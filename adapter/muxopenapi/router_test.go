@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/gorilla/mux"
+	stoplightemb "github.com/oaswrap/spec-ui/stoplightemb"
 	"github.com/oaswrap/spec/adapter/muxopenapi"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
@@ -516,6 +517,21 @@ func TestGenerator_DisableDocs(t *testing.T) {
 
 		assert.Equal(t, http.StatusNotFound, rec.Code)
 	})
+}
+
+func TestGenerator_Assets(t *testing.T) {
+	m := mux.NewRouter()
+	r := muxopenapi.NewRouter(m, option.WithUIOption(stoplightemb.WithUI()))
+
+	r.HandleFunc("/ping", PingHandler).Methods("GET").With(
+		option.OperationID("pingHandler"),
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "/docs/_assets/styles.min.css", nil)
+	rec := httptest.NewRecorder()
+	m.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
 }
 
 func TestGenerator_MarshalJSON(t *testing.T) {

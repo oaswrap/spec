@@ -54,6 +54,10 @@ func NewRouter(r fiber.Router, opts ...option.OpenAPIOption) Generator {
 	r.Get(cfg.DocsPath, adaptor.HTTPHandler(handler.Docs()))
 	r.Get(cfg.SpecPath, adaptor.HTTPHandler(handler.Spec()))
 
+	if handler.AssetsEnabled() {
+		r.Get(handler.AssetsPath()+"/*", adaptor.HTTPHandler(handler.Assets()))
+	}
+
 	return rr
 }
 

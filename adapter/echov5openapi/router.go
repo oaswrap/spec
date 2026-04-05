@@ -61,6 +61,10 @@ func NewGenerator(e *echo.Echo, opts ...option.OpenAPIOption) Generator {
 	rr.echoGroup.GET(cfg.DocsPath, echo.WrapHandler(handler.Docs()))
 	rr.echoGroup.GET(cfg.SpecPath, echo.WrapHandler(handler.Spec()))
 
+	if handler.AssetsEnabled() {
+		rr.echoGroup.GET(handler.AssetsPath()+"/*", echo.WrapHandler(handler.Assets()))
+	}
+
 	return rr
 }
 

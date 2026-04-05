@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
+	stoplightemb "github.com/oaswrap/spec-ui/stoplightemb"
 	"github.com/oaswrap/spec/adapter/chiopenapi"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
@@ -573,6 +574,20 @@ func TestGenerator_Docs(t *testing.T) {
 		assert.Equal(t, http.StatusOK, rr.Code, "expected status OK for /docs/openapi.yaml route")
 		assert.Contains(t, rr.Body.String(), "openapi: 3.0.3", "expected response body to contain 'openapi: 3.0.3'")
 	})
+}
+
+func TestGenerator_Assets(t *testing.T) {
+	c := chi.NewRouter()
+	r := chiopenapi.NewRouter(c, option.WithUIOption(stoplightemb.WithUI()))
+	r.Get("/ping", pingHandler).With(
+		option.OperationID("getPing"),
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "/docs/_assets/styles.min.css", nil)
+	rr := httptest.NewRecorder()
+	c.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusOK, rr.Code, "expected status OK for docs asset route")
 }
 
 func TestGenerator_DisableDocs(t *testing.T) {
