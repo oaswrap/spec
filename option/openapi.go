@@ -3,7 +3,13 @@ package option
 import (
 	"log" //nolint:depguard // Use standard log package for simplicity.
 
+	specui "github.com/oaswrap/spec-ui"
 	"github.com/oaswrap/spec-ui/config"
+	"github.com/oaswrap/spec-ui/rapidoc"
+	"github.com/oaswrap/spec-ui/redoc"
+	"github.com/oaswrap/spec-ui/scalar"
+	"github.com/oaswrap/spec-ui/stoplight"
+	"github.com/oaswrap/spec-ui/swaggerui"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/pkg/util"
 )
@@ -197,68 +203,78 @@ func WithCacheAge(cacheAge int) OpenAPIOption {
 	}
 }
 
-// WithSwaggerUI sets the UI documentation to Swagger UI.
+// WithUIOption sets a custom spec-ui option.
+//
+// This enables consumers to import only the specific provider package they need,
+// improving linker tree-shaking.
+func WithUIOption(opt specui.Option) OpenAPIOption {
+	return func(c *openapi.Config) {
+		c.UIOption = opt
+	}
+}
+
+// WithSwaggerUI sets the UI documentation to Swagger UI (CDN mode).
 func WithSwaggerUI(cfg ...config.SwaggerUI) OpenAPIOption {
 	return func(c *openapi.Config) {
-		c.UIProvider = config.ProviderSwaggerUI
+		uiCfg := config.SwaggerUI{}
 		if len(cfg) > 0 {
-			c.SwaggerUIConfig = &cfg[0]
+			uiCfg = cfg[0]
 		}
-		if c.SwaggerUIConfig == nil {
-			c.SwaggerUIConfig = &config.SwaggerUI{}
-		}
+		c.UIProvider = config.ProviderSwaggerUI
+		c.SwaggerUIConfig = &uiCfg
+		c.UIOption = swaggerui.WithUI(uiCfg)
 	}
 }
 
-// WithStoplightElements sets the UI documentation to Stoplight Elements.
+// WithStoplightElements sets the UI documentation to Stoplight Elements (CDN mode).
 func WithStoplightElements(cfg ...config.StoplightElements) OpenAPIOption {
 	return func(c *openapi.Config) {
-		c.UIProvider = config.ProviderStoplightElements
+		uiCfg := config.StoplightElements{}
 		if len(cfg) > 0 {
-			c.StoplightElementsConfig = &cfg[0]
+			uiCfg = cfg[0]
 		}
-		if c.StoplightElementsConfig == nil {
-			c.StoplightElementsConfig = &config.StoplightElements{}
-		}
+		c.UIProvider = config.ProviderStoplightElements
+		c.StoplightElementsConfig = &uiCfg
+		c.UIOption = stoplight.WithUI(uiCfg)
 	}
 }
 
-// WithReDoc sets the UI documentation to ReDoc.
+// WithReDoc sets the UI documentation to ReDoc (CDN mode).
 func WithReDoc(cfg ...config.ReDoc) OpenAPIOption {
 	return func(c *openapi.Config) {
-		c.UIProvider = config.ProviderReDoc
+		uiCfg := config.ReDoc{}
 		if len(cfg) > 0 {
-			c.ReDocConfig = &cfg[0]
+			uiCfg = cfg[0]
 		}
-		if c.ReDocConfig == nil {
-			c.ReDocConfig = &config.ReDoc{}
-		}
+		c.UIProvider = config.ProviderReDoc
+		c.ReDocConfig = &uiCfg
+		c.UIOption = redoc.WithUI(uiCfg)
 	}
 }
 
-// WithScalar sets the UI documentation to Scalar.
+// WithScalar sets the UI documentation to Scalar (CDN mode).
 func WithScalar(cfg ...config.Scalar) OpenAPIOption {
 	return func(c *openapi.Config) {
-		c.UIProvider = config.ProviderScalar
+		uiCfg := config.Scalar{}
 		if len(cfg) > 0 {
-			c.ScalarConfig = &cfg[0]
+			uiCfg = cfg[0]
 		}
-		if c.ScalarConfig == nil {
-			c.ScalarConfig = &config.Scalar{}
-		}
+		c.UIProvider = config.ProviderScalar
+		c.ScalarConfig = &uiCfg
+		c.UIOption = scalar.WithUI(uiCfg)
 	}
 }
 
-// WithRapiDoc sets the UI documentation to RapiDoc.
+// WithRapiDoc sets the UI documentation to RapiDoc (CDN mode).
 func WithRapiDoc(cfg ...config.RapiDoc) OpenAPIOption {
 	return func(c *openapi.Config) {
-		c.UIProvider = config.ProviderRapiDoc
+		uiCfg := config.RapiDoc{}
 		if len(cfg) > 0 {
-			c.RapiDocConfig = &cfg[0]
+			uiCfg = cfg[0]
 		}
-		if c.RapiDocConfig == nil {
-			c.RapiDocConfig = &config.RapiDoc{}
-		}
+		c.UIProvider = config.ProviderRapiDoc
+		c.RapiDocConfig = &uiCfg
+		c.UIOption = rapidoc.WithUI(uiCfg)
 	}
 }
 

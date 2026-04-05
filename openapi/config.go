@@ -3,6 +3,7 @@ package openapi
 import (
 	"reflect"
 
+	specui "github.com/oaswrap/spec-ui"
 	"github.com/oaswrap/spec-ui/config"
 	"github.com/swaggest/jsonschema-go"
 )
@@ -36,6 +37,7 @@ type Config struct {
 	ReDocConfig             *config.ReDoc             // Configuration for Redoc.
 	ScalarConfig            *config.Scalar            // Configuration for Scalar.
 	RapiDocConfig           *config.RapiDoc           // Configuration for RapiDoc.
+	UIOption                specui.Option             // Ready-to-use spec-ui option for the selected provider.
 }
 
 // ReflectorConfig holds advanced options for schema reflection.

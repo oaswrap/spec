@@ -161,6 +161,20 @@ r := httpopenapi.NewRouter(c,
 )
 ```
 
+### Embed Mode (Local Assets)
+By default, UI providers use CDN assets to keep binaries small.
+
+To serve embedded assets (offline mode), use `option.WithUIOption(...)` with the provider emb package directly:
+
+```go
+import (
+    stoplightemb "github.com/oaswrap/spec-ui/stoplightemb"
+)
+
+// example:
+option.WithUIOption(stoplightemb.WithUI())
+```
+
 ### Rich Schema Documentation
 Use struct tags to generate detailed OpenAPI schemas. **Note: These tags are used only for OpenAPI spec generation and documentation - they do not perform actual request validation.**
 

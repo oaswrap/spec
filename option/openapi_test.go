@@ -461,13 +461,13 @@ func TestWithRedoc(t *testing.T) {
 			name: "valid config",
 			cfgs: []config.ReDoc{
 				{
-					DisableSearch:       true,
+					HideSearch:          true,
 					HideDownloadButtons: true,
 					HideSchemaTitles:    true,
 				},
 			},
 			expected: &config.ReDoc{
-				DisableSearch:       true,
+				HideSearch:          true,
 				HideDownloadButtons: true,
 				HideSchemaTitles:    true,
 			},
