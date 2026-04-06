@@ -3,7 +3,7 @@ module github.com/oaswrap/spec/adapter/fiberopenapi
 go 1.24.0
 
 require (
-	github.com/gofiber/fiber/v2 v2.52.9
+	github.com/gofiber/fiber/v2 v2.52.12
 	github.com/oaswrap/spec v0.4.0
 	github.com/oaswrap/spec-ui v0.2.0
 	github.com/stretchr/testify v1.11.1
