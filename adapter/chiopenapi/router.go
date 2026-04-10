@@ -86,7 +86,7 @@ func (r *router) Group(fn func(r Router), opts ...option.GroupOption) Router {
 	r.chiRouter.Group(func(chiRouter chi.Router) {
 		group = &router{
 			chiRouter:  chiRouter,
-			specRouter: r.specRouter.Group("/", opts...),
+			specRouter: r.specRouter.Group("", opts...),
 			gen:        r.gen,
 		}
 		fn(group)

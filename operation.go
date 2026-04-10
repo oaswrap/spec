@@ -228,6 +228,9 @@ func (oc *operationContextImpl) modifyReqStructure(structure any) any {
 	}
 
 	t := reflect.TypeOf(structure)
+	if t == nil {
+		return structure
+	}
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 	}

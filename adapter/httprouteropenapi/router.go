@@ -103,10 +103,11 @@ func (r *router) Handler(method, path string, handler http.Handler) Route {
 			handler = r.middlewares[i](handler)
 		}
 	}
-	r.router.Handler(method, r.pathOf(path), handler)
+	fullPath := r.pathOf(path)
+	r.router.Handler(method, fullPath, handler)
 	rr := &route{}
 	if method != http.MethodConnect {
-		rr.specRoute = r.specRouter.Add(method, path)
+		rr.specRoute = r.specRouter.Add(method, fullPath)
 	}
 
 	return rr
@@ -162,6 +163,7 @@ func (r *router) Group(prefix string, middlewares ...func(http.Handler) http.Han
 		middlewares: append(r.middlewares, middlewares...),
 		specRouter:  r.specRouter.Group(""),
 		prefix:      r.pathOf(prefix),
+		gen:         r.gen,
 	}
 	return group
 }

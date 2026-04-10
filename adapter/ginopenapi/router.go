@@ -125,6 +125,7 @@ func (r *router) Group(prefix string, handlers ...gin.HandlerFunc) Router {
 	return &router{
 		ginRouter:  ginGroup,
 		specRouter: specGroup,
+		gen:        r.gen,
 	}
 }
 

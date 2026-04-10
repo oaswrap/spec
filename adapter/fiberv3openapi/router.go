@@ -144,6 +144,7 @@ func (r *router) Group(prefix string, handlers ...fiber.Handler) Router {
 	return &router{
 		fiberRouter: fr,
 		specRouter:  sr,
+		gen:         r.gen,
 	}
 }
 
@@ -154,6 +155,7 @@ func (r *router) Route(prefix string, fn func(router Router), opts ...option.Gro
 	subRouter := &router{
 		fiberRouter: fr,
 		specRouter:  sr,
+		gen:         r.gen,
 	}
 
 	fn(subRouter)

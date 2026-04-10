@@ -67,6 +67,7 @@ func (r *router) Get(name string) Route {
 	return &route{
 		muxRoute:   muxRoute,
 		specRouter: r.specRouter,
+		gen:        r.gen,
 	}
 }
 
@@ -76,6 +77,7 @@ func (r *router) GetRoute(name string) Route {
 	return &route{
 		muxRoute:   muxRoute,
 		specRouter: r.specRouter,
+		gen:        r.gen,
 	}
 }
 
@@ -108,6 +110,7 @@ func (r *router) NewRoute() Route {
 		muxRoute:   r.muxRouter.NewRoute(),
 		specRoute:  r.specRouter.NewRoute(),
 		specRouter: r.specRouter,
+		gen:        r.gen,
 	}
 }
 

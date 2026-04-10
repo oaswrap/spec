@@ -12,6 +12,7 @@ type route struct {
 	muxRoute   *mux.Route
 	specRoute  spec.Route
 	specRouter spec.Router
+	gen        spec.Generator
 
 	pathPrefix string
 }
@@ -93,6 +94,7 @@ func (r *route) Subrouter(opts ...option.GroupOption) Router {
 	return &router{
 		muxRouter:  r.muxRoute.Subrouter(),
 		specRouter: r.specRouter.Group(r.pathPrefix, opts...),
+		gen:        r.gen,
 	}
 }
 
