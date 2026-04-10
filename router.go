@@ -223,7 +223,11 @@ func (g *generator) Validate() error {
 func (g *generator) buildOnce() {
 	g.once.Do(func() {
 		for _, r := range g.build() {
-			g.reflector.Add(r.method, r.path, r.opts...)
+			path := r.path
+			if g.cfg.StripTrailingSlash && len(path) > 1 {
+				path = strings.TrimRight(path, "/")
+			}
+			g.reflector.Add(r.method, path, r.opts...)
 		}
 	})
 }

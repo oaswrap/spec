@@ -81,7 +81,7 @@ func (l *Logger) LogServer(server openapi.Server) {
 	if len(server.Variables) > 0 {
 		serverInfo += ", variables: "
 		for name, variable := range server.Variables {
-			serverInfo += name + ": " + variable.Default + ", "
+			serverInfo += name + ": " + variable.Default + ", " //nolint:perfsprint // simple diagnostic string build
 		}
 		serverInfo = serverInfo[:len(serverInfo)-2] // Remove trailing comma and space
 	}

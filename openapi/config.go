@@ -24,12 +24,13 @@ type Config struct {
 
 	ReflectorConfig *ReflectorConfig // Configuration for schema reflection.
 
-	DocsPath    string     // Path where the documentation will be served.
-	SpecPath    string     // Path for the OpenAPI specification JSON or YAML.
-	CacheAge    *int       // Cache age for OpenAPI specification responses.
-	DisableDocs bool       // If true, disables serving OpenAPI docs.
-	Logger      Logger     // Logger for diagnostic output.
-	PathParser  PathParser // Path parser for framework-specific path conversions.
+	DocsPath           string     // Path where the documentation will be served.
+	SpecPath           string     // Path for the OpenAPI specification JSON or YAML.
+	CacheAge           *int       // Cache age for OpenAPI specification responses.
+	DisableDocs        bool       // If true, disables serving OpenAPI docs.
+	StripTrailingSlash bool       // If true, trailing slashes are removed from all operation paths.
+	Logger             Logger     // Logger for diagnostic output.
+	PathParser         PathParser // Path parser for framework-specific path conversions.
 
 	UIProvider              config.Provider           // UI provider for the OpenAPI documentation.
 	SwaggerUIConfig         *config.SwaggerUI         // Configuration for embedded Swagger UI.

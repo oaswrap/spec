@@ -176,6 +176,17 @@ func WithDisableDocs(disable ...bool) OpenAPIOption {
 	}
 }
 
+// WithStripTrailingSlash removes trailing slashes from all registered operation paths
+// before they are written to the spec.
+//
+// For example, "/pet/" becomes "/pet".
+// The root path "/" is left unchanged.
+func WithStripTrailingSlash(strip ...bool) OpenAPIOption {
+	return func(c *openapi.Config) {
+		c.StripTrailingSlash = util.Optional(true, strip...)
+	}
+}
+
 // WithDocsPath sets the path for the OpenAPI documentation.
 //
 // This is the path where the OpenAPI documentation will be served.

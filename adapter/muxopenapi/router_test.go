@@ -81,9 +81,10 @@ func TestRouter_Spec(t *testing.T) {
 					}),
 				),
 				option.WithSecurity("apiKey", option.SecurityAPIKey("api_key", openapi.SecuritySchemeAPIKeyInHeader)),
+				option.WithStripTrailingSlash(),
 			},
 			setup: func(r muxopenapi.Router) {
-				pet := r.PathPrefix("pet").Subrouter().With(
+				pet := r.PathPrefix("/pet").Subrouter().With(
 					option.GroupTags("pet"),
 					option.GroupSecurity("petstore_auth", "write:pets", "read:pets"),
 				)
@@ -150,7 +151,7 @@ func TestRouter_Spec(t *testing.T) {
 					option.Response(204, nil),
 				)
 
-				store := r.PathPrefix("store").Subrouter().With(
+				store := r.PathPrefix("/store").Subrouter().With(
 					option.GroupTags("store"),
 				)
 				store.HandleFunc("/order", nil).Methods("POST").With(
@@ -180,7 +181,7 @@ func TestRouter_Spec(t *testing.T) {
 					option.Response(204, nil),
 				)
 
-				user := r.PathPrefix("user").Subrouter().With(
+				user := r.PathPrefix("/user").Subrouter().With(
 					option.GroupTags("user"),
 				)
 				user.HandleFunc("/createWithList", nil).Methods("POST").With(

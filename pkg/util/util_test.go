@@ -70,105 +70,103 @@ func TestPtrOf(t *testing.T) {
 	})
 }
 
-func TestJoinURL(t *testing.T) {
+func TestJoinPath(t *testing.T) {
 	tests := []struct {
 		name     string
-		base     string
-		segments []string
+		paths    []string
 		expected string
 	}{
 		{
-			name:     "base without trailing slash",
-			base:     "https://example.com",
-			segments: []string{"api", "v1", "users"},
-			expected: "https://example.com/api/v1/users",
-		},
-		{
-			name:     "base with trailing slash",
-			base:     "https://example.com/",
-			segments: []string{"api", "v1", "users"},
-			expected: "https://example.com/api/v1/users",
-		},
-		{
-			name:     "base with multiple trailing slashes",
-			base:     "https://example.com///",
-			segments: []string{"api", "v1", "users"},
-			expected: "https://example.com/api/v1/users",
-		},
-		{
-			name:     "empty segments",
-			base:     "https://example.com",
-			segments: []string{},
-			expected: "https://example.com",
-		},
-		{
-			name:     "single segment",
-			base:     "https://example.com",
-			segments: []string{"api"},
-			expected: "https://example.com/api",
-		},
-		{
-			name:     "segments with slashes",
-			base:     "https://example.com",
-			segments: []string{"api/v1", "users"},
-			expected: "https://example.com/api/v1/users",
-		},
-		{
-			name:     "segments with leading slashes",
-			base:     "https://example.com",
-			segments: []string{"/api/v1", "/users"},
-			expected: "https://example.com/api/v1/users",
-		},
-		{
-			name:     "empty base",
-			base:     "",
-			segments: []string{"api", "v1"},
-			expected: "/api/v1",
-		},
-		{
-			name:     "empty",
+			name:     "empty paths",
+			paths:    []string{},
 			expected: "",
 		},
 		{
-			name:     "base with only slashes",
-			base:     "///",
-			segments: []string{"api", "v1"},
+			name:     "single path without trailing slash",
+			paths:    []string{"api"},
+			expected: "api",
+		},
+		{
+			name:     "single path with trailing slash",
+			paths:    []string{"api/"},
+			expected: "api/",
+		},
+		{
+			name:     "two paths without trailing slash",
+			paths:    []string{"api", "v1"},
+			expected: "api/v1",
+		},
+		{
+			name:     "two paths with trailing slash on last",
+			paths:    []string{"api", "v1/"},
+			expected: "api/v1/",
+		},
+		{
+			name:     "multiple paths without trailing slash",
+			paths:    []string{"api", "v1", "users"},
+			expected: "api/v1/users",
+		},
+		{
+			name:     "multiple paths with trailing slash on last",
+			paths:    []string{"api", "v1", "users/"},
+			expected: "api/v1/users/",
+		},
+		{
+			name:     "absolute paths",
+			paths:    []string{"/api", "v1"},
 			expected: "/api/v1",
 		},
 		{
-			name:     "trailing slash",
-			segments: []string{"api", "v1", "/"},
+			name:     "absolute paths with trailing slash",
+			paths:    []string{"/api", "v1/"},
 			expected: "/api/v1/",
 		},
 		{
-			name:     "trailing slashes",
-			segments: []string{"api", "v1", "///"},
-			expected: "/api/v1/",
+			name:     "normalize double slashes",
+			paths:    []string{"api/", "/v1"},
+			expected: "api/v1",
 		},
 		{
-			name:     "trailing slash in the last part of the path",
-			segments: []string{"api", "v1/"},
-			expected: "/api/v1/",
+			name:     "normalize double slashes with trailing slash",
+			paths:    []string{"api/", "/v1/"},
+			expected: "api/v1/",
 		},
 		{
-			name:     "trailing slashes in the last part of the path",
-			segments: []string{"api", "v1///"},
-			expected: "/api/v1/",
+			name:     "empty string in middle paths",
+			paths:    []string{"api", "", "v1"},
+			expected: "api/v1",
+		},
+		{
+			name:     "empty string on last path",
+			paths:    []string{"api", "v1", ""},
+			expected: "api/v1",
+		},
+		{
+			name:     "many path segments",
+			paths:    []string{"api", "v1", "users", "123", "profile"},
+			expected: "api/v1/users/123/profile",
+		},
+		{
+			name:     "many path segments with trailing slash",
+			paths:    []string{"api", "v1", "users", "123", "profile/"},
+			expected: "api/v1/users/123/profile/",
+		},
+		{
+			name:     "dot paths",
+			paths:    []string{".", "api", "v1"},
+			expected: "api/v1",
+		},
+		{
+			name:     "parent directory paths",
+			paths:    []string{"api", "..", "v1"},
+			expected: "v1",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := util.JoinURL(tt.base, tt.segments...)
+			result := util.JoinPath(tt.paths...)
 			assert.Equal(t, tt.expected, result)
 		})
-	}
-}
-
-func TestJoinPath_EmptyInput(t *testing.T) {
-	got := util.JoinPath()
-	want := ""
-	if got != want {
-		t.Errorf("JoinPath() = %q, want %q", got, want)
 	}
 }

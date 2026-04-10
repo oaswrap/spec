@@ -244,6 +244,13 @@ internalGroup := r.Group("/internal",
 )
 ```
 
+### Path Handling
+```go
+// Remove trailing slashes from all operation paths in the spec.
+// "/pet/" becomes "/pet", "/" is left unchanged.
+option.WithStripTrailingSlash()
+```
+
 ## Advanced Features
 
 ### Rich Schema Documentation
