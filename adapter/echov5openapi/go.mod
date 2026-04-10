@@ -3,7 +3,7 @@ module github.com/oaswrap/spec/adapter/echov5openapi
 go 1.25.0
 
 require (
-	github.com/labstack/echo/v5 v5.0.2
+	github.com/labstack/echo/v5 v5.0.3
 	github.com/oaswrap/spec v0.4.0
 	github.com/oaswrap/spec-ui v0.2.0
 	github.com/stretchr/testify v1.11.1
