@@ -626,6 +626,30 @@ func TestRouter(t *testing.T) {
 			},
 		},
 		{
+			name:   "Strip Trailing Slashes",
+			golden: "strip_trailing_slashes",
+			opts: []option.OpenAPIOption{
+				option.WithStripTrailingSlash(),
+			},
+			setup: func(r spec.Router) {
+				r.Get("/path/with/trailing/slash/",
+					option.OperationID("getPathWithTrailingSlash"),
+					option.Summary("Get Path With Trailing Slash"),
+					option.Description("This operation tests paths with trailing slashes."),
+					option.Response(200, new(User)),
+				)
+				r.Route("/api/v1", func(r spec.Router) {
+					r.Route("/users", func(r spec.Router) {
+						r.Get("/",
+							option.Summary("Get Users"),
+							option.Response(200, new([]User)),
+							option.Tags("Users"),
+						)
+					})
+				})
+			},
+		},
+		{
 			name:   "Server Variables",
 			golden: "server_variables",
 			opts: []option.OpenAPIOption{

@@ -225,3 +225,14 @@ func OAS3OauthFlowsAuthorizationCode(flows *openapi.OAuthFlowsAuthorizationCode)
 		MapOfAnything:    flows.MapOfAnything,
 	}
 }
+
+func StringMapToEncodingMap3(enc map[string]string) map[string]openapi3.Encoding {
+	res := map[string]openapi3.Encoding{}
+	for k, v := range enc {
+		rv := v
+		res[k] = openapi3.Encoding{
+			ContentType: &rv,
+		}
+	}
+	return res
+}

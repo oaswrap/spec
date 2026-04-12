@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/oaswrap/spec-ui/config"
+	"github.com/oaswrap/spec-ui/swaggeruiemb"
 	"github.com/oaswrap/spec/openapi"
 	"github.com/oaswrap/spec/option"
 	"github.com/oaswrap/spec/pkg/util"
@@ -798,6 +799,33 @@ type mockPathParser struct{}
 func (m *mockPathParser) Parse(path string) (string, error) {
 	// Simple mock implementation that converts :param to {param}
 	return path, nil
+}
+
+func TestOpenAPIWithUIOption(t *testing.T) {
+	config := &openapi.Config{}
+	opt := option.WithUIOption(
+		swaggeruiemb.WithUI(),
+	)
+	opt(config)
+
+	assert.NotNil(t, config.UIOption)
+	assert.Nil(t, config.SwaggerUIConfig)
+}
+
+func TestOpnenAPIWithStripTrailingSlash(t *testing.T) {
+	config := &openapi.Config{}
+	opt := option.WithStripTrailingSlash(true)
+	opt(config)
+
+	assert.True(t, config.StripTrailingSlash)
+}
+
+func TestOpenAPIWithSpecPath(t *testing.T) {
+	config := &openapi.Config{}
+	opt := option.WithSpecPath("/openapi.yaml")
+	opt(config)
+
+	assert.Equal(t, "/openapi.yaml", config.SpecPath)
 }
 
 func TestOpenAPIConfigDefaults(t *testing.T) {

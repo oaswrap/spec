@@ -1,0 +1,59 @@
+openapi: 3.1.0
+info:
+  description: This is the API documentation for Strip Trailing Slashes
+  title: 'API Doc: Strip Trailing Slashes'
+  version: 1.0.0
+paths:
+  /api/v1/users:
+    get:
+      description: Get Users
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/SpecTestUser'
+                type:
+                - "null"
+                - array
+          description: OK
+      summary: Get Users
+      tags:
+      - Users
+  /path/with/trailing/slash:
+    get:
+      description: This operation tests paths with trailing slashes.
+      operationId: getPathWithTrailingSlash
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecTestUser'
+          description: OK
+      summary: Get Path With Trailing Slash
+components:
+  schemas:
+    SpecTestNullString:
+      type: object
+    SpecTestNullTime:
+      type: object
+    SpecTestUser:
+      properties:
+        age:
+          type:
+          - "null"
+          - integer
+        created_at:
+          format: date-time
+          type: string
+        email:
+          $ref: '#/components/schemas/SpecTestNullString'
+        id:
+          type: integer
+        updated_at:
+          $ref: '#/components/schemas/SpecTestNullTime'
+        username:
+          type: string
+      type: object

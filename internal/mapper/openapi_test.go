@@ -1118,3 +1118,67 @@ func TestOASOauth2Flows(t *testing.T) {
 		})
 	}
 }
+
+func TestStringMapToEncodingMap(t *testing.T) {
+	tests := []struct {
+		name       string
+		input      map[string]string
+		expected3  map[string]openapi3.Encoding
+		expected31 map[string]openapi31.Encoding
+	}{
+		{
+			name:       "empty map",
+			input:      map[string]string{},
+			expected3:  map[string]openapi3.Encoding{},
+			expected31: map[string]openapi31.Encoding{},
+		},
+		{
+			name: "single encoding",
+			input: map[string]string{
+				"field1": "application/json",
+			},
+			expected3: map[string]openapi3.Encoding{
+				"field1": {
+					ContentType: util.PtrOf("application/json"),
+				},
+			},
+			expected31: map[string]openapi31.Encoding{
+				"field1": {
+					ContentType: util.PtrOf("application/json"),
+				},
+			},
+		},
+		{
+			name: "multiple encodings",
+			input: map[string]string{
+				"field1": "application/json",
+				"field2": "text/plain",
+			},
+			expected3: map[string]openapi3.Encoding{
+				"field1": {
+					ContentType: util.PtrOf("application/json"),
+				},
+				"field2": {
+					ContentType: util.PtrOf("text/plain"),
+				},
+			},
+			expected31: map[string]openapi31.Encoding{
+				"field1": {
+					ContentType: util.PtrOf("application/json"),
+				},
+				"field2": {
+					ContentType: util.PtrOf("text/plain"),
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result3 := mapper.StringMapToEncodingMap3(tt.input)
+			assert.Equal(t, tt.expected3, result3, "String map to OpenAPI 3 Encoding map conversion failed")
+			result31 := mapper.StringMapToEncodingMap31(tt.input)
+			assert.Equal(t, tt.expected31, result31, "String map to OpenAPI 3.1 Encoding map conversion failed")
+		})
+	}
+}
