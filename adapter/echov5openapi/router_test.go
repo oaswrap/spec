@@ -510,19 +510,21 @@ func TestRouter_Static(t *testing.T) {
 }
 
 func TestRouter_File(t *testing.T) {
+	tempDir := t.TempDir()
+	// Create a test file in the temporary directory
+	testFilePath := filepath.Join(tempDir, "test.txt")
+	if err := os.WriteFile(testFilePath, []byte("This is a test file."), 0644); err != nil {
+		t.Fatalf("Failed to create test file: %v", err)
+	}
+
 	e := echo.New()
+	e.Filesystem = os.DirFS(tempDir)
 	r := echov5openapi.NewGenerator(e,
 		option.WithTitle("Test API File"),
 		option.WithVersion("1.0.0"),
 	)
-	tempDir := t.TempDir()
-	// Create a test file in the temporary directory
-	testFilePath := fmt.Sprintf("%s/test.txt", tempDir)
-	if err := os.WriteFile(testFilePath, []byte("This is a test file."), 0644); err != nil {
-		t.Fatalf("Failed to create test file: %v", err)
-	}
-	// Serve a static file
-	r.File("/test.txt", testFilePath)
+	// Serve a static file using a relative path within Echo's filesystem
+	r.File("/test.txt", "test.txt")
 
 	req := httptest.NewRequest(http.MethodGet, "/test.txt", nil)
 	rec := httptest.NewRecorder()
