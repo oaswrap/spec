@@ -205,9 +205,7 @@ paths:
         schema:
           items:
             type: string
-          type:
-          - array
-          - "null"
+          type: array
       responses:
         "200":
           content:

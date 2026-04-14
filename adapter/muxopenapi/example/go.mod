@@ -10,8 +10,8 @@ require (
 
 require (
 	github.com/oaswrap/spec-ui v0.2.0 // indirect
-	github.com/swaggest/jsonschema-go v0.3.78 // indirect
-	github.com/swaggest/openapi-go v0.2.60 // indirect
+	github.com/swaggest/jsonschema-go v0.3.79 // indirect
+	github.com/swaggest/openapi-go v0.2.61 // indirect
 	github.com/swaggest/refl v1.4.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

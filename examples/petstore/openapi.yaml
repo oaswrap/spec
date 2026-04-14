@@ -28,7 +28,7 @@ tags:
 - description: Operations about user
   name: user
 paths:
-  /pet:
+  /pet/:
     post:
       description: Add a new pet to the store.
       operationId: addPet
@@ -157,6 +157,7 @@ paths:
         name: petId
         required: true
         schema:
+          format: int64
           type: integer
       requestBody:
         content:
@@ -291,7 +292,7 @@ paths:
       summary: Get order by ID
       tags:
       - store
-  /user:
+  /user/:
     post:
       description: Create a new user in the store.
       operationId: createUser

@@ -102,6 +102,10 @@ tidy: ## Tidy up Go modules for core and adapters
 	@for a in $(ADAPTERS); do \
 		echo "$(BLUE)🧹 Tidying adapter/$$a...$(NC)"; \
 		(cd "adapter/$$a" && go mod tidy); \
+		if [ -d "adapter/$$a/example" ]; then \
+			echo "$(BLUE)🧹 Tidying adapter/$$a/example...$(NC)"; \
+			(cd "adapter/$$a/example" && go mod tidy); \
+		fi; \
 	done
 	@echo "$(GREEN)✅ All modules tidied!$(NC)"
 
