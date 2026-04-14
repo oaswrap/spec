@@ -28,7 +28,7 @@ tags:
 - description: Operations about user
   name: user
 paths:
-  /pet/:
+  /pet:
     post:
       description: Add a new pet to the store.
       operationId: addPet
@@ -114,6 +114,7 @@ paths:
                 $ref: '#/components/schemas/Pet'
           description: OK
       security:
+      - api_key: []
       - petstore_auth:
         - write:pets
         - read:pets
@@ -236,6 +237,24 @@ paths:
       summary: Find pets by tags
       tags:
       - pet
+  /store/inventory:
+    get:
+      description: Returns a map of status codes to quantities.
+      operationId: getInventory
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  type: integer
+                type: object
+          description: OK
+      security:
+      - api_key: []
+      summary: Returns pet inventories by status.
+      tags:
+      - store
   /store/order:
     post:
       description: Place a new order for a pet.
@@ -292,7 +311,7 @@ paths:
       summary: Get order by ID
       tags:
       - store
-  /user/:
+  /user:
     post:
       description: Create a new user in the store.
       operationId: createUser
@@ -522,7 +541,7 @@ components:
           type: string
       type: object
   securitySchemes:
-    apiKey:
+    api_key:
       in: header
       name: api_key
       type: apiKey

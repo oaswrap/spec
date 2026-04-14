@@ -61,6 +61,7 @@ func main() {
 			ID int `path:"petId" required:"true"`
 		})),
 		option.Response(200, new(Pet)),
+		option.Security("api_key"),
 	)
 	pet.Post("/{petId}",
 		option.OperationID("updatePetWithForm"),
@@ -79,6 +80,13 @@ func main() {
 
 	store := r.Group("/store",
 		option.GroupTags("store"),
+	)
+	store.Get("/inventory",
+		option.OperationID("getInventory"),
+		option.Summary("Returns pet inventories by status."),
+		option.Description("Returns a map of status codes to quantities."),
+		option.Response(200, new(map[string]int)),
+		option.Security("api_key"),
 	)
 	store.Post("/order",
 		option.OperationID("placeOrder"),
