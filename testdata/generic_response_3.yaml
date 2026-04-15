@@ -26,6 +26,38 @@ paths:
       summary: User Login
       tags:
       - Authentication
+  /user:
+    get:
+      description: This operation retrieves the authenticated user's profile.
+      operationId: getUserProfile
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecTestResponseUser'
+          description: OK
+      security:
+      - bearerAuth: []
+      summary: Get User Profile
+      tags:
+      - Authentication
+  /users:
+    get:
+      description: This operation retrieves a list of users.
+      operationId: getUsers
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecTestResponseUserList'
+          description: OK
+      security:
+      - bearerAuth: []
+      summary: Get Users
+      tags:
+      - Authentication
 components:
   schemas:
     SpecTestLoginRequest:
@@ -48,9 +80,50 @@ components:
           example: 200
           type: integer
       type: object
+    SpecTestResponseUser:
+      properties:
+        data:
+          $ref: '#/components/schemas/SpecTestUser'
+        status:
+          example: 200
+          type: integer
+      type: object
+    SpecTestResponseUserList:
+      properties:
+        data:
+          items:
+            $ref: '#/components/schemas/SpecTestUser'
+          nullable: true
+          type: array
+        status:
+          example: 200
+          type: integer
+      type: object
     SpecTestToken:
       properties:
         token:
           example: abc123
           type: string
       type: object
+    SpecTestUser:
+      properties:
+        age:
+          nullable: true
+          type: integer
+        created_at:
+          format: date-time
+          type: string
+        email:
+          type: string
+        id:
+          type: integer
+        updated_at:
+          format: date-time
+          type: string
+        username:
+          type: string
+      type: object
+  securitySchemes:
+    bearerAuth:
+      scheme: Bearer
+      type: http

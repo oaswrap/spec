@@ -203,6 +203,11 @@ func TestRouter(t *testing.T) {
 					Name:        "Authentication",
 					Description: "Operations related to user authentication",
 				}),
+				option.WithReflectorConfig(
+					option.TypeMapping(NullString{}, new(string)),
+					option.TypeMapping(NullTime{}, new(time.Time)),
+				),
+				option.WithSecurity("bearerAuth", option.SecurityHTTPBearer("Bearer")),
 			},
 			setup: func(r spec.Router) {
 				r.Post("/login",
@@ -212,6 +217,22 @@ func TestRouter(t *testing.T) {
 					option.Tags("Authentication"),
 					option.Request(new(LoginRequest)),
 					option.Response(200, new(Response[Token])),
+				)
+				r.Get("/user",
+					option.OperationID("getUserProfile"),
+					option.Summary("Get User Profile"),
+					option.Description("This operation retrieves the authenticated user's profile."),
+					option.Tags("Authentication"),
+					option.Security("bearerAuth"),
+					option.Response(200, new(Response[User])),
+				)
+				r.Get("/users",
+					option.OperationID("getUsers"),
+					option.Summary("Get Users"),
+					option.Description("This operation retrieves a list of users."),
+					option.Tags("Authentication"),
+					option.Security("bearerAuth"),
+					option.Response(200, new(Response[[]User])),
 				)
 			},
 		},

@@ -23,6 +23,38 @@ paths:
       summary: User Login
       tags:
       - Authentication
+  /user:
+    get:
+      description: This operation retrieves the authenticated user's profile.
+      operationId: getUserProfile
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecTestResponseUser'
+          description: OK
+      security:
+      - bearerAuth: []
+      summary: Get User Profile
+      tags:
+      - Authentication
+  /users:
+    get:
+      description: This operation retrieves a list of users.
+      operationId: getUsers
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecTestResponseUserList'
+          description: OK
+      security:
+      - bearerAuth: []
+      summary: Get Users
+      tags:
+      - Authentication
 components:
   schemas:
     SpecTestLoginRequest:
@@ -48,6 +80,28 @@ components:
           - 200
           type: integer
       type: object
+    SpecTestResponseUser:
+      properties:
+        data:
+          $ref: '#/components/schemas/SpecTestUser'
+        status:
+          examples:
+          - 200
+          type: integer
+      type: object
+    SpecTestResponseUserList:
+      properties:
+        data:
+          items:
+            $ref: '#/components/schemas/SpecTestUser'
+          type:
+          - array
+          - "null"
+        status:
+          examples:
+          - 200
+          type: integer
+      type: object
     SpecTestToken:
       properties:
         token:
@@ -55,6 +109,29 @@ components:
           - abc123
           type: string
       type: object
+    SpecTestUser:
+      properties:
+        age:
+          type:
+          - "null"
+          - integer
+        created_at:
+          format: date-time
+          type: string
+        email:
+          type: string
+        id:
+          type: integer
+        updated_at:
+          format: date-time
+          type: string
+        username:
+          type: string
+      type: object
+  securitySchemes:
+    bearerAuth:
+      scheme: Bearer
+      type: http
 tags:
 - description: Operations related to user authentication
   name: Authentication
