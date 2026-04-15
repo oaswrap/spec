@@ -18,7 +18,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SpecTestResponseGithubComOaswrapSpecTestToken'
+                $ref: '#/components/schemas/SpecTestResponseToken'
           description: OK
       summary: User Login
       tags:
@@ -39,7 +39,7 @@ components:
       - username
       - password
       type: object
-    SpecTestResponseGithubComOaswrapSpecTestToken:
+    SpecTestResponseToken:
       properties:
         data:
           $ref: '#/components/schemas/SpecTestToken'

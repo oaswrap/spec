@@ -20,7 +20,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SpecTestResponseGithubComOaswrapSpecTestUser'
+                $ref: '#/components/schemas/SpecTestResponseUser'
           description: Response body for operation options
       security:
       - apiKey: []
@@ -45,7 +45,7 @@ components:
       type: object
     SpecTestNullTime:
       type: object
-    SpecTestResponseGithubComOaswrapSpecTestUser:
+    SpecTestResponseUser:
       properties:
         data:
           $ref: '#/components/schemas/SpecTestUser'

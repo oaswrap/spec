@@ -86,13 +86,12 @@ func newReflector31(cfg *openapi.Config, logger *debuglog.Logger) reflector {
 
 	var parameterTagMapping map[openapi.ParameterIn]string
 
-	// Custom options for JSON schema generation
-	if cfg.ReflectorConfig != nil {
-		jsonSchemaOpts := getJSONSchemaOpts(cfg.ReflectorConfig, logger)
-		if len(jsonSchemaOpts) > 0 {
-			reflector.DefaultOptions = append(reflector.DefaultOptions, jsonSchemaOpts...)
-		}
+	jsonSchemaOpts := getJSONSchemaOpts(cfg.ReflectorConfig, logger)
+	if len(jsonSchemaOpts) > 0 {
+		reflector.DefaultOptions = append(reflector.DefaultOptions, jsonSchemaOpts...)
+	}
 
+	if cfg.ReflectorConfig != nil {
 		for _, opt := range cfg.ReflectorConfig.TypeMappings {
 			reflector.AddTypeMapping(opt.Src, opt.Dst)
 			logger.LogAction("add type mapping", fmt.Sprintf("%T -> %T", opt.Src, opt.Dst))
