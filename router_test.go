@@ -234,6 +234,22 @@ func TestRouter(t *testing.T) {
 					option.Security("bearerAuth"),
 					option.Response(200, new(Response[[]User])),
 				)
+				r.Get("/nested-generic-user",
+					option.OperationID("getNestedGenericUser"),
+					option.Summary("Get Nested Generic User"),
+					option.Description("This operation retrieves a nested generic user."),
+					option.Tags("Authentication"),
+					option.Security("bearerAuth"),
+					option.Response(200, new(Response[Response[User]])),
+				)
+				r.Get("/nested-generic-users",
+					option.OperationID("getNestedGenericUsers"),
+					option.Summary("Get Nested Generic Users"),
+					option.Description("This operation retrieves a nested generic users."),
+					option.Tags("Authentication"),
+					option.Security("bearerAuth"),
+					option.Response(200, new(Response[Response[[]User]])),
+				)
 			},
 		},
 		{

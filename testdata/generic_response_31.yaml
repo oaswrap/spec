@@ -23,6 +23,38 @@ paths:
       summary: User Login
       tags:
       - Authentication
+  /nested-generic-user:
+    get:
+      description: This operation retrieves a nested generic user.
+      operationId: getNestedGenericUser
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecTestResponseUserType2'
+          description: OK
+      security:
+      - bearerAuth: []
+      summary: Get Nested Generic User
+      tags:
+      - Authentication
+  /nested-generic-users:
+    get:
+      description: This operation retrieves a nested generic users.
+      operationId: getNestedGenericUsers
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecTestResponseUserType3'
+          description: OK
+      security:
+      - bearerAuth: []
+      summary: Get Nested Generic Users
+      tags:
+      - Authentication
   /user:
     get:
       description: This operation retrieves the authenticated user's profile.
@@ -97,6 +129,24 @@ components:
           type:
           - array
           - "null"
+        status:
+          examples:
+          - 200
+          type: integer
+      type: object
+    SpecTestResponseUserType2:
+      properties:
+        data:
+          $ref: '#/components/schemas/SpecTestResponseUser'
+        status:
+          examples:
+          - 200
+          type: integer
+      type: object
+    SpecTestResponseUserType3:
+      properties:
+        data:
+          $ref: '#/components/schemas/SpecTestResponseUserList'
         status:
           examples:
           - 200
