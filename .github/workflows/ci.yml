@@ -117,9 +117,14 @@ jobs:
         cache: true
 
     - name: Run Gosec Security Scanner
-      uses: securego/gosec@master
+      uses: securego/gosec@v2.26.1
       with:
-        args: ./...
+        args: '-no-fail -fmt sarif -out results.sarif ./...'
+
+    - name: Upload SARIF Report
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: results.sarif
 
   # ========================================
   # Final Status Check
