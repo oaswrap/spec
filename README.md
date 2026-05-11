@@ -142,6 +142,7 @@ Use the core `spec` package for static generation and CI workflows. Use an adapt
 | Fiber v2 | [`fiberopenapi`](/adapter/fiberopenapi) |
 | Fiber v3 | [`fiberv3openapi`](/adapter/fiberv3openapi) |
 | Gin | [`ginopenapi`](/adapter/ginopenapi) |
+| Iris | [`irisopenapi`](/adapter/irisopenapi) |
 | net/http | [`httpopenapi`](/adapter/httpopenapi) |
 | Mux | [`muxopenapi`](/adapter/muxopenapi) |
 
@@ -153,6 +154,7 @@ Adapter module import paths:
 - `github.com/oaswrap/spec/adapter/fiberopenapi`
 - `github.com/oaswrap/spec/adapter/fiberv3openapi`
 - `github.com/oaswrap/spec/adapter/ginopenapi`
+- `github.com/oaswrap/spec/adapter/irisopenapi`
 - `github.com/oaswrap/spec/adapter/httpopenapi`
 - `github.com/oaswrap/spec/adapter/muxopenapi`
 

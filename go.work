@@ -16,6 +16,8 @@ use (
 	./adapter/ginopenapi/example
 	./adapter/httpopenapi
 	./adapter/httpopenapi/example
+	./adapter/irisopenapi
+	./adapter/irisopenapi/example
 	./adapter/muxopenapi
 	./adapter/muxopenapi/example
 	./examples/basic

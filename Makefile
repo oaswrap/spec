@@ -9,7 +9,7 @@ CORE_COV_DIR  := $(COVERAGE_DIR)/core
 ADAPTER_COV_ROOT := $(COVERAGE_DIR)/adapters
 MERGED_COV_DIR := $(COVERAGE_DIR)/merged
 CORE_COV_ABS := $(abspath $(CORE_COV_DIR))
-ADAPTERS      := chiopenapi echoopenapi fiberopenapi ginopenapi httpopenapi muxopenapi echov5openapi fiberv3openapi
+ADAPTERS      := chiopenapi echoopenapi fiberopenapi ginopenapi irisopenapi httpopenapi muxopenapi echov5openapi fiberv3openapi
 
 # Platform detection for sed compatibility
 # Using an immediately expanded variable for this is good practice.
