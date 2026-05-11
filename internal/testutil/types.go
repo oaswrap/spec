@@ -25,6 +25,7 @@ func AssertGolden(t *testing.T, schema []byte, goldenFile string) {
 		t.Logf("Updated golden file: %s", goldenFile)
 	}
 
+	// #nosec G304 -- goldenFile is a test-controlled fixture path (always from testdata).
 	want, err := os.ReadFile(goldenFile)
 	require.NoError(t, err, "failed to read golden file %s", goldenFile)
 
