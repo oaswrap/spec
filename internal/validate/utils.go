@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	pathParamRe    = regexp.MustCompile(`\{([^{}]+)\}`)
+	pathParamRe    = regexp.MustCompile(`\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}`)
 	componentRe    = regexp.MustCompile(`^[a-zA-Z0-9.\-_]+$`)
 	responseCodeRe = regexp.MustCompile(`^[1-5]([0-9]{2}|XX)$`)
 )
