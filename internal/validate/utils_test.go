@@ -22,6 +22,7 @@ func TestNormalizeTemplatedPath(t *testing.T) {
 		"/foo/bar/{}/two/{}/8/nine/{}",
 		validate.NormalizeTemplatedPath("/foo/bar/{one}/two/{three:(four|five){6,7}(eight|nine)}/8/nine/{wtf}"),
 	)
+	assert.Equal(t, "/curly/brace/{}/{}", validate.NormalizeTemplatedPath(`/curly/brace/{one:\{}/{two:\}\}}`))
 	assert.Equal(t, "/static", validate.NormalizeTemplatedPath("/static"))
 }
 
