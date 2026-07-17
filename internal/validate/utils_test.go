@@ -14,6 +14,16 @@ import (
 func TestNormalizeTemplatedPath(t *testing.T) {
 	assert.Equal(t, "/users/{}", validate.NormalizeTemplatedPath("/users/{id}"))
 	assert.Equal(t, "/orgs/{}/repos/{}", validate.NormalizeTemplatedPath("/orgs/{org}/repos/{repo}"))
+	assert.Equal(t, "/type/{}", validate.NormalizeTemplatedPath("/type/{type:foo|bar}"))
+	assert.Equal(t, "/more/{}/{}", validate.NormalizeTemplatedPath("/more/{param}/{type:foo|bar}"))
+	assert.Equal(t, "/complex/quantifier/{}", validate.NormalizeTemplatedPath("/complex/quantifier/{t:(\\d{4})}"))
+	assert.Equal(
+		t,
+		"/foo/bar/{}/two/{}/8/nine/{}",
+		validate.NormalizeTemplatedPath("/foo/bar/{one}/two/{three:(four|five){6,7}(eight|nine)}/8/nine/{wtf}"),
+	)
+	assert.Equal(t, "/empty/{}", validate.NormalizeTemplatedPath("/empty/{type:}"))
+	assert.Equal(t, "/escaped/{}", validate.NormalizeTemplatedPath("/escaped/{type:foo\\{bar\\}}"))
 	assert.Equal(t, "/static", validate.NormalizeTemplatedPath("/static"))
 }
 
