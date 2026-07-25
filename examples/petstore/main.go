@@ -28,10 +28,13 @@ func main() {
 		option.Request(new(Pet)),
 		option.Response(201, new(Pet)),
 	)
-	pet.Get("/findByStatus",
+	pet.Get(
+		"/findByStatus",
 		option.OperationID("findPetsByStatus"),
 		option.Summary("Find pets by status"),
-		option.Description("Finds Pets by status. Multiple status values can be provided with comma separated strings."),
+		option.Description(
+			"Finds Pets by status. Multiple status values can be provided with comma separated strings.",
+		),
 		option.Request(new(struct {
 			Status string `query:"status" enum:"available,pending,sold"` // Enum values for pet status
 		})),

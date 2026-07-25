@@ -81,7 +81,8 @@ func ValidatePathParams(path, method string, params []*openapi.Parameter) []erro
 	matches := pathParamRe.FindAllStringSubmatch(path, -1)
 	templateNames := map[string]struct{}{}
 	for _, match := range matches {
-		templateNames[match[1]] = struct{}{}
+		name, _, _ := strings.Cut(match[1], ":")
+		templateNames[name] = struct{}{}
 	}
 	declared := map[string]bool{}
 	for _, p := range params {
@@ -104,7 +105,7 @@ func ValidatePathParams(path, method string, params []*openapi.Parameter) []erro
 		}
 	}
 	for _, match := range matches {
-		name := match[1]
+		name, _, _ := strings.Cut(match[1], ":")
 		if required, ok := declared[name]; !ok {
 			errs = append(errs, Errorf("%s %s missing path parameter %q", strings.ToUpper(method), path, name))
 		} else if !required {

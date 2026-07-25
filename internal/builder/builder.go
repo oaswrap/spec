@@ -171,7 +171,7 @@ func (b *Builder) ensurePathParameters(target string, op *openapi.Operation) {
 		return
 	}
 	for _, m := range matches {
-		name := m[1]
+		name, _, _ := strings.Cut(m[1], ":")
 		if _, ok := existing[name]; ok {
 			continue
 		}
