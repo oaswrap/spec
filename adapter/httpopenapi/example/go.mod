@@ -1,6 +1,6 @@
 module github.com/oaswrap/spec/adapter/httpopenapi/example
 
-go 1.22
+go 1.23
 
 require (
 	github.com/oaswrap/spec v0.5.1
