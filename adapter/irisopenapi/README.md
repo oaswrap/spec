@@ -1,7 +1,6 @@
 # irisopenapi
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/oaswrap/spec/adapter/irisopenapi.svg)](https://pkg.go.dev/github.com/oaswrap/spec/adapter/irisopenapi)
-[![Go Report Card](https://goreportcard.com/badge/github.com/oaswrap/spec/adapter/irisopenapi)](https://goreportcard.com/report/github.com/oaswrap/spec/adapter/irisopenapi)
 
 A lightweight adapter for the [Iris](https://github.com/kataras/iris) web framework that automatically generates OpenAPI 3.x specifications from your routes using [`oaswrap/spec`](https://github.com/oaswrap/spec).
 

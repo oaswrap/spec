@@ -1,7 +1,6 @@
 # chiopenapi
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/oaswrap/spec/adapter/chiopenapi.svg)](https://pkg.go.dev/github.com/oaswrap/spec/adapter/chiopenapi)
-[![Go Report Card](https://goreportcard.com/badge/github.com/oaswrap/spec/adapter/chiopenapi)](https://goreportcard.com/report/github.com/oaswrap/spec/adapter/chiopenapi)
 
 A lightweight adapter for the [Chi](https://github.com/go-chi/chi) web framework that automatically generates OpenAPI 3.x specifications from your routes using [`oaswrap/spec`](https://github.com/oaswrap/spec).
 

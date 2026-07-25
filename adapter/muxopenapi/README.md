@@ -1,7 +1,6 @@
 # muxopenapi
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/oaswrap/spec/adapter/muxopenapi.svg)](https://pkg.go.dev/github.com/oaswrap/spec/adapter/muxopenapi)
-[![Go Report Card](https://goreportcard.com/badge/github.com/oaswrap/spec/adapter/muxopenapi)](https://goreportcard.com/report/github.com/oaswrap/spec/adapter/muxopenapi)
 
 A lightweight adapter for the [gorilla/mux](https://pkg.go.dev/github.com/gorilla/mux) package that automatically generates OpenAPI 3.x specifications from your routes using [`oaswrap/spec`](https://github.com/oaswrap/spec).
 
