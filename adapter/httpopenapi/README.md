@@ -1,7 +1,6 @@
 # httpopenapi
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/oaswrap/spec/adapter/httpopenapi.svg)](https://pkg.go.dev/github.com/oaswrap/spec/adapter/httpopenapi)
-[![Go Report Card](https://goreportcard.com/badge/github.com/oaswrap/spec/adapter/httpopenapi)](https://goreportcard.com/report/github.com/oaswrap/spec/adapter/httpopenapi)
 
 A lightweight adapter for the [net/http](https://pkg.go.dev/net/http) package that automatically generates OpenAPI 3.x specifications from your routes using [`oaswrap/spec`](https://github.com/oaswrap/spec).
 

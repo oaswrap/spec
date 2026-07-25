@@ -1,7 +1,6 @@
 # fiberv3openapi
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/oaswrap/spec/adapter/fiberv3openapi.svg)](https://pkg.go.dev/github.com/oaswrap/spec/adapter/fiberv3openapi)
-[![Go Report Card](https://goreportcard.com/badge/github.com/oaswrap/spec/adapter/fiberv3openapi)](https://goreportcard.com/report/github.com/oaswrap/spec/adapter/fiberv3openapi)
 
 A lightweight adapter for [Fiber v3](https://github.com/gofiber/fiber) that automatically generates OpenAPI 3.x specifications from your routes using [`oaswrap/spec`](https://github.com/oaswrap/spec).
 

@@ -3,7 +3,6 @@
 [![CI](https://github.com/oaswrap/spec/actions/workflows/ci.yml/badge.svg)](https://github.com/oaswrap/spec/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/oaswrap/spec/graph/badge.svg?token=RIEIM9BAIW)](https://codecov.io/gh/oaswrap/spec)
 [![Go Reference](https://pkg.go.dev/badge/github.com/oaswrap/spec.svg)](https://pkg.go.dev/github.com/oaswrap/spec)
-[![Go Report Card](https://goreportcard.com/badge/github.com/oaswrap/spec)](https://goreportcard.com/report/github.com/oaswrap/spec)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/oaswrap/spec)](https://github.com/oaswrap/spec/blob/main/go.mod)
 [![License](https://img.shields.io/github/license/oaswrap/spec)](LICENSE)
 

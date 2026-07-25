@@ -1,7 +1,6 @@
 # echov5openapi
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/oaswrap/spec/adapter/echov5openapi.svg)](https://pkg.go.dev/github.com/oaswrap/spec/adapter/echov5openapi)
-[![Go Report Card](https://goreportcard.com/badge/github.com/oaswrap/spec/adapter/echov5openapi)](https://goreportcard.com/report/github.com/oaswrap/spec/adapter/echov5openapi)
 
 A lightweight adapter for the [Echo v5](https://github.com/labstack/echo) web framework that automatically generates OpenAPI 3.x specifications from your routes using [`oaswrap/spec`](https://github.com/oaswrap/spec).
 

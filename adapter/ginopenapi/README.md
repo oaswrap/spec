@@ -1,7 +1,6 @@
 # ginopenapi
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/oaswrap/spec/adapter/ginopenapi.svg)](https://pkg.go.dev/github.com/oaswrap/spec/adapter/ginopenapi)
-[![Go Report Card](https://goreportcard.com/badge/github.com/oaswrap/spec/adapter/ginopenapi)](https://goreportcard.com/report/github.com/oaswrap/spec/adapter/ginopenapi)
 
 A lightweight adapter for the [Gin](https://github.com/gin-gonic/gin) web framework that automatically generates OpenAPI 3.x specifications from your routes using [`oaswrap/spec`](https://github.com/oaswrap/spec).
 
