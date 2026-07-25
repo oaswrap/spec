@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/gofiber/fiber/v2 v2.52.14
-	github.com/oaswrap/spec v0.5.1
+	github.com/oaswrap/spec v0.5.2
 	github.com/oaswrap/spec/adapter/fiberopenapi v0.0.0
 )
 

@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/labstack/echo/v5 v5.3.1
-	github.com/oaswrap/spec v0.5.1
+	github.com/oaswrap/spec v0.5.2
 	github.com/oaswrap/spec/adapter/echov5openapi v0.0.0
 )
 
