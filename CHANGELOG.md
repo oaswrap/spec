@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.3] - 2026-11-23
+
 ### Security
 - Updated adapter framework dependencies to patched versions for open Dependabot alerts: `go-chi/chi/v5` v5.5.0, `labstack/echo/v4` v4.16.6, `labstack/echo/v5` v5.4.7.
 
@@ -145,7 +147,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated adapter dependency versions.
 
-[Unreleased]: https://github.com/oaswrap/spec/compare/v0.5.2...HEAD
+[Unreleased]: https://github.com/oaswrap/spec/compare/v0.5.3...HEAD
+[0.5.3]: https://github.com/oaswrap/spec/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/oaswrap/spec/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/oaswrap/spec/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/oaswrap/spec/compare/v0.4.2...v0.5.0
