@@ -20,7 +20,7 @@ go test -run TestGolden ./...
 # Update golden YAML fixtures after intentional output changes
 make test-update
 
-# Lint (golangci-lint v2.12.2)
+# Lint (golangci-lint v2.15.0)
 make lint
 make lint-fix   # auto-fix
 

@@ -104,7 +104,7 @@ func RequiredPropByValidateTag(tags ...string) ReflectorOption {
 func ParameterTagMapping(in openapi.ParameterIn, sourceTag string) ReflectorOption {
 	return func(cfg *openapi.ReflectorConfig) {
 		if cfg.ParameterTagMapping == nil {
-			cfg.ParameterTagMapping = map[openapi.ParameterIn]string{}
+			cfg.ParameterTagMapping = make(map[openapi.ParameterIn]string)
 		}
 		cfg.ParameterTagMapping[in] = sourceTag
 	}

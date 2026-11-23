@@ -50,7 +50,7 @@ jobs:
     - name: 🐹 Setup Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.25.x'
+        go-version: '1.26.x'
         check-latest: true
         cache: true
 
@@ -60,7 +60,7 @@ jobs:
     - name: 🔍 Lint
       uses: golangci/golangci-lint-action@v9
       with:
-        version: v2.12.2
+        version: v2.15.0
         working-directory: ${{ matrix.module }}
 
   # ========================================
@@ -124,7 +124,7 @@ jobs:
     - name: 🐹 Setup Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.25.x'
+        go-version: '1.26.x'
         check-latest: true
         cache: true
 

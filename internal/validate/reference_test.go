@@ -214,6 +214,7 @@ func TestReferenceSiblingHelpers(t *testing.T) {
 	)
 	assert.True(
 		t,
+		//nolint:staticcheck // SA1019: deliberately exercising the deprecated field.
 		validate.ExampleRefHasInvalidSiblings(&openapi.Example{SerializedExample: "legacy"}, openapi.Version320),
 	)
 	assert.True(

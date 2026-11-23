@@ -28,7 +28,7 @@ BLUE   := \033[0;34m
 NC     := \033[0m # No Color
 
 # Tool versions
-GOLANGCI_LINT_VERSION := v2.12.2
+GOLANGCI_LINT_VERSION := v2.15.0
 
 # Normalize VERSION input so targets accept both 1.2.3 and v1.2.3.
 # Pre-release versions are also supported, e.g. 0.4.0-rc.1 or v0.4.0-rc.1.

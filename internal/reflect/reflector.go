@@ -116,7 +116,7 @@ func (r *Reflector) ParameterField(field reflect.StructField) (string, string, b
 			tag string
 		}{openapi.ParameterInQueryString, "querystring"})
 	}
-	custom := map[openapi.ParameterIn]string{}
+	custom := make(map[openapi.ParameterIn]string)
 	if r.Config.ReflectorConfig != nil {
 		for in, tag := range r.Config.ReflectorConfig.ParameterTagMapping {
 			// ParameterInBody and ParameterInForm override body tags, not parameter locations.
