@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Updated `spec-ui` to `v0.2.2` (Swagger UI 5.34.1, Stoplight Elements 9.0.29, Scalar 1.76.4, ReDoc 3.0.1, RapiDoc 12.0.0).
+
+### Added
+- `config.StoplightElements.TryItCredentialsPolicy` (`omit`, `include`, `same-origin`) is available through `option.WithStoplightElements`.
+
+### Removed
+- **Breaking (UI config):** `config.ReDoc.HideSearch` (ReDoc 3 always enables search) and `config.RapiDoc.HeaderColor` (no equivalent in RapiDoc 11+) were removed upstream; delete them from `option.WithReDoc` / `option.WithRapiDoc` calls.
+
 ### Fixed
 - `multipart.FileHeader`, `multipart.File`, and slices of them are reflected as `type: string, format: binary` instead of an object schema (or a `$ref` component), and are never nullable.
 - Petstore example `uploadFile` operation now emits the `application/octet-stream` binary request body; the unsupported `_ *multipart.File \`contentType:"..."\`` struct field never affected the generated spec. Declare raw binary bodies with `option.Request(nil, option.ContentType(...), option.ContentFormat("binary"))`.

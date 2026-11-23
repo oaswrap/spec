@@ -628,20 +628,28 @@ func TestConfigAndUIOptions(t *testing.T) {
 
 		t.Run("StoplightElements", func(t *testing.T) {
 			cfg := &openapi.Config{}
-			WithStoplightElements(config.StoplightElements{HideTryIt: true})(cfg)
+			WithStoplightElements(config.StoplightElements{
+				HideTryIt:              true,
+				TryItCredentialsPolicy: config.ElementTryItCredentialsPolicyInclude,
+			})(cfg)
 			assert.Equal(t, config.ProviderStoplightElements, cfg.UIProvider)
 			if assert.NotNil(t, cfg.StoplightElementsConfig) {
 				assert.True(t, cfg.StoplightElementsConfig.HideTryIt)
+				assert.Equal(
+					t,
+					config.ElementTryItCredentialsPolicyInclude,
+					cfg.StoplightElementsConfig.TryItCredentialsPolicy,
+				)
 			}
 			assert.NotNil(t, cfg.UIOption)
 		})
 
 		t.Run("ReDoc", func(t *testing.T) {
 			cfg := &openapi.Config{}
-			WithReDoc(config.ReDoc{HideSearch: true})(cfg)
+			WithReDoc(config.ReDoc{HideDownloadButtons: true})(cfg)
 			assert.Equal(t, config.ProviderReDoc, cfg.UIProvider)
 			if assert.NotNil(t, cfg.ReDocConfig) {
-				assert.True(t, cfg.ReDocConfig.HideSearch)
+				assert.True(t, cfg.ReDocConfig.HideDownloadButtons)
 			}
 			assert.NotNil(t, cfg.UIOption)
 		})
