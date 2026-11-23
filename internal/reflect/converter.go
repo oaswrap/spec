@@ -39,6 +39,14 @@ func (r *Reflector) SchemaForType(
 	if mapped := r.TypeMapping[t]; mapped != nil {
 		t = mapped
 	}
+	// Multipart file types are uploads, not objects. A pointer does not make them nullable.
+	if isFileType(t) {
+		schema := &openapi.Schema{Type: "string", Format: "binary"}
+		if field != nil {
+			r.ApplySchemaTags(schema, *field)
+		}
+		return schema, nil
+	}
 	interceptSchema := r.interceptSchemaFn()
 	//nolint:nestif // exposer path needs pre+post hook with nullable/tag application
 	if schema := r.SchemaFromTypeExposer(t); schema != nil {

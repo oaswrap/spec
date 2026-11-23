@@ -1,7 +1,6 @@
 package dto
 
 import (
-	"mime/multipart"
 	"time"
 )
 
@@ -34,9 +33,8 @@ type UpdatePetWithFormRequest struct {
 }
 
 type UploadImageRequest struct {
-	ID                 int64           `params:"petId" path:"petId"`
-	AdditionalMetaData string          `query:"additionalMetadata"`
-	_                  *multipart.File `contentType:"application/octet-stream"`
+	ID                 int64  `params:"petId" path:"petId"`
+	AdditionalMetaData string `query:"additionalMetadata"`
 }
 
 type DeletePetRequest struct {

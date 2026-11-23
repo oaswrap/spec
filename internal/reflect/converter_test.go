@@ -1,6 +1,7 @@
 package reflect_test
 
 import (
+	"mime/multipart"
 	std_reflect "reflect"
 	"strings"
 	"testing"
@@ -394,5 +395,55 @@ func TestConverter_SchemaForType_Branches(t *testing.T) {
 		require.Len(t, s312.AnyOf, 2)
 		assert.Equal(t, "#/components/schemas/ReflectTestUser", s312.AnyOf[0].Ref)
 		assert.Equal(t, "null", s312.AnyOf[1].Type)
+	})
+}
+
+func TestConverter_FileTypes(t *testing.T) {
+	type multiFile struct {
+		Files []*multipart.FileHeader `form:"files" description:"Attachments"`
+	}
+
+	versions := []string{openapi.Version304, openapi.Version312, openapi.Version320}
+	for _, version := range versions {
+		t.Run(version, func(t *testing.T) {
+			r := reflect.NewReflector(&openapi.Config{OpenAPIVersion: version})
+
+			for name, typ := range map[string]std_reflect.Type{
+				"FileHeader":        std_reflect.TypeFor[multipart.FileHeader](),
+				"FileHeaderPointer": std_reflect.TypeFor[*multipart.FileHeader](),
+				"File":              std_reflect.TypeFor[multipart.File](),
+			} {
+				t.Run(name, func(t *testing.T) {
+					schema, err := r.SchemaForType(typ, reflect.SchemaUseComponent, nil)
+					require.NoError(t, err)
+					assert.Equal(t, &openapi.Schema{Type: "string", Format: "binary"}, schema)
+					assert.Empty(t, r.Components)
+				})
+			}
+
+			t.Run("SliceOfFileHeaders", func(t *testing.T) {
+				field, ok := std_reflect.TypeFor[multiFile]().FieldByName("Files")
+				require.True(t, ok)
+				schema, err := r.SchemaForType(field.Type, reflect.SchemaUseComponent, &field)
+				require.NoError(t, err)
+				assert.Equal(t, "array", schema.Type)
+				assert.Equal(t, "Attachments", schema.Description)
+				require.NotNil(t, schema.Items)
+				assert.Equal(t, &openapi.Schema{Type: "string", Format: "binary"}, schema.Items)
+				assert.Empty(t, r.Components)
+			})
+		})
+	}
+
+	t.Run("TypeMappingTakesPrecedence", func(t *testing.T) {
+		r := reflect.NewReflector(&openapi.Config{
+			OpenAPIVersion: openapi.Version312,
+			ReflectorConfig: &openapi.ReflectorConfig{
+				TypeMappings: []openapi.TypeMapping{{Src: multipart.FileHeader{}, Dst: 0}},
+			},
+		})
+		schema, err := r.SchemaForType(std_reflect.TypeFor[multipart.FileHeader](), reflect.SchemaInline, nil)
+		require.NoError(t, err)
+		assert.Equal(t, "integer", schema.Type)
 	})
 }

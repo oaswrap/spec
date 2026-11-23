@@ -54,6 +54,7 @@ func main() {
 		option.Summary("Upload an image for a pet"),
 		option.Description("Uploads an image for a pet."),
 		option.Request(new(UploadImageRequest)),
+		option.Request(nil, option.ContentType("application/octet-stream"), option.ContentFormat("binary")),
 		option.Response(200, new(ApiResponse)),
 	)
 	pet.Get("/{petId}",

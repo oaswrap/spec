@@ -1,6 +1,7 @@
 package spec_test
 
 import (
+	"mime/multipart"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -40,6 +41,13 @@ type ComplexResponse struct {
 type UploadRequest struct {
 	File     []byte `form:"file" format:"binary" description:"The file to upload"`
 	FileName string `form:"fileName" description:"Optional file name"`
+}
+
+type MultipartFileRequest struct {
+	EventID     string                  `query:"eventId" required:"true"`
+	Title       string                  `form:"title"`
+	File        *multipart.FileHeader   `form:"file" required:"true" description:"The image to upload"`
+	Attachments []*multipart.FileHeader `form:"attachments"`
 }
 
 type OneOfRequest struct {
@@ -242,6 +250,17 @@ func TestGolden(t *testing.T) {
 						option.ContentFormat("binary"),
 					),
 					option.Response(204, nil),
+				)
+			},
+		},
+		{
+			name: "multipart_file",
+			opts: []option.OpenAPIOption{option.WithTitle("File API"), option.WithVersion("1.0.0")},
+			run: func(r spec.Router) {
+				r.Post("/events/image",
+					option.OperationID("uploadEventImage"),
+					option.Request(new(MultipartFileRequest)),
+					option.Response(201, nil, option.ContentDescription("File uploaded")),
 				)
 			},
 		},

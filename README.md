@@ -419,6 +419,35 @@ type SearchRequest struct {
 
 > Reflection intentionally omits keywords that are invalid for the selected OpenAPI version. For example, `const`, `examples`, `contentEncoding`, and `contentMediaType` are not emitted for OpenAPI `3.0.x`.
 
+### File uploads
+
+Raw binary body: keep path/query parameters in a struct and declare the body with a second `Request` option.
+
+```go
+type UploadImageRequest struct {
+	ID int64 `path:"petId"`
+}
+
+r.Post("/pet/{petId}/uploadImage",
+	option.Request(new(UploadImageRequest)),
+	option.Request(nil,
+		option.ContentType("application/octet-stream"),
+		option.ContentFormat("binary"),
+	),
+	option.Response(200, nil),
+)
+```
+
+Multipart upload: `*multipart.FileHeader` (or `[]*multipart.FileHeader` for several files) on a `form`-tagged field is reflected as a binary string, and the content type is inferred as `multipart/form-data`.
+
+```go
+type UploadRequest struct {
+	EventID string                `query:"eventId"`
+	Title   string                `form:"title"`
+	File    *multipart.FileHeader `form:"file" required:"true"`
+}
+```
+
 ---
 
 ## Reflected Go Types
@@ -436,6 +465,7 @@ type SearchRequest struct {
 | `time.Time` | `type: string`, `format: date-time` |
 | `[]T`, `[N]T` | `type: array`, `items: T` |
 | `[]byte` | `3.0.x`: `type: string`, `format: byte`; `3.1.x`/`3.2.0`: `type: string`, `contentEncoding: base64` |
+| `multipart.FileHeader`, `multipart.File` (and `[]` of them) | `type: string`, `format: binary` (never nullable) |
 | `map[string]T` | `type: object`, `additionalProperties: T` |
 | Structs | `type: object`, `properties` |
 | Named structs (component mode) | `#/components/schemas/{TypeName}` reference |
