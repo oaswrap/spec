@@ -4,7 +4,7 @@ go 1.24
 
 require (
 	github.com/go-chi/chi/v5 v5.5.0
-	github.com/oaswrap/spec v0.5.2
+	github.com/oaswrap/spec v0.5.3
 	github.com/oaswrap/spec-ui v0.2.2
 	github.com/stretchr/testify v1.11.1
 )

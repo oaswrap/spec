@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/kataras/iris/v12 v12.2.12
-	github.com/oaswrap/spec v0.5.2
+	github.com/oaswrap/spec v0.5.3
 	github.com/oaswrap/spec/adapter/irisopenapi v0.0.0
 )
 
