@@ -7,7 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- Updated adapter framework dependencies to patched versions for open Dependabot alerts: `go-chi/chi/v5` v5.5.0, `labstack/echo/v4` v4.16.6, `labstack/echo/v5` v5.4.7.
+
 ### Changed
+- `echoopenapi`, `fiberv3openapi` and `irisopenapi` now require Go 1.26 (echo v4 >= 4.16.1 for the security fix; fiber v3 >= 3.6 and iris >= 12.2.12); `chiopenapi` now requires Go 1.24. The workspace `go.work` and CI use Go 1.26.
+- Updated `gofiber/fiber/v2` to v2.52.16.
+- Updated `gofiber/fiber/v3` to v3.7.0 and `kataras/iris/v12` to v12.2.12 (both now require Go 1.26). `gin` and `gorilla/mux` were already on the latest release.
+- Updated golangci-lint to v2.15.0 (v2.12.2 cannot analyze Go 1.26 code).
 - Updated `spec-ui` to `v0.2.2` (Swagger UI 5.34.1, Stoplight Elements 9.0.29, Scalar 1.76.4, ReDoc 3.0.1, RapiDoc 12.0.0).
 
 ### Added

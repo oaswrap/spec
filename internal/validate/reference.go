@@ -90,7 +90,7 @@ func collectRefEntriesAndResources(doc *openapi.Document, resources map[string]a
 					continue
 				}
 				fieldValue := value.Field(i)
-				jsonName := strings.Split(field.Tag.Get("json"), ",")[0]
+				jsonName, _, _ := strings.Cut(field.Tag.Get("json"), ",")
 				if jsonName == "-" {
 					if field.Name != "Expressions" {
 						continue
