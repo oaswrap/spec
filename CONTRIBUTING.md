@@ -132,7 +132,7 @@ The pre-commit hook (via [lefthook](https://github.com/evilmartians/lefthook)) r
 5. **Run the full check** locally: `make check`.
 6. **Open a PR** against `main` with a clear description of what changed and why.
 
-PRs must pass CI (quality gate + test matrix on Go 1.23–1.25) before merging.
+PRs must pass CI before merging: core tests on Go 1.22–1.26 plus lint, each adapter's lint and tests on the Go version declared in its `go.mod`, and `govulncheck`/`gosec` scans.
 
 ---
 
