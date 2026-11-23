@@ -241,5 +241,11 @@ func isFileField(t reflect.Type) bool {
 			t = t.Elem()
 		}
 	}
+	return isFileType(t)
+}
+
+// isFileType reports whether t is a multipart file type: [multipart.FileHeader],
+// [multipart.File], or any type implementing [multipart.File].
+func isFileType(t reflect.Type) bool {
 	return t == typeFileHeader || t == typeFile || t.Implements(typeFile)
 }

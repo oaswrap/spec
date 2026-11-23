@@ -1,0 +1,36 @@
+openapi: 3.0.4
+info:
+  title: File API
+  version: 1.0.0
+paths:
+  /events/image:
+    post:
+      operationId: uploadEventImage
+      parameters:
+        - name: eventId
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                attachments:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                file:
+                  description: The image to upload
+                  type: string
+                  format: binary
+                title:
+                  type: string
+      responses:
+        '201':
+          description: File uploaded

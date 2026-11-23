@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- `multipart.FileHeader`, `multipart.File`, and slices of them are reflected as `type: string, format: binary` instead of an object schema (or a `$ref` component), and are never nullable.
+- Petstore example `uploadFile` operation now emits the `application/octet-stream` binary request body; the unsupported `_ *multipart.File \`contentType:"..."\`` struct field never affected the generated spec. Declare raw binary bodies with `option.Request(nil, option.ContentType(...), option.ContentFormat("binary"))`.
+
+### Documentation
+- Added a "File uploads" section to the README covering raw binary and `multipart/form-data` bodies.
+
+## [0.5.2] - 2026-07-25
+
+### Fixed
+- Path parameters with a regex constraint (e.g. `/files/{name:[a-z]+}`) are parsed correctly, including escaped and nested curly braces in the constraint; the parameter name is taken from the part before the first `:`.
+
+### Changed
+- Updated `spec-ui` to `v0.2.1`.
+- Updated adapter framework dependencies.
+
+### Documentation
+- Removed the Go Report Card badge from the READMEs.
+
 ## [0.5.1] - 2026-05-12
 
 ### Added
@@ -104,6 +125,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated adapter dependency versions.
 
+[Unreleased]: https://github.com/oaswrap/spec/compare/v0.5.2...HEAD
+[0.5.2]: https://github.com/oaswrap/spec/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/oaswrap/spec/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/oaswrap/spec/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/oaswrap/spec/compare/v0.4.1...v0.4.2
