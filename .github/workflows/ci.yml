@@ -21,123 +21,189 @@ permissions:
 
 jobs:
   # ========================================
-  # Quality Gate
+  # Core: test on a Go version matrix, lint once
   # ========================================
-  quality:
-    name: 🛡️ Quality Gate / ${{ matrix.module }}
+  core:
+    name: 🧪 Core / Go ${{ matrix.go-version }}
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     strategy:
       fail-fast: false
       matrix:
-        module:
-          - .
-          - adapter/chiopenapi
-          - adapter/echoopenapi
-          - adapter/echov5openapi
-          - adapter/fiberopenapi
-          - adapter/fiberv3openapi
-          - adapter/ginopenapi
-          - adapter/httpopenapi
-          - adapter/irisopenapi
-          - adapter/muxopenapi
+        go-version: ['1.22', '1.23', '1.24', '1.25', '1.26']
+
+    env:
+      # Test the core module on its own so the matrix Go version is really used
+      # (the root go.work requires the newest Go and would switch the toolchain).
+      GOWORK: 'off'
+      GOTOOLCHAIN: local
 
     steps:
     - name: 📥 Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: 🐹 Setup Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v7
       with:
-        go-version: '1.26.x'
+        go-version: ${{ matrix.go-version }}
         check-latest: true
         cache: true
 
-    - name: ✅ Sync & Tidy
-      run: make sync tidy
+    - name: 🔍 Lint
+      if: matrix.go-version == '1.26'
+      uses: golangci/golangci-lint-action@v9
+      with:
+        version: v2.15.0
+
+    - name: 🧪 Run Tests
+      if: matrix.go-version != '1.26'
+      run: go test ./...
+
+    - name: 📊 Run Tests With Coverage
+      if: matrix.go-version == '1.26'
+      run: |
+        mkdir -p coverage
+        go test -coverprofile=coverage/core.out ./...
+
+    - name: 📈 Upload Coverage Report
+      if: matrix.go-version == '1.26'
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: coverage/core.out
+        flags: core
+        fail_ci_if_error: false
+        verbose: true
+
+  # ========================================
+  # Adapters: test + lint on the Go version declared in each go.mod
+  # ========================================
+  adapter:
+    name: 🔌 Adapter / ${{ matrix.adapter }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        adapter:
+          - chiopenapi
+          - echoopenapi
+          - echov5openapi
+          - fiberopenapi
+          - fiberv3openapi
+          - ginopenapi
+          - httpopenapi
+          - irisopenapi
+          - muxopenapi
+
+    env:
+      GOTOOLCHAIN: local
+
+    steps:
+    - name: 📥 Checkout
+      uses: actions/checkout@v7
+
+    - name: 🐹 Setup Go (version from adapter go.mod)
+      uses: actions/setup-go@v7
+      with:
+        go-version-file: adapter/${{ matrix.adapter }}/go.mod
+        check-latest: true
+        cache: true
+        cache-dependency-path: |
+          go.sum
+          adapter/${{ matrix.adapter }}/go.sum
+
+    # The root go.work targets the newest Go, which would override the toolchain
+    # chosen above. Use a throwaway workspace with only the core and this adapter
+    # so the adapter is built against the local core at its own Go version.
+    - name: 🔗 Create workspace
+      run: |
+        export GOWORK="$RUNNER_TEMP/go.work"
+        go work init . ./adapter/${{ matrix.adapter }}
+        echo "GOWORK=$GOWORK" >> "$GITHUB_ENV"
 
     - name: 🔍 Lint
       uses: golangci/golangci-lint-action@v9
       with:
         version: v2.15.0
-        working-directory: ${{ matrix.module }}
-
-  # ========================================
-  # Test Matrix
-  # ========================================
-  test:
-    name: 🧪 Test Matrix
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
-    needs: quality
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-        go-version: ['1.23', '1.24', '1.25']
-
-    steps:
-    - name: 📥 Checkout
-      uses: actions/checkout@v4
-
-    - name: 🐹 Setup Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: ${{ matrix.go-version }}
-        check-latest: true
-        cache: true  # Handles module/build cache
+        working-directory: adapter/${{ matrix.adapter }}
 
     - name: 🧪 Run Tests
-      if: matrix.go-version != '1.25'
-      run: make test
-
-    - name: 📊 Run Tests With Coverage
-      if: matrix.go-version == '1.25'
-      run: make testcov
+      working-directory: adapter/${{ matrix.adapter }}
+      run: |
+        mkdir -p "$GITHUB_WORKSPACE/coverage"
+        go test -coverprofile="$GITHUB_WORKSPACE/coverage/${{ matrix.adapter }}.out" ./...
 
     - name: 📈 Upload Coverage Report
-      if: matrix.go-version == '1.25'
       uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        files: coverage/coverage.out
+        files: coverage/${{ matrix.adapter }}.out
+        flags: ${{ matrix.adapter }}
         fail_ci_if_error: false
         verbose: true
 
   # ========================================
-  # Security Scan
+  # Security: gosec + govulncheck for core and every adapter
   # ========================================
   security:
-    name: 🔐 Security Scan
+    name: 🔐 Security / ${{ matrix.name }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: quality
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: core, dir: . }
+          - { name: chiopenapi, dir: adapter/chiopenapi }
+          - { name: echoopenapi, dir: adapter/echoopenapi }
+          - { name: echov5openapi, dir: adapter/echov5openapi }
+          - { name: fiberopenapi, dir: adapter/fiberopenapi }
+          - { name: fiberv3openapi, dir: adapter/fiberv3openapi }
+          - { name: ginopenapi, dir: adapter/ginopenapi }
+          - { name: httpopenapi, dir: adapter/httpopenapi }
+          - { name: irisopenapi, dir: adapter/irisopenapi }
+          - { name: muxopenapi, dir: adapter/muxopenapi }
+
     env:
       GO111MODULE: on
+      # Scan each module as published (against the core version in its go.mod).
+      GOWORK: 'off'
 
     steps:
     - name: 📥 Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: 🐹 Setup Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v7
       with:
         go-version: '1.26.x'
         check-latest: true
         cache: true
+        cache-dependency-path: ${{ matrix.dir }}/go.sum
 
-    - name: Run Gosec Security Scanner
-      uses: securego/gosec@v2.26.1
-      with:
-        args: '-no-fail -fmt sarif -out results.sarif ./...'
+    # Some advisories have no upstream fix yet (e.g. echo v4), so this reports
+    # without blocking; Dependabot tracks the fixes.
+    - name: 🛡️ Run Govulncheck
+      continue-on-error: true
+      working-directory: ${{ matrix.dir }}
+      run: go run golang.org/x/vuln/cmd/govulncheck@v1.10.0 ./...
 
-    - name: Upload SARIF to GitHub
+    - name: 🔐 Run Gosec Security Scanner
+      working-directory: ${{ matrix.dir }}
+      run: >
+        go run github.com/securego/gosec/v2/cmd/gosec@v2.26.1
+        -no-fail -fmt sarif -out "$GITHUB_WORKSPACE/results-${{ matrix.name }}.sarif" ./...
+
+    - name: 📤 Upload SARIF to GitHub
       if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
       uses: github/codeql-action/upload-sarif@v4
       with:
-        sarif_file: results.sarif
+        sarif_file: results-${{ matrix.name }}.sarif
+        category: gosec-${{ matrix.name }}
 
   # ========================================
   # Final Status Check
@@ -145,18 +211,18 @@ jobs:
   ci-success:
     name: ✅ CI Success
     runs-on: ubuntu-latest
-    needs: [quality, test, security]
+    needs: [core, adapter, security]
     if: always()
 
     steps:
     - name: Check all jobs status
       run: |
-        if [[ "${{ needs.quality.result }}" != "success" ]]; then
-          echo "Quality gate failed"
+        if [[ "${{ needs.core.result }}" != "success" ]]; then
+          echo "Core tests or lint failed"
           exit 1
         fi
-        if [[ "${{ needs.test.result }}" != "success" ]]; then
-          echo "Tests failed"
+        if [[ "${{ needs.adapter.result }}" != "success" ]]; then
+          echo "Adapter tests or lint failed"
           exit 1
         fi
         if [[ "${{ needs.security.result }}" != "success" ]]; then

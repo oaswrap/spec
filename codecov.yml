@@ -1,0 +1,19 @@
+# Coverage is uploaded as one report per module (core + each adapter), each with its own flag.
+codecov:
+  notify:
+    # core + 9 adapters; update when an adapter is added or removed.
+    after_n_builds: 10
+
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        informational: true
+
+comment:
+  layout: "condensed_header, diff, flags, files"
+  require_changes: true

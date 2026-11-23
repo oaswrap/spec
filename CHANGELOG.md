@@ -13,8 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - `echoopenapi`, `fiberv3openapi` and `irisopenapi` now require Go 1.26 (echo v4 >= 4.16.1 for the security fix; fiber v3 >= 3.6 and iris >= 12.2.12); `chiopenapi` now requires Go 1.24. The workspace `go.work` and CI use Go 1.26.
 - Updated `gofiber/fiber/v2` to v2.52.16.
+- Updated `golang.org/x/net` to v0.60.0 in `ginopenapi` (now requires Go 1.26) and `brotli` v1.2.7 / `klauspost/compress` v1.20.2 in `fiberopenapi` to fix `govulncheck` findings.
 - Updated `gofiber/fiber/v3` to v3.7.0 and `kataras/iris/v12` to v12.2.12 (both now require Go 1.26). `gin` and `gorilla/mux` were already on the latest release.
 - Updated golangci-lint to v2.15.0 (v2.12.2 cannot analyze Go 1.26 code).
+- CI: added per-module `govulncheck` (non-blocking) and `gosec` scans for core and every adapter, and a `codecov.yml` that waits for all coverage uploads. Core tests now also run on Go 1.22 (the `go.mod` minimum).
+- CI: core tests run on a Go version matrix; each adapter job runs tests and lint together on the Go version declared in its `go.mod` (using a throwaway workspace of the core and that adapter), and uploads per-module coverage.
+- CI: updated `actions/checkout` and `actions/setup-go` to v7 (Node 24) to resolve the Node.js 20 deprecation warning.
 - Updated `spec-ui` to `v0.2.2` (Swagger UI 5.34.1, Stoplight Elements 9.0.29, Scalar 1.76.4, ReDoc 3.0.1, RapiDoc 12.0.0).
 
 ### Added
